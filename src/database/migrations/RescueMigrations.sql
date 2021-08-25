@@ -1,0 +1,1 @@
+ALTER TABLE rescues ADD priority INT NOT NULL DEFAULT 999;
