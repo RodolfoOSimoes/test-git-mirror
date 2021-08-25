@@ -1,1 +1,0 @@
-{"version":3,"file":"badge-challenge.providers.js","sourceRoot":"","sources":["../../src/providers/badge-challenge.providers.ts"],"names":[],"mappings":";;;AACA,+EAAoE;AAEvD,QAAA,uBAAuB,GAAG;IACrC;QACE,OAAO,EAAE,4BAA4B;QACrC,UAAU,EAAE,CAAC,UAAsB,EAAE,EAAE,CACrC,UAAU,CAAC,aAAa,CAAC,uCAAc,CAAC;QAC1C,MAAM,EAAE,CAAC,qBAAqB,CAAC;KAChC;CACF,CAAC"}

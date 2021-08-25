@@ -1,1 +1,0 @@
-{"version":3,"file":"log-session.providers.js","sourceRoot":"","sources":["../../src/providers/log-session.providers.ts"],"names":[],"mappings":";;;AACA,uEAA4D;AAE/C,QAAA,mBAAmB,GAAG;IACjC;QACE,OAAO,EAAE,wBAAwB;QACjC,UAAU,EAAE,CAAC,UAAsB,EAAE,EAAE,CACrC,UAAU,CAAC,aAAa,CAAC,+BAAU,CAAC;QACtC,MAAM,EAAE,CAAC,qBAAqB,CAAC;KAChC;CACF,CAAC"}

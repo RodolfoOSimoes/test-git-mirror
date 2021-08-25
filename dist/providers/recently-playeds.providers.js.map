@@ -1,1 +1,0 @@
-{"version":3,"file":"recently-playeds.providers.js","sourceRoot":"","sources":["../../src/providers/recently-playeds.providers.ts"],"names":[],"mappings":";;;AACA,iFAAsE;AAEzD,QAAA,wBAAwB,GAAG;IACtC;QACE,OAAO,EAAE,6BAA6B;QACtC,UAAU,EAAE,CAAC,UAAsB,EAAE,EAAE,CACrC,UAAU,CAAC,aAAa,CAAC,yCAAe,CAAC;QAC3C,MAAM,EAAE,CAAC,qBAAqB,CAAC;KAChC;CACF,CAAC"}
