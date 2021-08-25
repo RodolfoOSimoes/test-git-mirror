@@ -20,7 +20,7 @@ export class RemoveOldRecentlyPlayedJob {
         .createQueryBuilder()
         .delete()
         .from(RecentlyPlayeds)
-        .where('created_at < :created_at LIMIT 50', {
+        .where('created_at < :created_at LIMIT 200', {
           created_at: this.getDate(),
         })
         .execute();
