@@ -1,0 +1,1 @@
+{"version":3,"file":"region.providers.js","sourceRoot":"","sources":["../../src/providers/region.providers.ts"],"names":[],"mappings":";;;AACA,6DAAmD;AAEtC,QAAA,eAAe,GAAG;IAC7B;QACE,OAAO,EAAE,mBAAmB;QAC5B,UAAU,EAAE,CAAC,UAAsB,EAAE,EAAE,CAAC,UAAU,CAAC,aAAa,CAAC,sBAAM,CAAC;QACxE,MAAM,EAAE,CAAC,qBAAqB,CAAC;KAChC;CACF,CAAC"}

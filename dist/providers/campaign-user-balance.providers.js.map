@@ -1,0 +1,1 @@
+{"version":3,"file":"campaign-user-balance.providers.js","sourceRoot":"","sources":["../../src/providers/campaign-user-balance.providers.ts"],"names":[],"mappings":";;;AACA,2FAA+E;AAElE,QAAA,4BAA4B,GAAG;IAC1C;QACE,OAAO,EAAE,kCAAkC;QAC3C,UAAU,EAAE,CAAC,UAAsB,EAAE,EAAE,CACrC,UAAU,CAAC,aAAa,CAAC,kDAAmB,CAAC;QAC/C,MAAM,EAAE,CAAC,qBAAqB,CAAC;KAChC;CACF,CAAC"}

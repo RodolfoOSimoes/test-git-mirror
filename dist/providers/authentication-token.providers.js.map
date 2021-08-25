@@ -1,0 +1,1 @@
+{"version":3,"file":"authentication-token.providers.js","sourceRoot":"","sources":["../../src/providers/authentication-token.providers.ts"],"names":[],"mappings":";;;AACA,yFAA8E;AAEjE,QAAA,4BAA4B,GAAG;IAC1C;QACE,OAAO,EAAE,iCAAiC;QAC1C,UAAU,EAAE,CAAC,UAAsB,EAAE,EAAE,CACrC,UAAU,CAAC,aAAa,CAAC,iDAAmB,CAAC;QAC/C,MAAM,EAAE,CAAC,qBAAqB,CAAC;KAChC;CACF,CAAC"}

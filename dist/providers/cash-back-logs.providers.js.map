@@ -1,0 +1,1 @@
+{"version":3,"file":"cash-back-logs.providers.js","sourceRoot":"","sources":["../../src/providers/cash-back-logs.providers.ts"],"names":[],"mappings":";;;AACA,6EAAiE;AAEpD,QAAA,qBAAqB,GAAG;IACnC;QACE,OAAO,EAAE,2BAA2B;QACpC,UAAU,EAAE,CAAC,UAAsB,EAAE,EAAE,CACrC,UAAU,CAAC,aAAa,CAAC,oCAAY,CAAC;QACxC,MAAM,EAAE,CAAC,qBAAqB,CAAC;KAChC;CACF,CAAC"}
