@@ -78,11 +78,8 @@ AppModule = __decorate([
         imports: [
             config_1.ConfigModule.forRoot(),
             schedule_1.ScheduleModule.forRoot(),
-            bull_1.BullModule.forRoot({
-                redis: {
-                    host: process.env.REDIS_HOST,
-                    port: Number(process.env.REDIS_PORT),
-                },
+            bull_1.BullModule.registerQueue({
+                redis: process.env.REDIS_HOST,
             }),
             mailer_1.MailerModule.forRoot({
                 transport: {
