@@ -68,7 +68,8 @@ import { RemoveOldRecentlyPlayedJob } from './jobs/RemoveOldRecentlyPlayedJob';
     ConfigModule.forRoot(),
     ScheduleModule.forRoot(),
     BullModule.registerQueue({
-      redis: process.env.REDIS_HOST,
+      redis:
+        'redis://:p4bf8c1b9b860c5e2dae74ad7ab5a3beb01c7792fa1c59355d1af50c926e362ca@ec2-54-164-11-40.compute-1.amazonaws.com:22449',
     }),
     MailerModule.forRoot({
       transport: {
