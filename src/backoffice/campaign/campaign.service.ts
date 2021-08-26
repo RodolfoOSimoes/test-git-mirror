@@ -5,6 +5,7 @@ import { AdminService } from '../admin/admin.service';
 import { CreateCampaignDto } from './dto/create-campaign.dto';
 import { UpdateCampaignDto } from './dto/update-campaign.dto';
 import { Campaign } from '../../entities/campaign.entity';
+import { StorageService } from 'src/utils/storage/storage.service';
 
 @Injectable()
 export class CampaignService {
@@ -13,14 +14,28 @@ export class CampaignService {
     private campaignRepository: Repository<Campaign>,
     private adminService: AdminService,
     private paginationService: PaginationService,
+    private storageService: StorageService,
   ) {}
 
   async create(admin_id: number, data: CreateCampaignDto) {
     const admin = await this.adminService.findById(admin_id);
-    await this.campaignRepository.save({
+
+    const campaing = await this.campaignRepository.save({
       admin: admin,
-      ...data.campaign,
+      name: data.campaign.name,
+      slug: data.campaign.slug,
+      date_finish: data.campaign.date_finish,
+      date_start: data.campaign.date_start,
+      status: data.campaign.status,
+      created_at: new Date(),
+      updated_at: new Date(),
+      users_count: 0,
     });
+
+    const image = data?.campaign?.image?.data;
+
+    if (image)
+      await this.storageService.createPic(image, campaing.id, 'Campaign');
 
     return { message: 'Campanha criada com sucesso.' };
   }
