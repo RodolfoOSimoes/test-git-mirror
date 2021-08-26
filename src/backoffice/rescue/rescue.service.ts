@@ -48,7 +48,7 @@ export class RescueService {
       info_playlist: playlist,
       limited: dto.rescue.limited,
       limit_streams: dto.rescue.limit_streams,
-      order: dto.rescue.priority,
+      priority: dto.rescue.priority,
     });
 
     return { message: 'Hit criada com sucesso.' };
