@@ -72,8 +72,21 @@ export class CampaignService {
     const admin = await this.adminService.findById(admin_id);
     await this.campaignRepository.update(id, {
       admin: admin,
-      ...data.campaign,
+      name: data.campaign.name,
+      slug: data.campaign.slug,
+      date_finish: data.campaign.date_finish,
+      date_start: data.campaign.date_start,
+      status: data.campaign.status,
+      updated_at: new Date(),
     });
+
+    if (data?.campaign?.image?.data)
+      await this.storageService.updatePic(
+        data.campaign.image.data,
+        id,
+        'Campaign',
+      );
+
     return { message: 'Campanha atualizada com sucesso.' };
   }
 
