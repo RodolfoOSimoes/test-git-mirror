@@ -149,9 +149,9 @@ export class OrderService {
 
   async findTracking(tracking: string) {
     try {
-      const eventos = await rastrearEncomendas([tracking]);
+      const track = await rastrearEncomendas([tracking]);
       return {
-        eventos: eventos[0],
+        eventos: track[0],
       };
     } catch (error) {
       return {
