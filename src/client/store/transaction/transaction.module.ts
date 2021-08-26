@@ -10,6 +10,7 @@ import { productProviders } from 'src/providers/product.providers';
 import { SendMailProducerService } from 'src/jobs/producers/sendMail-producer-service';
 import { BullModule } from '@nestjs/bull';
 import { withdrawalProviders } from 'src/providers/withdrawal.providers';
+import { campaignProviders } from 'src/providers/campaign.providers';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { withdrawalProviders } from 'src/providers/withdrawal.providers';
     ...orderProviders,
     ...productProviders,
     ...withdrawalProviders,
+    ...campaignProviders,
     TransactionService,
     SendMailProducerService,
   ],

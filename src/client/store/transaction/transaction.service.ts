@@ -1,13 +1,15 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { User } from 'src/entities/user.entity';
 import { Statement } from 'src/entities/statement.entity';
-import { Repository } from 'typeorm';
+import { LessThanOrEqual, MoreThanOrEqual, Repository } from 'typeorm';
 import { Address } from 'src/entities/address.entity';
 import { Order } from 'src/entities/order.entity';
 import { Product } from 'src/entities/product.entity';
 import { generateCode } from 'src/utils/code.utils';
 import { SendMailProducerService } from 'src/jobs/producers/sendMail-producer-service';
 import { Withdrawal } from 'src/entities/withdrawals.entity';
+import { Campaign } from 'src/entities/campaign.entity';
+import { formatDate } from 'src/utils/date.utils';
 
 @Injectable()
 export class TransactionService {
@@ -24,6 +26,8 @@ export class TransactionService {
     private productRepository: Repository<Product>,
     @Inject('WITHDRAWAL_REPOSITORY')
     private withdrawRepository: Repository<Withdrawal>,
+    @Inject('CAMPAIGN_REPOSITORY')
+    private campaignRepository: Repository<Campaign>,
     private sendMailProducer: SendMailProducerService,
   ) {}
 
@@ -34,6 +38,12 @@ export class TransactionService {
       where: { user: user },
       order: { id: 'DESC' },
       relations: ['city', 'city.state'],
+    });
+
+    const campaign = await this.campaignRepository.findOne({
+      status: true,
+      date_start: LessThanOrEqual(formatDate(new Date())),
+      date_finish: MoreThanOrEqual(formatDate(new Date())),
     });
 
     const product = await this.productRepository.findOne({
@@ -50,6 +60,7 @@ export class TransactionService {
       delete: false,
       created_at: new Date(),
       updated_at: new Date(),
+      campaign: campaign,
     });
 
     const order = await this.orderRepository.save({
@@ -60,6 +71,15 @@ export class TransactionService {
       sent: false,
       confirmation_email: true,
       code_secret: generateCode(50),
+      price_of_product: product.value,
+    });
+
+    await this.withdrawRepository.save({
+      user: user,
+      date_spent: this.getToday(),
+      spending: product.value,
+      created_at: new Date(),
+      updated_at: new Date(),
     });
 
     await this.addressRepository.update(address.id, {
@@ -73,5 +93,15 @@ export class TransactionService {
     this.sendMailProducer.sendOrderEmail(user, product, address);
 
     return 'This action adds a new transaction';
+  }
+
+  getToday() {
+    const date = new Date();
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+    const year = date.getFullYear();
+    return `${year}-${month < 10 ? '0' + month : month}-${
+      day < 10 ? '0' + day : day
+    }`;
   }
 }
