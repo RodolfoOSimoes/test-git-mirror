@@ -69,9 +69,9 @@ import { RemoveOldRecentlyPlayedJob } from './jobs/RemoveOldRecentlyPlayedJob';
     ScheduleModule.forRoot(),
     BullModule.forRoot({
       redis: {
-        host: 'redis-18808.c14.us-east-1-3.ec2.cloud.redislabs.com',
-        port: 18808,
-        password: 'Drc1g8aur4h6bpt8lfvnDfbs2EcmRxMP',
+        host: process.env.REDIS_HOST,
+        port: Number(process.env.REDIS_PORT),
+        password: process.env.REDIS_PASS,
       },
     }),
     MailerModule.forRoot({

@@ -93,6 +93,7 @@ export class RecentlyPlayedJob {
         situation: false,
         have_accepted: true,
         last_time_verified: LessThan(new Date().getTime()),
+        id: 607,
       },
       select: ['id', 'credentials', 'last_heard'],
     });
@@ -102,7 +103,7 @@ export class RecentlyPlayedJob {
     const recently = await this.recentlyRepository.findOne({
       where: { user: user },
       select: ['content'],
-      order: { id: 'DESC' },
+      order: { created_at: 'DESC' },
     });
     try {
       return recently.content['cursors']['after'];
@@ -330,8 +331,6 @@ export class RecentlyPlayedJob {
 
     const userQuestSpotifySave: UserQuestSpotifyPlaylist[] = [];
     const userQuestSpotifyUpdate: UserQuestSpotifyPlaylist[] = [];
-    const statements: Statement[] = [];
-    const cashbacks: CashBack[] = [];
 
     userQuestPlaylist.forEach((uqp) => {
       const userQuestSpotify = new UserQuestSpotifyPlaylist();
@@ -348,33 +347,24 @@ export class RecentlyPlayedJob {
       }
     });
 
+    const statements: Statement[] = [];
+    const cashbacks: CashBack[] = [];
+
     statementCashbacks.forEach((cashback) => {
       cashbacks.push(this.buildCashBack(cashback, user));
       statements.push(this.buildStatement(cashback, user, campaign));
     });
 
-    const statementsPromise = this.statementRepository.save(statements);
-
-    const cashbacksPromise = this.cashBackRepository.save(cashbacks);
-
-    const userQuestSpotifySavePromise =
-      this.userQuestSpotifyRepository.save(userQuestSpotifySave);
-
-    const userQuestSpotifyUpdatePromise = [];
-    userQuestSpotifyUpdate.forEach((uqs) => {
-      userQuestSpotifyUpdatePromise.push(
-        this.userQuestSpotifyRepository.update(uqs.id, uqs),
-      );
-    });
-
     try {
       await Promise.all([
-        statementsPromise,
-        cashbacksPromise,
-        userQuestSpotifySavePromise,
+        this.statementRepository.save(statements),
+        this.cashBackRepository.save(cashbacks),
+        this.userQuestSpotifyRepository.save(userQuestSpotifySave),
       ]);
-
-      await Promise.all([userQuestSpotifyUpdatePromise]);
+      userQuestSpotifyUpdate.forEach(
+        async (uqs) =>
+          await this.userQuestSpotifyRepository.update(uqs.id, uqs),
+      );
     } catch (error) {
       console.log(error.message);
     }
