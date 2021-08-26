@@ -171,9 +171,12 @@ export class UserService {
     if (dto.user.image && dto.user.image.data) {
       await this.storageService.updatePic(dto.user.image.data, id, 'User');
     }
+
+    console.log(dto.user.birthdate);
+
     await this.userRepository.update(id, {
       city: city,
-      birthdate: dto.user.birthdate,
+      birthdate: this.getBirthDate(dto.user.birthdate),
       email: dto.user.email,
       phone: dto.user.phone,
       name: dto.user.name,
@@ -239,5 +242,10 @@ export class UserService {
   hasDailyOrder(orders: Order[]): boolean {
     const order = orders.find((order) => this.compareDate(order.created_at));
     return order ? true : false;
+  }
+
+  getBirthDate(birthDate: string) {
+    const [day, month, year] = birthDate.split('/');
+    return new Date(Number(year), Number(month) - 1, Number(day));
   }
 }
