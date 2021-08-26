@@ -45,9 +45,14 @@ export class RecentlyPlayedJob {
   // @Cron('60 * * * * *')
   @Cron(CronExpression.EVERY_30_MINUTES)
   async handleCron() {
-    const users = await this.loadUsers();
+    const listUsers = await this.loadUsers();
     console.time('recently_played');
-    await this.runJob(users);
+    const size = 12; // spotify permite apenas 25 chamadas / seg
+    while (listUsers.length) {
+      const users = listUsers.slice(0, size);
+      await this.runJob(users);
+    }
+
     console.timeEnd('recently_played');
   }
 
