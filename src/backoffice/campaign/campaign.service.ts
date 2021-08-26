@@ -32,10 +32,12 @@ export class CampaignService {
       users_count: 0,
     });
 
-    const image = data?.campaign?.image?.data;
-
-    if (image)
-      await this.storageService.createPic(image, campaing.id, 'Campaign');
+    if (data?.campaign?.image?.data)
+      await this.storageService.createPic(
+        data.campaign.image.data,
+        campaing.id,
+        'Campaign',
+      );
 
     return { message: 'Campanha criada com sucesso.' };
   }
