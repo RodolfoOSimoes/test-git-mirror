@@ -3,6 +3,7 @@ import { Order } from 'src/entities/order.entity';
 import { User } from 'src/entities/user.entity';
 import { StorageService } from 'src/utils/storage/storage.service';
 import { Repository } from 'typeorm';
+import { rastrearEncomendas } from 'correios-brasil';
 
 @Injectable()
 export class OrderService {
@@ -147,9 +148,15 @@ export class OrderService {
   }
 
   async findTracking(tracking: string) {
-    return await this.orderRepository.findOne({
-      where: { tracking_code: tracking },
-      relations: ['product'],
-    });
+    try {
+      const eventos = await rastrearEncomendas([tracking]);
+      return {
+        eventos: eventos[0],
+      };
+    } catch (error) {
+      return {
+        message: 'Erro ao rastrear encomenda.',
+      };
+    }
   }
 }

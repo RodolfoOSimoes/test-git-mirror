@@ -38,6 +38,7 @@
     "axios": "^0.21.1",
     "bcrypt": "^5.0.1",
     "bull": "^3.28.1",
+    "correios-brasil": "^2.2.2",
     "generate-password": "^1.6.0",
     "googleapis": "^84.0.0",
     "mysql2": "^2.2.5",
