@@ -58,6 +58,7 @@ export class RescueService {
     const limit = 10;
     const count = await this.rescueRepository.count({
       where: { deleted: false },
+      order: { priority: 'ASC', id: 'DESC' },
     });
 
     const data = (
