@@ -1,0 +1,1 @@
+{"version":3,"file":"newsletter.providers.js","sourceRoot":"","sources":["../../src/providers/newsletter.providers.ts"],"names":[],"mappings":";;;AACA,qEAA2D;AAE9C,QAAA,mBAAmB,GAAG;IACjC;QACE,OAAO,EAAE,uBAAuB;QAChC,UAAU,EAAE,CAAC,UAAsB,EAAE,EAAE,CACrC,UAAU,CAAC,aAAa,CAAC,8BAAU,CAAC;QACtC,MAAM,EAAE,CAAC,qBAAqB,CAAC;KAChC;CACF,CAAC"}
