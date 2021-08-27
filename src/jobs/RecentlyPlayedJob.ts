@@ -43,7 +43,7 @@ export class RecentlyPlayedJob {
   ) {}
 
   // @Cron('60 * * * * *')
-  @Cron(CronExpression.EVERY_30_MINUTES)
+  @Cron(CronExpression.EVERY_10_MINUTES)
   async handleCron() {
     const listUsers = await this.loadUsers();
     console.time('recently_played');
