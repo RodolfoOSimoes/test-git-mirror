@@ -40,11 +40,11 @@ let RecentlyPlayedJob = class RecentlyPlayedJob {
         this.spotifyService = spotifyService;
     }
     async handleCron() {
+        console.log('start recently played job');
         const listUsers = await this.loadUsers();
-        console.time('recently_played');
         const size = 12;
-        while (listUsers.length) {
-            const users = listUsers.slice(0, size);
+        while (listUsers.length > 0) {
+            const users = listUsers.splice(0, size);
             await this.runJob(users);
         }
         console.timeEnd('recently_played');

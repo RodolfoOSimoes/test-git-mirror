@@ -19,6 +19,7 @@ import { Statement } from 'src/entities/statement.entity';
 import { Quest } from 'src/entities/quest.entity';
 import { QuestSpotifyPlaylists } from 'src/entities/quest-spotify-playlists.entity';
 import { UserQuestSpotifyPlaylist } from 'src/entities/user-quest-spotify-playlists.entity';
+import { Between } from 'typeorm';
 
 @Injectable()
 export class RecentlyPlayedJob {
@@ -43,15 +44,15 @@ export class RecentlyPlayedJob {
   ) {}
 
   // @Cron('60 * * * * *')
-  @Cron(CronExpression.EVERY_10_HOURS)
+  @Cron(CronExpression.EVERY_2_HOURS)
   async handleCron() {
     console.log('start recently played job');
     const listUsers = await this.loadUsers();
-    console.time('recently_played');
     const size = 12; // spotify permite apenas 25 chamadas / seg
-    while (listUsers.length) {
-      const users = listUsers.slice(0, size);
+    while (listUsers.length > 0) {
+      const users = listUsers.splice(0, size);
       await this.runJob(users);
+      this.sleep(1000);
     }
 
     console.timeEnd('recently_played');
@@ -99,7 +100,6 @@ export class RecentlyPlayedJob {
         situation: false,
         have_accepted: true,
         last_time_verified: LessThan(new Date().getTime()),
-        id: LessThan(10000),
       },
       select: ['id', 'credentials', 'last_heard'],
     });
@@ -145,6 +145,14 @@ export class RecentlyPlayedJob {
 
   getLastHeardTime(recently) {
     return new Date(recently?.items[recently?.items?.length - 1]?.played_at);
+  }
+
+  sleep(milliseconds) {
+    const date = Date.now();
+    let currentDate = null;
+    do {
+      currentDate = Date.now();
+    } while (currentDate - date < milliseconds);
   }
 
   prepareRecentlyPlayed(recently: any) {
