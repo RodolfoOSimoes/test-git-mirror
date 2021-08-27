@@ -45,6 +45,7 @@ export class RecentlyPlayedJob {
   // @Cron('60 * * * * *')
   @Cron(CronExpression.EVERY_10_MINUTES)
   async handleCron() {
+    console.log('start recently played job');
     const listUsers = await this.loadUsers();
     console.time('recently_played');
     const size = 12; // spotify permite apenas 25 chamadas / seg
