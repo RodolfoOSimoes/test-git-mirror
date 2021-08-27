@@ -43,7 +43,7 @@ export class RecentlyPlayedJob {
   ) {}
 
   // @Cron('60 * * * * *')
-  @Cron(CronExpression.EVERY_10_MINUTES)
+  @Cron(CronExpression.EVERY_10_HOURS)
   async handleCron() {
     console.log('start recently played job');
     const listUsers = await this.loadUsers();
@@ -99,6 +99,7 @@ export class RecentlyPlayedJob {
         situation: false,
         have_accepted: true,
         last_time_verified: LessThan(new Date().getTime()),
+        id: LessThan(10000),
       },
       select: ['id', 'credentials', 'last_heard'],
     });
