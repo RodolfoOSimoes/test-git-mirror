@@ -100,6 +100,7 @@ export class RecentlyPlayedJob {
         situation: false,
         have_accepted: true,
         last_time_verified: LessThan(new Date().getTime()),
+        id: LessThan(60000),
       },
       select: ['id', 'credentials', 'last_heard'],
     });
