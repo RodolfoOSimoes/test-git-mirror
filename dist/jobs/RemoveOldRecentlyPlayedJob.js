@@ -8,21 +8,13 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-var __param = (this && this.__param) || function (paramIndex, decorator) {
-    return function (target, key) { decorator(target, key, paramIndex); }
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.RemoveOldRecentlyPlayedJob = void 0;
 const common_1 = require("@nestjs/common");
 const schedule_1 = require("@nestjs/schedule");
-const spotify_service_1 = require("../apis/spotify/spotify.service");
 const recently_playeds_entity_1 = require("../entities/recently-playeds.entity");
-const user_entity_1 = require("../entities/user.entity");
 const typeorm_1 = require("typeorm");
 let RemoveOldRecentlyPlayedJob = class RemoveOldRecentlyPlayedJob {
-    constructor(recentlyPlayedRepository) {
-        this.recentlyPlayedRepository = recentlyPlayedRepository;
-    }
     async handleCron() {
         try {
             await typeorm_1.getConnection()
@@ -46,15 +38,13 @@ let RemoveOldRecentlyPlayedJob = class RemoveOldRecentlyPlayedJob {
     }
 };
 __decorate([
-    schedule_1.Cron(schedule_1.CronExpression.EVERY_10_SECONDS),
+    schedule_1.Cron(schedule_1.CronExpression.EVERY_10_MINUTES),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
 ], RemoveOldRecentlyPlayedJob.prototype, "handleCron", null);
 RemoveOldRecentlyPlayedJob = __decorate([
-    common_1.Injectable(),
-    __param(0, common_1.Inject('RECENTLY_PLAYEDS_REPOSITORY')),
-    __metadata("design:paramtypes", [typeorm_1.Repository])
+    common_1.Injectable()
 ], RemoveOldRecentlyPlayedJob);
 exports.RemoveOldRecentlyPlayedJob = RemoveOldRecentlyPlayedJob;
 //# sourceMappingURL=RemoveOldRecentlyPlayedJob.js.map

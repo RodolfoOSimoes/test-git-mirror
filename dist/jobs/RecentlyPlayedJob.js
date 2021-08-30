@@ -27,8 +27,9 @@ const statement_entity_1 = require("../entities/statement.entity");
 const quest_entity_1 = require("../entities/quest.entity");
 const quest_spotify_playlists_entity_1 = require("../entities/quest-spotify-playlists.entity");
 const user_quest_spotify_playlists_entity_1 = require("../entities/user-quest-spotify-playlists.entity");
+const bull_1 = require("@nestjs/bull");
 let RecentlyPlayedJob = class RecentlyPlayedJob {
-    constructor(userRepository, campaignRepository, rescueRepository, recentlyRepository, cashBackRepository, statementRepository, questRepository, userQuestSpotifyRepository, spotifyService) {
+    constructor(userRepository, campaignRepository, rescueRepository, recentlyRepository, cashBackRepository, statementRepository, questRepository, userQuestSpotifyRepository, spotifyService, recentlyQueue) {
         this.userRepository = userRepository;
         this.campaignRepository = campaignRepository;
         this.rescueRepository = rescueRepository;
@@ -38,16 +39,13 @@ let RecentlyPlayedJob = class RecentlyPlayedJob {
         this.questRepository = questRepository;
         this.userQuestSpotifyRepository = userQuestSpotifyRepository;
         this.spotifyService = spotifyService;
+        this.recentlyQueue = recentlyQueue;
     }
     async handleCron() {
-        console.log('start recently played job');
+        console.time('recently_played');
         const listUsers = await this.loadUsers();
-        const size = 12;
-        while (listUsers.length > 0) {
-            const users = listUsers.splice(0, size);
-            await this.runJob(users);
-            this.sleep(1000);
-        }
+        const users = listUsers.splice(0, 10);
+        await this.recentlyQueue.add(users);
         console.timeEnd('recently_played');
     }
     async runJob(users) {
@@ -80,7 +78,6 @@ let RecentlyPlayedJob = class RecentlyPlayedJob {
                 situation: false,
                 have_accepted: true,
                 last_time_verified: typeorm_1.LessThan(new Date().getTime()),
-                id: typeorm_1.LessThan(50000),
             },
             select: ['id', 'credentials', 'last_heard'],
         });
@@ -342,7 +339,7 @@ let RecentlyPlayedJob = class RecentlyPlayedJob {
     }
 };
 __decorate([
-    schedule_1.Cron(schedule_1.CronExpression.EVERY_30_MINUTES),
+    schedule_1.Cron(schedule_1.CronExpression.EVERY_30_SECONDS),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
@@ -357,6 +354,7 @@ RecentlyPlayedJob = __decorate([
     __param(5, common_1.Inject('STATEMENT_REPOSITORY')),
     __param(6, common_1.Inject('QUEST_REPOSITORY')),
     __param(7, common_1.Inject('USER_QUEST_SPOTIFY_PLAYLISTS_REPOSITORY')),
+    __param(9, bull_1.InjectQueue('recently_playeds_queue')),
     __metadata("design:paramtypes", [typeorm_1.Repository,
         typeorm_1.Repository,
         typeorm_1.Repository,
@@ -365,7 +363,7 @@ RecentlyPlayedJob = __decorate([
         typeorm_1.Repository,
         typeorm_1.Repository,
         typeorm_1.Repository,
-        spotify_service_1.SpotifyService])
+        spotify_service_1.SpotifyService, Object])
 ], RecentlyPlayedJob);
 exports.RecentlyPlayedJob = RecentlyPlayedJob;
 //# sourceMappingURL=RecentlyPlayedJob.js.map

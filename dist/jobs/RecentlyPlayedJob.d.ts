@@ -9,6 +9,7 @@ import { Statement } from 'src/entities/statement.entity';
 import { Quest } from 'src/entities/quest.entity';
 import { QuestSpotifyPlaylists } from 'src/entities/quest-spotify-playlists.entity';
 import { UserQuestSpotifyPlaylist } from 'src/entities/user-quest-spotify-playlists.entity';
+import { Queue } from 'bull';
 export declare class RecentlyPlayedJob {
     private userRepository;
     private campaignRepository;
@@ -19,7 +20,8 @@ export declare class RecentlyPlayedJob {
     private questRepository;
     private userQuestSpotifyRepository;
     private spotifyService;
-    constructor(userRepository: Repository<User>, campaignRepository: Repository<Campaign>, rescueRepository: Repository<Rescue>, recentlyRepository: Repository<RecentlyPlayeds>, cashBackRepository: Repository<CashBack>, statementRepository: Repository<Statement>, questRepository: Repository<Quest>, userQuestSpotifyRepository: Repository<UserQuestSpotifyPlaylist>, spotifyService: SpotifyService);
+    private recentlyQueue;
+    constructor(userRepository: Repository<User>, campaignRepository: Repository<Campaign>, rescueRepository: Repository<Rescue>, recentlyRepository: Repository<RecentlyPlayeds>, cashBackRepository: Repository<CashBack>, statementRepository: Repository<Statement>, questRepository: Repository<Quest>, userQuestSpotifyRepository: Repository<UserQuestSpotifyPlaylist>, spotifyService: SpotifyService, recentlyQueue: Queue);
     handleCron(): Promise<void>;
     runJob(users: User[]): Promise<void>;
     loadUsers(): Promise<User[]>;

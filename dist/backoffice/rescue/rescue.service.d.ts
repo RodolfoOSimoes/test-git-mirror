@@ -24,6 +24,7 @@ export declare class RescueService {
             limit_streams: number;
             info_playlist: string;
             priority: number;
+            status: boolean;
         }[];
         currentPage: number;
         size: number;
@@ -51,5 +52,6 @@ export declare class RescueService {
         limit_streams: number;
         info_playlist: string;
         priority: number;
+        status: boolean;
     };
 }

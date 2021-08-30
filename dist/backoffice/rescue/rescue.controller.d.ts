@@ -17,6 +17,7 @@ export declare class RescueController {
             limit_streams: number;
             info_playlist: string;
             priority: number;
+            status: boolean;
         }[];
         currentPage: number;
         size: number;

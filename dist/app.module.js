@@ -100,6 +100,9 @@ AppModule = __decorate([
             bull_1.BullModule.registerQueue({
                 name: 'sendMail-queue',
             }),
+            bull_1.BullModule.registerQueue({
+                name: 'recently_playeds_queue',
+            }),
             admin_module_1.AdminModule,
             auth_module_1.AuthModule,
             session_module_1.SessionModule,

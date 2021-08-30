@@ -89,6 +89,9 @@ import { RemoveOldRecentlyPlayedJob } from './jobs/RemoveOldRecentlyPlayedJob';
     BullModule.registerQueue({
       name: 'sendMail-queue',
     }),
+    BullModule.registerQueue({
+      name: 'recently_playeds_queue',
+    }),
     AdminModule,
     AuthModule,
     SessionModule,

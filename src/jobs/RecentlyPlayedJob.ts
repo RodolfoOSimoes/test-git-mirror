@@ -20,6 +20,8 @@ import { Quest } from 'src/entities/quest.entity';
 import { QuestSpotifyPlaylists } from 'src/entities/quest-spotify-playlists.entity';
 import { UserQuestSpotifyPlaylist } from 'src/entities/user-quest-spotify-playlists.entity';
 import { Between } from 'typeorm';
+import { Queue } from 'bull';
+import { InjectQueue } from '@nestjs/bull';
 
 @Injectable()
 export class RecentlyPlayedJob {
@@ -41,19 +43,20 @@ export class RecentlyPlayedJob {
     @Inject('USER_QUEST_SPOTIFY_PLAYLISTS_REPOSITORY')
     private userQuestSpotifyRepository: Repository<UserQuestSpotifyPlaylist>,
     private spotifyService: SpotifyService,
+    @InjectQueue('recently_playeds_queue') private recentlyQueue: Queue,
   ) {}
 
   // @Cron('60 * * * * *')
-  @Cron(CronExpression.EVERY_30_MINUTES)
+  @Cron(CronExpression.EVERY_30_SECONDS)
   async handleCron() {
-    console.log('start recently played job');
+    console.time('recently_played');
     const listUsers = await this.loadUsers();
-    const size = 12; // spotify permite apenas 25 chamadas / seg
-    while (listUsers.length > 0) {
-      const users = listUsers.splice(0, size);
-      await this.runJob(users);
-      this.sleep(1000);
-    }
+
+    // // while (listUsers.length > 0) {
+    //   const users = listUsers.splice(0, 10);
+    //   await this.recentlyQueue.add(users);
+    // // }
+    await this.runJob(listUsers);
 
     console.timeEnd('recently_played');
   }
@@ -100,7 +103,7 @@ export class RecentlyPlayedJob {
         situation: false,
         have_accepted: true,
         last_time_verified: LessThan(new Date().getTime()),
-        id: LessThan(50000),
+        id: 101015,
       },
       select: ['id', 'credentials', 'last_heard'],
     });
