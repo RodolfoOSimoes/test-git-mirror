@@ -68,12 +68,12 @@ let RescueService = class RescueService {
             order: {
                 id: 'DESC',
             },
-        }))) === null || _a === void 0 ? void 0 : _a.sort((a, b) => {
+        }))) === null || _a === void 0 ? void 0 : _a.map((rescue) => this.rescueMapper(rescue))) === null || _b === void 0 ? void 0 : _b.sort((a, b) => {
             if (a.priority == b.priority)
                 return b.id - a.id;
             else
                 return a.priority - b.priority;
-        })) === null || _b === void 0 ? void 0 : _b.map((rescue) => this.rescueMapper(rescue));
+        });
         return {
             data,
             currentPage: page,

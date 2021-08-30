@@ -70,11 +70,11 @@ export class RescueService {
         },
       })
     )
+      ?.map((rescue) => this.rescueMapper(rescue))
       ?.sort((a, b) => {
         if (a.priority == b.priority) return b.id - a.id;
         else return a.priority - b.priority;
-      })
-      ?.map((rescue) => this.rescueMapper(rescue));
+      });
 
     return {
       data,
