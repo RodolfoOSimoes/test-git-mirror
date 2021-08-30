@@ -56,19 +56,24 @@ let RescueService = class RescueService {
         return { message: 'Hit criada com sucesso.' };
     }
     async findAll(page = 1) {
-        var _a;
+        var _a, _b;
         const limit = 10;
         const count = await this.rescueRepository.count({
             where: { deleted: false },
             order: { priority: 'ASC', id: 'DESC' },
         });
-        const data = (_a = (await this.rescueRepository.find({
+        const data = (_b = (_a = (await this.rescueRepository.find({
             skip: (page - 1) * limit,
             take: limit,
             order: {
                 id: 'DESC',
             },
-        }))) === null || _a === void 0 ? void 0 : _a.map((rescue) => this.rescueMapper(rescue));
+        }))) === null || _a === void 0 ? void 0 : _a.sort((a, b) => {
+            if (a.priority == b.priority)
+                return b.id - a.id;
+            else
+                return a.priority - b.priority;
+        })) === null || _b === void 0 ? void 0 : _b.map((rescue) => this.rescueMapper(rescue));
         return {
             data,
             currentPage: page,
