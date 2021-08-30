@@ -25,7 +25,6 @@ let RemoveOldRecentlyPlayedJob = class RemoveOldRecentlyPlayedJob {
     }
     async handleCron() {
         try {
-            console.log('remove old recently playeds');
             await typeorm_1.getConnection()
                 .createQueryBuilder()
                 .delete()

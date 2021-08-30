@@ -7,6 +7,7 @@ import {
   Request,
   UnauthorizedException,
   Query,
+  Delete,
 } from '@nestjs/common';
 import { UserGratificationService } from './user-gratification.service';
 import { CreateUserGratificationDto } from './dto/create-user-gratification.dto';
@@ -34,10 +35,10 @@ export class UserGratificationController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get()
-  findAll(@Request() req, @Query('page') page: number) {
+  @Delete(':id')
+  delete(@Request() req, @Query('id') id: number) {
     if (req.user.roles === AdminRole.MASTER)
-      return this.userGratificationService.findAll(page);
+      return this.userGratificationService.delete(id);
     else throw new UnauthorizedException();
   }
 }

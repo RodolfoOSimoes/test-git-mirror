@@ -6,10 +6,17 @@ import { UserModule } from '../user/user.module';
 import { AdminModule } from '../admin/admin.module';
 
 import { userGratificationProviders } from '../../providers/user-gratification.providers';
+import { statementProviders } from 'src/providers/statement.providers';
+import { campaignProviders } from 'src/providers/campaign.providers';
 
 @Module({
   controllers: [UserGratificationController],
   imports: [AdminModule, UserModule, DatabaseModule],
-  providers: [...userGratificationProviders, UserGratificationService],
+  providers: [
+    ...userGratificationProviders,
+    ...statementProviders,
+    ...campaignProviders,
+    UserGratificationService,
+  ],
 })
 export class UserGratificationModule {}

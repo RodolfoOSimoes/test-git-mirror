@@ -28,6 +28,7 @@ export declare class RecentlyPlayedJob {
     loadRescues(): Promise<Rescue[]>;
     updateUser(user: User, recently: any): Promise<void>;
     getLastHeardTime(recently: any): Date;
+    sleep(milliseconds: any): void;
     prepareRecentlyPlayed(recently: any): {
         cursors: any;
         next: any;

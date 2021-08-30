@@ -14,13 +14,20 @@ const database_module_1 = require("../../database/database.module");
 const user_module_1 = require("../user/user.module");
 const admin_module_1 = require("../admin/admin.module");
 const user_gratification_providers_1 = require("../../providers/user-gratification.providers");
+const statement_providers_1 = require("../../providers/statement.providers");
+const campaign_providers_1 = require("../../providers/campaign.providers");
 let UserGratificationModule = class UserGratificationModule {
 };
 UserGratificationModule = __decorate([
     common_1.Module({
         controllers: [user_gratification_controller_1.UserGratificationController],
         imports: [admin_module_1.AdminModule, user_module_1.UserModule, database_module_1.DatabaseModule],
-        providers: [...user_gratification_providers_1.userGratificationProviders, user_gratification_service_1.UserGratificationService],
+        providers: [
+            ...user_gratification_providers_1.userGratificationProviders,
+            ...statement_providers_1.statementProviders,
+            ...campaign_providers_1.campaignProviders,
+            user_gratification_service_1.UserGratificationService,
+        ],
     })
 ], UserGratificationModule);
 exports.UserGratificationModule = UserGratificationModule;

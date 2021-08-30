@@ -16,7 +16,6 @@ export class RemoveOldRecentlyPlayedJob {
   @Cron(CronExpression.EVERY_10_SECONDS)
   async handleCron() {
     try {
-      console.log('remove old recently playeds');
       await getConnection()
         .createQueryBuilder()
         .delete()

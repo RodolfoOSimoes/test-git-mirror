@@ -6,5 +6,5 @@ export declare class UserGratificationController {
     create(req: any, createUserGratificationDto: CreateUserGratificationDto): Promise<{
         message: string;
     }>;
-    findAll(req: any, page: number): Promise<import("../../entities/user-gratification.entity").UserGratification[]>;
+    delete(req: any, id: number): Promise<void>;
 }

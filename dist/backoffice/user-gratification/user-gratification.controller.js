@@ -28,9 +28,9 @@ let UserGratificationController = class UserGratificationController {
         else
             throw new common_1.UnauthorizedException();
     }
-    findAll(req, page) {
+    delete(req, id) {
         if (req.user.roles === AdminRoles_1.AdminRole.MASTER)
-            return this.userGratificationService.findAll(page);
+            return this.userGratificationService.delete(id);
         else
             throw new common_1.UnauthorizedException();
     }
@@ -46,13 +46,13 @@ __decorate([
 ], UserGratificationController.prototype, "create", null);
 __decorate([
     common_1.UseGuards(jwt_auth_guard_1.JwtAuthGuard),
-    common_1.Get(),
+    common_1.Delete(':id'),
     __param(0, common_1.Request()),
-    __param(1, common_1.Query('page')),
+    __param(1, common_1.Query('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, Number]),
     __metadata("design:returntype", void 0)
-], UserGratificationController.prototype, "findAll", null);
+], UserGratificationController.prototype, "delete", null);
 UserGratificationController = __decorate([
     common_1.Controller('v1/backoffice/gratifications'),
     __metadata("design:paramtypes", [user_gratification_service_1.UserGratificationService])

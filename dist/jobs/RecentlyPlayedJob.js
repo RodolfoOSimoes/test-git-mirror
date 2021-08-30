@@ -46,6 +46,7 @@ let RecentlyPlayedJob = class RecentlyPlayedJob {
         while (listUsers.length > 0) {
             const users = listUsers.splice(0, size);
             await this.runJob(users);
+            this.sleep(1000);
         }
         console.timeEnd('recently_played');
     }
@@ -79,6 +80,7 @@ let RecentlyPlayedJob = class RecentlyPlayedJob {
                 situation: false,
                 have_accepted: true,
                 last_time_verified: typeorm_1.LessThan(new Date().getTime()),
+                id: typeorm_1.LessThan(50000),
             },
             select: ['id', 'credentials', 'last_heard'],
         });
@@ -121,6 +123,13 @@ let RecentlyPlayedJob = class RecentlyPlayedJob {
     getLastHeardTime(recently) {
         var _a, _b;
         return new Date((_b = recently === null || recently === void 0 ? void 0 : recently.items[((_a = recently === null || recently === void 0 ? void 0 : recently.items) === null || _a === void 0 ? void 0 : _a.length) - 1]) === null || _b === void 0 ? void 0 : _b.played_at);
+    }
+    sleep(milliseconds) {
+        const date = Date.now();
+        let currentDate = null;
+        do {
+            currentDate = Date.now();
+        } while (currentDate - date < milliseconds);
     }
     prepareRecentlyPlayed(recently) {
         var _a;
@@ -333,7 +342,7 @@ let RecentlyPlayedJob = class RecentlyPlayedJob {
     }
 };
 __decorate([
-    schedule_1.Cron(schedule_1.CronExpression.EVERY_10_MINUTES),
+    schedule_1.Cron(schedule_1.CronExpression.EVERY_30_MINUTES),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
