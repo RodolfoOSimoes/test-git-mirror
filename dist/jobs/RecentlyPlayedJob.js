@@ -44,8 +44,7 @@ let RecentlyPlayedJob = class RecentlyPlayedJob {
     async handleCron() {
         console.time('recently_played');
         const listUsers = await this.loadUsers();
-        const users = listUsers.splice(0, 10);
-        await this.recentlyQueue.add(users);
+        await this.runJob(listUsers);
         console.timeEnd('recently_played');
     }
     async runJob(users) {
@@ -76,8 +75,8 @@ let RecentlyPlayedJob = class RecentlyPlayedJob {
             where: {
                 deleted: false,
                 situation: false,
-                have_accepted: true,
                 last_time_verified: typeorm_1.LessThan(new Date().getTime()),
+                id: 101015,
             },
             select: ['id', 'credentials', 'last_heard'],
         });

@@ -52,10 +52,10 @@ export class RecentlyPlayedJob {
     console.time('recently_played');
     const listUsers = await this.loadUsers();
 
-    // // while (listUsers.length > 0) {
+    // while (listUsers.length > 0) {
     //   const users = listUsers.splice(0, 10);
     //   await this.recentlyQueue.add(users);
-    // // }
+    // }
     await this.runJob(listUsers);
 
     console.timeEnd('recently_played');
@@ -67,6 +67,7 @@ export class RecentlyPlayedJob {
         const loadLastTimeVerify = await this.loadLastTimeVerify(user);
 
         const credentials = user.credentials;
+
         const recentlyPlayeds = await this.spotifyService.getRecentlyPlayed(
           credentials['refresh_token'],
           loadLastTimeVerify,
@@ -101,7 +102,6 @@ export class RecentlyPlayedJob {
       where: {
         deleted: false,
         situation: false,
-        have_accepted: true,
         last_time_verified: LessThan(new Date().getTime()),
         id: 101015,
       },
