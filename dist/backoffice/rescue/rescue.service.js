@@ -65,9 +65,8 @@ let RescueService = class RescueService {
         const data = (_b = (_a = (await this.rescueRepository.find({
             skip: (page - 1) * limit,
             take: limit,
-            order: {
-                id: 'DESC',
-            },
+            where: { deleted: false },
+            order: { status: 'DESC', priority: 'ASC', id: 'DESC' },
         }))) === null || _a === void 0 ? void 0 : _a.map((rescue) => this.rescueMapper(rescue))) === null || _b === void 0 ? void 0 : _b.sort((a, b) => {
             if (a.priority == b.priority)
                 return b.id - a.id;
