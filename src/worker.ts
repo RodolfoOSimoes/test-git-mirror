@@ -1,1 +1,1 @@
-console.log('worker');
+setInterval(() => console.log('worker'), 30000);
