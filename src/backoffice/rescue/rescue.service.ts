@@ -123,6 +123,7 @@ export class RescueService {
       limit_streams: rescue.limit_streams,
       info_playlist: rescue.info_playlist,
       priority: rescue.priority,
+      status: rescue.status,
     };
   }
 }
