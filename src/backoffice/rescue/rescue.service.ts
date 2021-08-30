@@ -57,7 +57,7 @@ export class RescueService {
   async findAll(page = 1) {
     const limit = 10;
     const count = await this.rescueRepository.count({
-      where: { deleted: false },
+      where: { deleted: false, status: true },
       order: { priority: 'ASC', id: 'DESC' },
     });
 
@@ -65,7 +65,7 @@ export class RescueService {
       await this.rescueRepository.find({
         skip: (page - 1) * limit,
         take: limit,
-        where: { deleted: false },
+        where: { deleted: false, status: true },
         order: { priority: 'ASC', id: 'DESC' },
       })
     )
