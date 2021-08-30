@@ -65,9 +65,8 @@ export class RescueService {
       await this.rescueRepository.find({
         skip: (page - 1) * limit,
         take: limit,
-        order: {
-          id: 'DESC',
-        },
+        where: { deleted: false },
+        order: { priority: 'ASC', id: 'DESC' },
       })
     )
       ?.map((rescue) => this.rescueMapper(rescue))
