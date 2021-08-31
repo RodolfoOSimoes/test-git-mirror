@@ -47,17 +47,15 @@ export class RecentlyPlayedJob {
   ) {}
 
   // @Cron('60 * * * * *')
-  @Cron(CronExpression.EVERY_30_SECONDS)
+  @Cron(CronExpression.EVERY_30_MINUTES)
   async handleCron() {
     console.time('recently_played');
     const listUsers = await this.loadUsers();
 
-    // while (listUsers.length > 0) {
-    //   const users = listUsers.splice(0, 10);
-    //   await this.recentlyQueue.add(users);
-    // }
-    await this.runJob(listUsers);
-
+    while (listUsers.length > 0) {
+      const users = listUsers.splice(0, 10);
+      await this.recentlyQueue.add(users, { attempts: 2 });
+    }
     console.timeEnd('recently_played');
   }
 
@@ -74,7 +72,6 @@ export class RecentlyPlayedJob {
         );
 
         const recently = this.prepareRecentlyPlayed(recentlyPlayeds);
-
         if (recently) {
           const [questPlaylistSpotify, campaign, rescues] = await Promise.all([
             this.loadSpotifyPlaylistQuests(),
@@ -103,7 +100,6 @@ export class RecentlyPlayedJob {
         deleted: false,
         situation: false,
         last_time_verified: LessThan(new Date().getTime()),
-        id: 101015,
       },
       select: ['id', 'credentials', 'last_heard'],
     });

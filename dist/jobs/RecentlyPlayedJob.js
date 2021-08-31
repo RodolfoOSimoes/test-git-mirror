@@ -44,7 +44,10 @@ let RecentlyPlayedJob = class RecentlyPlayedJob {
     async handleCron() {
         console.time('recently_played');
         const listUsers = await this.loadUsers();
-        await this.runJob(listUsers);
+        while (listUsers.length > 0) {
+            const users = listUsers.splice(0, 10);
+            await this.recentlyQueue.add(users, { attempts: 3 });
+        }
         console.timeEnd('recently_played');
     }
     async runJob(users) {
@@ -76,7 +79,7 @@ let RecentlyPlayedJob = class RecentlyPlayedJob {
                 deleted: false,
                 situation: false,
                 last_time_verified: typeorm_1.LessThan(new Date().getTime()),
-                id: 101015,
+                id: typeorm_1.In([607]),
             },
             select: ['id', 'credentials', 'last_heard'],
         });
