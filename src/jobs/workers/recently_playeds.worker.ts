@@ -33,47 +33,46 @@ async function runWorker() {
     connection = await getConnection();
     const queue = new Queue('recently_playeds_queue', process.env.REDIS_URL);
 
-    setInterval(async () => {
-      await queue.process(async (job) => {
-        const usersData = job.data;
+    await queue.process(async (job) => {
+      const usersData = job.data;
 
-        try {
-          const users = await getUsers(usersData, connection);
+      try {
+        const users = await getUsers(usersData, connection);
 
-          for (const user of users) {
-            console.log(`Processing user: ${user.id}`);
-            const credentials = user.credentials;
+        for (const user of users) {
+          console.log(`Processing user: ${user.id}`);
+          const credentials = user.credentials;
 
-            const recentlyPlayeds = await spotifyService.getRecentlyPlayed(
-              credentials['refresh_token'],
-              user.lastTimeVerify,
+          const recentlyPlayeds = await spotifyService.getRecentlyPlayed(
+            credentials['refresh_token'],
+            user.lastTimeVerify,
+          );
+          const recently = prepareRecentlyPlayed(recentlyPlayeds);
+          if (recently) {
+            const [questPlaylistSpotify, campaign, rescues] = await Promise.all(
+              [
+                loadSpotifyPlaylistQuests(connection),
+                loadCampaign(connection),
+                loadRescues(connection),
+              ],
             );
-            const recently = prepareRecentlyPlayed(recentlyPlayeds);
-            if (recently) {
-              const [questPlaylistSpotify, campaign, rescues] =
-                await Promise.all([
-                  loadSpotifyPlaylistQuests(connection),
-                  loadCampaign(connection),
-                  loadRescues(connection),
-                ]);
 
-              await prepareCashbacks(
-                user,
-                rescues,
-                recentlyPlayeds,
-                campaign,
-                questPlaylistSpotify,
-                connection,
-              );
-              await updateUser(user, recently, connection);
-            }
-            console.log(`Finish processing user: ${user.id}`);
+            await prepareCashbacks(
+              user,
+              rescues,
+              recentlyPlayeds,
+              campaign,
+              questPlaylistSpotify,
+              connection,
+            );
+            await updateUser(user, recently, connection);
           }
+          console.log(`Finish processing user: ${user.id}`);
+        }
 
-          connection.close();
-        } catch (error) {}
-      });
-    }, 3000);
+        connection.close();
+      } catch (error) {}
+    });
   } catch (error) {
     console.log(error);
     if (connection) connection.close();
