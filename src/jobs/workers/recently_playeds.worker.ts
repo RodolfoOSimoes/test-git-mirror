@@ -28,27 +28,44 @@ async function getConnection() {
 async function runWorker() {
   let connection = null;
   const spotifyService = new SpotifyService();
-  try {
-    console.log('Starting worker');
-    connection = await getConnection();
-    const queue = new Queue('recently_playeds_queue', process.env.REDIS_URL);
+  console.log('Starting worker');
+  connection = await getConnection();
+  let iteration = 0;
+  while (true) {
+    try {
+      const usersData = await connection.query(
+        `SELECT id, credentials, last_heard FROM users WHERE deleted = ? AND situation = ? AND last_time_verified < ? AND id > ? LIMIT 10`,
+        [false, false, new Date().getTime(), iteration],
+      );
 
-    await queue.process(async (job) => {
-      const usersData = job.data;
+      if (!usersData.length) {
+        iteration = 0;
+      } else {
+        iteration = usersData[usersData.length - 1].id;
+      }
 
-      try {
-        const users = await getUsers(usersData, connection);
+      const users = await getUsers(usersData, connection);
 
-        for (const user of users) {
-          console.log(`Processing user: ${user.id}`);
-          const credentials = user.credentials;
+      for (const user of users) {
+        console.log(`Processing user: ${user.id}`);
+        const credentials = user.credentials;
 
-          const recentlyPlayeds = await spotifyService.getRecentlyPlayed(
+        let recentlyPlayeds = null;
+
+        try {
+          recentlyPlayeds = await spotifyService.getRecentlyPlayed(
             credentials['refresh_token'],
             user.lastTimeVerify,
           );
+        } catch (error) {
+          recentlyPlayeds = null;
+        }
+
+        if (recentlyPlayeds) {
           const recently = prepareRecentlyPlayed(recentlyPlayeds);
+
           if (recently) {
+            console.log(`Updating data for user: ${user.id}`);
             const [questPlaylistSpotify, campaign, rescues] = await Promise.all(
               [
                 loadSpotifyPlaylistQuests(connection),
@@ -67,15 +84,12 @@ async function runWorker() {
             );
             await updateUser(user, recently, connection);
           }
-          console.log(`Finish processing user: ${user.id}`);
         }
-
-        connection.close();
-      } catch (error) {}
-    });
-  } catch (error) {
-    console.log(error);
-    if (connection) connection.close();
+        console.log(`Finish processing user: ${user.id}`);
+      }
+    } catch (error) {
+      console.log(error);
+    }
   }
 }
 
@@ -320,7 +334,6 @@ async function prepareCashbacks(
 }
 
 async function saveStatements(statements, connection) {
-  console.log('save statements start');
   for (const statement of statements) {
     await connection.query(
       `INSERT INTO statements (
@@ -356,11 +369,8 @@ async function saveStatements(statements, connection) {
       ],
     );
   }
-  console.log('save statements finish');
 }
 async function saveCashBacks(cashbacks, connection) {
-  console.log('save cashbacks start');
-
   for (const cashback of cashbacks) {
     await connection.query(
       `INSERT INTO cash_backs (
@@ -387,11 +397,8 @@ async function saveCashBacks(cashbacks, connection) {
       ],
     );
   }
-  console.log('save cashbacks finish');
 }
 async function saveUserQuestSpotify(userQuestSpotifies, connection) {
-  console.log('save userquest start');
-
   for (const uqs of userQuestSpotifies) {
     await connection.query(
       `INSERT INTO user_quest_spotify_playlists (
@@ -416,7 +423,6 @@ async function saveUserQuestSpotify(userQuestSpotifies, connection) {
       ],
     );
   }
-  console.log('save userquest finish');
 }
 
 async function updateUserQuestSpotify(userQuestSpotifies, connection) {

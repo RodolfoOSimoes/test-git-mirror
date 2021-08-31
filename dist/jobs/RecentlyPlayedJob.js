@@ -46,7 +46,7 @@ let RecentlyPlayedJob = class RecentlyPlayedJob {
         const listUsers = await this.loadUsers();
         while (listUsers.length > 0) {
             const users = listUsers.splice(0, 10);
-            await this.recentlyQueue.add(users, { attempts: 3 });
+            await this.recentlyQueue.add(users, { attempts: 2 });
         }
         console.timeEnd('recently_played');
     }
@@ -79,7 +79,6 @@ let RecentlyPlayedJob = class RecentlyPlayedJob {
                 deleted: false,
                 situation: false,
                 last_time_verified: typeorm_1.LessThan(new Date().getTime()),
-                id: typeorm_1.In([607]),
             },
             select: ['id', 'credentials', 'last_heard'],
         });
@@ -341,7 +340,7 @@ let RecentlyPlayedJob = class RecentlyPlayedJob {
     }
 };
 __decorate([
-    schedule_1.Cron(schedule_1.CronExpression.EVERY_30_SECONDS),
+    schedule_1.Cron(schedule_1.CronExpression.EVERY_10_HOURS),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
