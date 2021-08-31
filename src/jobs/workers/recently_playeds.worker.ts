@@ -20,7 +20,7 @@ async function getConnection() {
     synchronize: false,
     logging: ['error'],
     extra: {
-      connectionLimit: 2,
+      connectionLimit: 1,
     },
   });
 }
