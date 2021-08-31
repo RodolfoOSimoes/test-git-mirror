@@ -20,7 +20,7 @@ export class ExtractJob {
   ) {}
 
   // @Cron('30 * * * * *')
-  @Cron(CronExpression.EVERY_HOUR)
+  @Cron(CronExpression.EVERY_DAY_AT_1AM)
   async handleCron() {
     const yerterday = this.getYesterday();
 

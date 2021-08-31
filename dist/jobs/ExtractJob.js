@@ -101,7 +101,7 @@ let ExtractJob = class ExtractJob {
     }
 };
 __decorate([
-    schedule_1.Cron(schedule_1.CronExpression.EVERY_HOUR),
+    schedule_1.Cron(schedule_1.CronExpression.EVERY_DAY_AT_1AM),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)

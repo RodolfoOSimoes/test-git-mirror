@@ -34,7 +34,7 @@ async function runWorker() {
   while (true) {
     try {
       const usersData = await connection.query(
-        `SELECT id, credentials, last_heard FROM users WHERE deleted = ? AND situation = ? AND last_time_verified < ? AND id > ? LIMIT 10`,
+        `SELECT id, credentials, last_heard FROM users WHERE deleted = ? AND situation = ? AND last_time_verified < ? AND id > ? LIMIT 50`,
         [false, false, new Date().getTime(), iteration],
       );
 
@@ -46,50 +46,62 @@ async function runWorker() {
 
       const users = await getUsers(usersData, connection);
 
-      for (const user of users) {
-        console.log(`Processing user: ${user.id}`);
-        const credentials = user.credentials;
-
-        let recentlyPlayeds = null;
-
-        try {
-          recentlyPlayeds = await spotifyService.getRecentlyPlayed(
-            credentials['refresh_token'],
-            user.lastTimeVerify,
-          );
-        } catch (error) {
-          recentlyPlayeds = null;
-        }
-
-        if (recentlyPlayeds) {
-          const recently = prepareRecentlyPlayed(recentlyPlayeds);
-
-          if (recently) {
-            console.log(`Updating data for user: ${user.id}`);
-            const [questPlaylistSpotify, campaign, rescues] = await Promise.all(
-              [
-                loadSpotifyPlaylistQuests(connection),
-                loadCampaign(connection),
-                loadRescues(connection),
-              ],
-            );
-
-            await prepareCashbacks(
-              user,
-              rescues,
-              recentlyPlayeds,
-              campaign,
-              questPlaylistSpotify,
-              connection,
-            );
-            await updateUser(user, recently, connection);
-          }
-        }
-        console.log(`Finish processing user: ${user.id}`);
-      }
+      await Promise.all([
+        runJob(users.splice(0, 10), connection, spotifyService),
+        runJob(users.splice(0, 10), connection, spotifyService),
+        runJob(users.splice(0, 10), connection, spotifyService),
+        runJob(users.splice(0, 10), connection, spotifyService),
+        runJob(users.splice(0, 10), connection, spotifyService),
+      ]);
     } catch (error) {
       console.log(error);
     }
+  }
+}
+
+async function runJob(users, connection, spotifyService) {
+  try {
+    for (const user of users) {
+      console.log(`Processing user: ${user.id}`);
+      const credentials = user.credentials;
+
+      let recentlyPlayeds = null;
+
+      try {
+        recentlyPlayeds = await spotifyService.getRecentlyPlayed(
+          credentials['refresh_token'],
+          user.lastTimeVerify,
+        );
+      } catch (error) {
+        recentlyPlayeds = null;
+      }
+
+      if (recentlyPlayeds) {
+        const recently = prepareRecentlyPlayed(recentlyPlayeds);
+
+        if (recently) {
+          console.log(`Updating data for user: ${user.id}`);
+          const [questPlaylistSpotify, campaign, rescues] = await Promise.all([
+            loadSpotifyPlaylistQuests(connection),
+            loadCampaign(connection),
+            loadRescues(connection),
+          ]);
+
+          await prepareCashbacks(
+            user,
+            rescues,
+            recentlyPlayeds,
+            campaign,
+            questPlaylistSpotify,
+            connection,
+          );
+          await updateUser(user, recently, connection);
+        }
+      }
+      console.log(`Finish processing user: ${user.id}`);
+    }
+  } catch (error) {
+    console.log(error);
   }
 }
 
