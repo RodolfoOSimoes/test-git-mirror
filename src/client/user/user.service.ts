@@ -244,6 +244,7 @@ export class UserService {
     await this.userRepository.update(id, {
       opt_in_mailing: dto.user.opt_in_mailing,
       have_accepted: true,
+      updated_at: new Date(),
     });
 
     return { message: 'Usuário atualizado com sucesso' };
