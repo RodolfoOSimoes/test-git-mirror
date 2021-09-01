@@ -17,9 +17,13 @@ export class UserController {
 
   @UseGuards(JwtAuthGuard)
   @Get('list')
-  findAll(@Request() req, @Query('page') page: number) {
+  findAll(
+    @Request() req,
+    @Query('page') page: number,
+    @Query('query') query: string,
+  ) {
     if (req.user.roles === AdminRole.MASTER)
-      return this.userService.findAll(page);
+      return this.userService.findAll(page, query);
     else throw new UnauthorizedException();
   }
 
