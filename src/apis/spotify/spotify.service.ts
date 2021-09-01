@@ -333,7 +333,7 @@ export class SpotifyService {
     const url = 'https://api.spotify.com/v1/me';
 
     const { access_token } = await this.refreshToken(user_token);
-    console.log(access_token);
+
     const headers = {
       Authorization: `Bearer ${access_token}`,
     };

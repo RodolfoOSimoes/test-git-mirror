@@ -25,8 +25,9 @@ const order_providers_1 = require("../../providers/order.providers");
 const statement_providers_1 = require("../../providers/statement.providers");
 const accomplished_quest_providers_1 = require("../../providers/accomplished-quest.providers");
 const extract_providers_1 = require("../../providers/extract.providers");
-const database_providers_1 = require("../../database/database.providers");
 const city_providers_1 = require("../../providers/city.providers");
+const invitation_providers_1 = require("../../providers/invitation.providers");
+const campaign_providers_1 = require("../../providers/campaign.providers");
 let UserModule = class UserModule {
 };
 UserModule = __decorate([
@@ -45,6 +46,8 @@ UserModule = __decorate([
             ...accomplished_quest_providers_1.accomplishedQuestProviders,
             ...extract_providers_1.extractProviders,
             ...city_providers_1.cityProviders,
+            ...invitation_providers_1.invitationProviders,
+            ...campaign_providers_1.campaignProviders,
             user_service_1.UserService,
             pagination_service_1.PaginationService,
             authentication_service_1.AuthenticationService,

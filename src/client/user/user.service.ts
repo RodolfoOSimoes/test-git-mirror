@@ -5,7 +5,12 @@ import { Setting } from 'src/entities/setting.entity';
 import { Extract } from 'src/entities/extract.entity';
 import { AuthenticationService } from 'src/utils/authentication/authentication.service';
 import { StorageService } from 'src/utils/storage/storage.service';
-import { LessThan, Repository } from 'typeorm';
+import {
+  LessThan,
+  LessThanOrEqual,
+  MoreThanOrEqual,
+  Repository,
+} from 'typeorm';
 import { UpdateTermsDto } from './dto/update-terms.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { Statement } from 'src/entities/statement.entity';
@@ -13,6 +18,9 @@ import { Order } from 'src/entities/order.entity';
 import { AccomplishedQuests } from 'src/entities/accomplished-quest.entity';
 import { generateCode } from 'src/utils/code.utils';
 import { City } from 'src/entities/city.entity';
+import { Invitation } from 'src/entities/invitations.entity';
+import { Campaign } from 'src/entities/campaign.entity';
+import { formatDate } from 'src/utils/date.utils';
 
 @Injectable()
 export class UserService {
@@ -33,6 +41,10 @@ export class UserService {
     private extractRepository: Repository<Extract>,
     @Inject('CITY_REPOSITORY')
     private cityRepository: Repository<City>,
+    @Inject('INVITATION_REPOSITORY')
+    private invitatonRepository: Repository<Invitation>,
+    @Inject('CAMPAIGN_REPOSITORY')
+    private campaignRepository: Repository<Campaign>,
     private authenticationTokenService: AuthenticationService,
     private storageService: StorageService,
   ) {}
@@ -44,6 +56,10 @@ export class UserService {
 
     if (user) {
       await this.authenticationTokenService.create(requestInfo, user);
+      await this.userRepository.update(user.id, {
+        credentials: data['credentials'],
+        updated_at: new Date(),
+      });
 
       return {
         id: user.id,
@@ -150,7 +166,7 @@ export class UserService {
       invitation: {
         code: user.invitation_code,
         guests: user.invitations.length,
-        of: setting.invitation_quantity - user.invitations.length,
+        of: setting.invitation_quantity,
       },
       quests: {
         completed: completed?.length || 0,
@@ -172,8 +188,6 @@ export class UserService {
       await this.storageService.updatePic(dto.user.image.data, id, 'User');
     }
 
-    console.log(dto.user.birthdate);
-
     await this.userRepository.update(id, {
       city: city,
       birthdate: this.getBirthDate(dto.user.birthdate),
@@ -186,7 +200,48 @@ export class UserService {
   }
 
   async updateTerms(id: number, dto: UpdateTermsDto) {
-    this.userRepository.update(id, {
+    if (dto.user.invitation_code) {
+      const user = await this.userRepository.findOne({
+        where: { invitation_code: dto.user.invitation_code },
+        relations: ['invitations'],
+      });
+
+      const campaign = await this.campaignRepository.findOne({
+        status: true,
+        date_start: LessThanOrEqual(formatDate(new Date())),
+        date_finish: MoreThanOrEqual(formatDate(new Date())),
+      });
+
+      const settings = await this.settingRepository.findOne();
+      if (
+        user &&
+        settings &&
+        user.invitations.length < settings.invitation_quantity
+      ) {
+        await this.invitatonRepository.save({
+          created_at: new Date(),
+          updated_at: new Date(),
+          user: user,
+          user_guest_id: id,
+        });
+        await this.statmentsRepository.save({
+          amount: settings.invitation_score,
+          user: user,
+          campaign: campaign,
+          kind: 1,
+          statementable_type: 'Invitation',
+          statementable_id: id,
+          delete: false,
+          created_at: new Date(),
+          updated_at: new Date(),
+          expiration_date: new Date(
+            new Date().setDate(new Date().getDate() + 90),
+          ),
+        });
+      }
+    }
+
+    await this.userRepository.update(id, {
       opt_in_mailing: dto.user.opt_in_mailing,
       have_accepted: true,
     });

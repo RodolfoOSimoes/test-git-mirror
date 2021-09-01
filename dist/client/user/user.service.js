@@ -26,8 +26,11 @@ const order_entity_1 = require("../../entities/order.entity");
 const accomplished_quest_entity_1 = require("../../entities/accomplished-quest.entity");
 const code_utils_1 = require("../../utils/code.utils");
 const city_entity_1 = require("../../entities/city.entity");
+const invitations_entity_1 = require("../../entities/invitations.entity");
+const campaign_entity_1 = require("../../entities/campaign.entity");
+const date_utils_1 = require("../../utils/date.utils");
 let UserService = class UserService {
-    constructor(userRepository, questRepository, settingRepository, orderRepository, statmentsRepository, accomplishedRepository, extractRepository, cityRepository, authenticationTokenService, storageService) {
+    constructor(userRepository, questRepository, settingRepository, orderRepository, statmentsRepository, accomplishedRepository, extractRepository, cityRepository, invitatonRepository, campaignRepository, authenticationTokenService, storageService) {
         this.userRepository = userRepository;
         this.questRepository = questRepository;
         this.settingRepository = settingRepository;
@@ -36,6 +39,8 @@ let UserService = class UserService {
         this.accomplishedRepository = accomplishedRepository;
         this.extractRepository = extractRepository;
         this.cityRepository = cityRepository;
+        this.invitatonRepository = invitatonRepository;
+        this.campaignRepository = campaignRepository;
         this.authenticationTokenService = authenticationTokenService;
         this.storageService = storageService;
     }
@@ -45,6 +50,10 @@ let UserService = class UserService {
         });
         if (user) {
             await this.authenticationTokenService.create(requestInfo, user);
+            await this.userRepository.update(user.id, {
+                credentials: data['credentials'],
+                updated_at: new Date(),
+            });
             return {
                 id: user.id,
                 email: user.email,
@@ -131,7 +140,7 @@ let UserService = class UserService {
             invitation: {
                 code: user.invitation_code,
                 guests: user.invitations.length,
-                of: setting.invitation_quantity - user.invitations.length,
+                of: setting.invitation_quantity,
             },
             quests: {
                 completed: (completed === null || completed === void 0 ? void 0 : completed.length) || 0,
@@ -149,7 +158,6 @@ let UserService = class UserService {
         if (dto.user.image && dto.user.image.data) {
             await this.storageService.updatePic(dto.user.image.data, id, 'User');
         }
-        console.log(dto.user.birthdate);
         await this.userRepository.update(id, {
             city: city,
             birthdate: this.getBirthDate(dto.user.birthdate),
@@ -160,7 +168,41 @@ let UserService = class UserService {
         return { message: 'Perfil atualizado com sucesso!' };
     }
     async updateTerms(id, dto) {
-        this.userRepository.update(id, {
+        if (dto.user.invitation_code) {
+            const user = await this.userRepository.findOne({
+                where: { invitation_code: dto.user.invitation_code },
+                relations: ['invitations'],
+            });
+            const campaign = await this.campaignRepository.findOne({
+                status: true,
+                date_start: typeorm_1.LessThanOrEqual(date_utils_1.formatDate(new Date())),
+                date_finish: typeorm_1.MoreThanOrEqual(date_utils_1.formatDate(new Date())),
+            });
+            const settings = await this.settingRepository.findOne();
+            if (user &&
+                settings &&
+                user.invitations.length < settings.invitation_quantity) {
+                await this.invitatonRepository.save({
+                    created_at: new Date(),
+                    updated_at: new Date(),
+                    user: user,
+                    user_guest_id: id,
+                });
+                await this.statmentsRepository.save({
+                    amount: settings.invitation_score,
+                    user: user,
+                    campaign: campaign,
+                    kind: 1,
+                    statementable_type: 'Invitation',
+                    statementable_id: id,
+                    delete: false,
+                    created_at: new Date(),
+                    updated_at: new Date(),
+                    expiration_date: new Date(new Date().setDate(new Date().getDate() + 90)),
+                });
+            }
+        }
+        await this.userRepository.update(id, {
             opt_in_mailing: dto.user.opt_in_mailing,
             have_accepted: true,
         });
@@ -211,7 +253,11 @@ UserService = __decorate([
     __param(5, common_1.Inject('ACCOMPLISHED_QUEST_REPOSITORY')),
     __param(6, common_1.Inject('EXTRACT_REPOSITORY')),
     __param(7, common_1.Inject('CITY_REPOSITORY')),
+    __param(8, common_1.Inject('INVITATION_REPOSITORY')),
+    __param(9, common_1.Inject('CAMPAIGN_REPOSITORY')),
     __metadata("design:paramtypes", [typeorm_1.Repository,
+        typeorm_1.Repository,
+        typeorm_1.Repository,
         typeorm_1.Repository,
         typeorm_1.Repository,
         typeorm_1.Repository,

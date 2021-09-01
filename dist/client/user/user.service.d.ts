@@ -12,6 +12,8 @@ import { Statement } from 'src/entities/statement.entity';
 import { Order } from 'src/entities/order.entity';
 import { AccomplishedQuests } from 'src/entities/accomplished-quest.entity';
 import { City } from 'src/entities/city.entity';
+import { Invitation } from 'src/entities/invitations.entity';
+import { Campaign } from 'src/entities/campaign.entity';
 export declare class UserService {
     private userRepository;
     private questRepository;
@@ -21,9 +23,11 @@ export declare class UserService {
     private accomplishedRepository;
     private extractRepository;
     private cityRepository;
+    private invitatonRepository;
+    private campaignRepository;
     private authenticationTokenService;
     private storageService;
-    constructor(userRepository: Repository<User>, questRepository: Repository<Quest>, settingRepository: Repository<Setting>, orderRepository: Repository<Order>, statmentsRepository: Repository<Statement>, accomplishedRepository: Repository<AccomplishedQuests>, extractRepository: Repository<Extract>, cityRepository: Repository<City>, authenticationTokenService: AuthenticationService, storageService: StorageService);
+    constructor(userRepository: Repository<User>, questRepository: Repository<Quest>, settingRepository: Repository<Setting>, orderRepository: Repository<Order>, statmentsRepository: Repository<Statement>, accomplishedRepository: Repository<AccomplishedQuests>, extractRepository: Repository<Extract>, cityRepository: Repository<City>, invitatonRepository: Repository<Invitation>, campaignRepository: Repository<Campaign>, authenticationTokenService: AuthenticationService, storageService: StorageService);
     create(requestInfo: any, data: any): Promise<{
         id: number;
         email: string;

@@ -16,8 +16,9 @@ import { orderProviders } from 'src/providers/order.providers';
 import { statementProviders } from 'src/providers/statement.providers';
 import { accomplishedQuestProviders } from 'src/providers/accomplished-quest.providers';
 import { extractProviders } from 'src/providers/extract.providers';
-import { databaseProviders } from 'src/database/database.providers';
 import { cityProviders } from 'src/providers/city.providers';
+import { invitationProviders } from 'src/providers/invitation.providers';
+import { campaignProviders } from 'src/providers/campaign.providers';
 
 @Module({
   imports: [DatabaseModule, StorageModule],
@@ -34,6 +35,8 @@ import { cityProviders } from 'src/providers/city.providers';
     ...accomplishedQuestProviders,
     ...extractProviders,
     ...cityProviders,
+    ...invitationProviders,
+    ...campaignProviders,
     UserService,
     PaginationService,
     AuthenticationService,

@@ -265,7 +265,6 @@ let SpotifyService = class SpotifyService {
     async getuser(user_token) {
         const url = 'https://api.spotify.com/v1/me';
         const { access_token } = await this.refreshToken(user_token);
-        console.log(access_token);
         const headers = {
             Authorization: `Bearer ${access_token}`,
         };
