@@ -35,7 +35,17 @@ export class OrderService {
   }
 
   async findOne(id: number) {
-    return await this.orderRepository.findOne(id);
+    const data = await this.orderRepository.findOne(id, {
+      relations: [
+        'user',
+        'product',
+        'address',
+        'address.city',
+        'address.city.state',
+      ],
+    });
+    //TODO: mapear itens utilizados
+    return data;
   }
 
   async update(id: number, dto: UpdateOrderDto) {

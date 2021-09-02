@@ -39,6 +39,7 @@ export class UserService {
     const data = await this.userRepository.findOne(id, {
       relations: ['city', 'city.state', 'city.state.region'],
     });
+    delete data.credentials;
     return data;
   }
 
