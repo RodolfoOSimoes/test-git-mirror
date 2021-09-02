@@ -1,11 +1,8 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 import { SpotifyService } from 'src/apis/spotify/spotify.service';
-import { CashBack } from 'src/entities/cash-backs.entity';
-import { Statement } from 'src/entities/statement.entity';
-import { UserQuestSpotifyPlaylist } from 'src/entities/user-quest-spotify-playlists.entity';
 import { formatDate } from 'src/utils/date.utils';
 import { createConnection } from 'typeorm';
-const Queue = require('bull');
+
 require('dotenv').config();
 
 async function getConnection() {
@@ -33,23 +30,23 @@ async function runWorker() {
   // let iteration = 0;
   // while (true) {
   //   try {
-  //     const usersData = await connection.query(
-  //       `SELECT id, credentials, last_heard FROM users WHERE deleted = ? AND situation = ? AND last_time_verified < ? AND id > ? LIMIT 50`,
-  //       [false, false, new Date().getTime(), iteration],
-  //     );
-  //     if (!usersData.length) {
-  //       iteration = 0;
-  //     } else {
-  //       iteration = usersData[usersData.length - 1].id;
-  //     }
-  //     const users = await getUsers(usersData, connection);
-  //     await Promise.all([
-  //       runJob(users.splice(0, 10), connection, spotifyService),
-  //       runJob(users.splice(0, 10), connection, spotifyService),
-  //       runJob(users.splice(0, 10), connection, spotifyService),
-  //       runJob(users.splice(0, 10), connection, spotifyService),
-  //       runJob(users.splice(0, 10), connection, spotifyService),
-  //     ]);
+  // const usersData = await connection.query(
+  //   `SELECT id, credentials, last_heard FROM users WHERE deleted = ? AND situation = ? AND last_time_verified < ? AND id > ? LIMIT 50`,
+  //   [false, false, new Date().getTime(), iteration],
+  // );
+  // if (!usersData.length) {
+  //   iteration = 0;
+  // } else {
+  //   iteration = usersData[usersData.length - 1].id;
+  // }
+  // const users = await getUsers(usersData, connection);
+  // await Promise.all([
+  //   runJob(users.splice(0, 10), connection, spotifyService),
+  //   runJob(users.splice(0, 10), connection, spotifyService),
+  //   runJob(users.splice(0, 10), connection, spotifyService),
+  //   runJob(users.splice(0, 10), connection, spotifyService),
+  //   runJob(users.splice(0, 10), connection, spotifyService),
+  // ]);
   //   } catch (error) {
   //     console.log(error);
   //   }
@@ -305,19 +302,22 @@ async function prepareCashbacks(
   const userQuestSpotifyUpdate = [];
 
   userQuestPlaylist.forEach((uqp) => {
-    const userQuestSpotify = new UserQuestSpotifyPlaylist();
-    userQuestSpotify.updated_at = new Date();
-    userQuestSpotify.isrcs = uqp.isrcs;
     if (uqp.id) {
-      userQuestSpotify.id = uqp.id;
-      userQuestSpotifyUpdate.push(userQuestSpotify);
+      userQuestSpotifyUpdate.push({
+        updated_at: new Date(),
+        isrcs: uqp.isrcs,
+        id: uqp.id,
+      });
     } else {
-      userQuestSpotify.user = user;
-      userQuestSpotify.quest_spotify_playlists = uqp.playlist;
-      userQuestSpotify.created_at = new Date();
-      userQuestSpotify.complete = false;
-      userQuestSpotify.question_answered = false;
-      userQuestSpotifySave.push(userQuestSpotify);
+      userQuestSpotifySave.push({
+        updated_at: new Date(),
+        isrcs: uqp.isrcs,
+        user: user,
+        quest_spotify_playlists: uqp.playlist,
+        created_at: new Date(),
+        complete: false,
+        question_answered: false,
+      });
     }
   });
 
@@ -444,36 +444,34 @@ async function updateUserQuestSpotify(userQuestSpotifies, connection) {
 }
 
 function buildCashBack(cb: any, user) {
-  const cashback = new CashBack();
-  cashback.user = user;
-  cashback.track_id = cb.track_id;
-  cashback.played_at = cb.played_at;
-  cashback.name = cb.name;
-  cashback.rescue = cb.rescue_id;
-  cashback.deleted = false;
-  cashback.created_at = new Date();
-  cashback.updated_at = new Date();
-  return cashback;
+  return {
+    user: user,
+    track_id: cb.track_id,
+    played_at: cb.played_at,
+    name: cb.name,
+    rescue: cb.rescue_id,
+    deleted: false,
+    created_at: new Date(),
+    updated_at: new Date(),
+  };
 }
 
 function buildStatement(cb: any, user, campaign) {
-  const statement = new Statement();
-  statement.user = user;
-  statement.campaign = campaign;
-  statement.amount = cb.score;
-  statement.kind = 1;
-  statement.statementable_type = 'CashBack';
-  statement.balance = 0;
-  statement.statementable_id = cb.rescue_id.id;
-  statement.deleted = false;
-  statement.code_doc = null;
-  statement.statementable_type_action = null;
-  statement.expiration_date = new Date(
-    new Date().setDate(new Date().getDate() + 90),
-  );
-  statement.created_at = new Date();
-  statement.updated_at = new Date();
-  return statement;
+  return {
+    user: user,
+    campaign: campaign,
+    amount: cb.score,
+    kind: 1,
+    statementable_type: 'CashBack',
+    balance: 0,
+    statementable_id: cb.rescue_id.id,
+    deleted: false,
+    code_doc: null,
+    statementable_type_action: null,
+    expiration_date: new Date(new Date().setDate(new Date().getDate() + 90)),
+    created_at: new Date(),
+    updated_at: new Date(),
+  };
 }
 
 async function updateUser(user, recently, connection) {
