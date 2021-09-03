@@ -5,7 +5,7 @@ import { getConnection } from 'typeorm';
 
 @Injectable()
 export class RemoveOldRecentlyPlayedJob {
-  @Cron(CronExpression.EVERY_10_MINUTES)
+  @Cron(CronExpression.EVERY_10_SECONDS)
   async handleCron() {
     try {
       await getConnection()
