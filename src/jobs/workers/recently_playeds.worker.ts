@@ -17,7 +17,7 @@ async function getConnection() {
     synchronize: false,
     logging: ['error'],
     extra: {
-      connectionLimit: 1,
+      connectionLimit: 5,
     },
   });
 }
@@ -28,29 +28,39 @@ async function runWorker() {
   // console.log('Starting worker');
   // connection = await getConnection();
   // let iteration = 0;
+  // const limit = 50;
   // while (true) {
   //   try {
-  // const usersData = await connection.query(
-  //   `SELECT id, credentials, last_heard FROM users WHERE deleted = ? AND situation = ? AND last_time_verified < ? AND id > ? LIMIT 50`,
-  //   [false, false, new Date().getTime(), iteration],
-  // );
-  // if (!usersData.length) {
-  //   iteration = 0;
-  // } else {
-  //   iteration = usersData[usersData.length - 1].id;
-  // }
-  // const users = await getUsers(usersData, connection);
-  // await Promise.all([
-  //   runJob(users.splice(0, 10), connection, spotifyService),
-  //   runJob(users.splice(0, 10), connection, spotifyService),
-  //   runJob(users.splice(0, 10), connection, spotifyService),
-  //   runJob(users.splice(0, 10), connection, spotifyService),
-  //   runJob(users.splice(0, 10), connection, spotifyService),
-  // ]);
+  //     const usersData = await connection.query(
+  //       `SELECT id, credentials, last_heard FROM users WHERE deleted = ? AND situation = ? AND last_time_verified < ? AND id > ? LIMIT ${limit}`,
+  //       [false, false, new Date().getTime(), iteration],
+  //     );
+  //     if (!usersData.length) {
+  //       iteration = 0;
+  //     } else {
+  //       iteration = usersData[usersData.length - 1].id;
+  //     }
+  //     const users = await getUsers(usersData, connection);
+  //     await prepareJob(users, connection, spotifyService);
   //   } catch (error) {
   //     console.log(error);
   //   }
   // }
+}
+
+async function prepareJob(users, connection, spotifyService) {
+  await Promise.all([
+    runJob(users.splice(0, 10), connection, spotifyService),
+    runJob(users.splice(0, 10), connection, spotifyService),
+    runJob(users.splice(0, 10), connection, spotifyService),
+    runJob(users.splice(0, 10), connection, spotifyService),
+    runJob(users.splice(0, 10), connection, spotifyService),
+    runJob(users.splice(0, 10), connection, spotifyService),
+    runJob(users.splice(0, 10), connection, spotifyService),
+    runJob(users.splice(0, 10), connection, spotifyService),
+    runJob(users.splice(0, 10), connection, spotifyService),
+    runJob(users.splice(0, 10), connection, spotifyService),
+  ]);
 }
 
 async function runJob(users, connection, spotifyService) {
