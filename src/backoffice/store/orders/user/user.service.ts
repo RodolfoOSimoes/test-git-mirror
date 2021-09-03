@@ -123,6 +123,7 @@ export class UserService {
     return await this.orderRepository.find({
       where: { user: user },
       order: { id: 'DESC' },
+      relations: ['product'],
     });
   }
 }
