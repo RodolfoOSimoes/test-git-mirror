@@ -28,7 +28,7 @@ async function runWorker() {
   console.log('Starting worker');
   connection = await getConnection();
   let iteration = 0;
-  const limit = 80;
+  const limit = 50;
   while (true) {
     try {
       const usersData = await connection.query(
