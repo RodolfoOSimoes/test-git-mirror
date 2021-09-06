@@ -56,14 +56,18 @@ export class AuthService {
       expires_in: new Date(new Date().getTime() + 3600000),
     };
 
-    const user = await this.userService.create(requestInfo, userInfo);
+    try {
+      const user = await this.userService.create(requestInfo, userInfo);
 
-    return {
-      access_token: this.jwtService.sign({
-        id: user.id,
-        email: user.email,
-        roles: 'spotify',
-      }),
-    };
+      return {
+        access_token: this.jwtService.sign({
+          id: user.id,
+          email: user.email,
+          roles: 'spotify',
+        }),
+      };
+    } catch (error) {
+      return { message: 'Usuário não encontrado.' };
+    }
   }
 }

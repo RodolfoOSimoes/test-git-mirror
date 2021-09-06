@@ -54,6 +54,10 @@ export class UserService {
       uid: data['id'],
     });
 
+    if (user && user.deleted) {
+      throw Error('Usuário deletado.');
+    }
+
     if (user) {
       await this.authenticationTokenService.create(requestInfo, user);
       await this.userRepository.update(user.id, {
@@ -107,8 +111,8 @@ export class UserService {
       relations: ['city', 'city.state', 'addresses', 'invitations'],
     });
 
-    if (user.deleted) {
-      return new UnauthorizedException({ message: 'Usuário bloqueado' });
+    if (user && user.deleted) {
+      return new UnauthorizedException({ message: 'Usuário deletado.' });
     }
 
     user.orders = await this.orderRepository.find({
