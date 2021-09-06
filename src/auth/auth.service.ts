@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { AdminService } from 'src/backoffice/admin/admin.service';
@@ -67,7 +67,7 @@ export class AuthService {
         }),
       };
     } catch (error) {
-      return { message: 'Usuário não encontrado.' };
+      throw new UnauthorizedException('Usuário deletado.');
     }
   }
 }
