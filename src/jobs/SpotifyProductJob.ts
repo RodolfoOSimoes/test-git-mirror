@@ -2,7 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { SpotifyService } from 'src/apis/spotify/spotify.service';
 import { User } from 'src/entities/user.entity';
-import { Repository } from 'typeorm';
+import { MoreThan, Repository } from 'typeorm';
 
 @Injectable()
 export class SpotifyProductJob {
@@ -15,33 +15,45 @@ export class SpotifyProductJob {
   // @Cron('30 * * * * *')
   @Cron(CronExpression.EVERY_DAY_AT_1AM)
   async handleCron() {
-    const users = await this.loadUsers();
+    const iteration = 0;
 
-    users.forEach(async (user) => {
-      try {
-        const result = await this.spotifyService.getuser(
-          user.credentials['refresh_token'],
-        );
+    // while (iteration != -1) {
+    //   const users = await this.loadUsers(iteration);
 
-        if (result && result.product) {
-          await this.userRepository.update(user.id, {
-            product: result.product,
-            updated_at: new Date(),
-            last_time_checked_product: new Date(),
-          });
-        }
-      } catch (error) {
-        console.log(`user_id: ${user.id} - error:: ${error.message}`);
-      }
-    });
+    //   if (!users.length) {
+    //     iteration = -1;
+    //   } else {
+    //     iteration = users[users.length - 1].id;
+    //   }
+
+    //   users.forEach(async (user) => {
+    //     try {
+    //       const result = await this.spotifyService.getuser(
+    //         user.credentials['refresh_token'],
+    //       );
+
+    //       if (result && result.product) {
+    //         await this.userRepository.update(user.id, {
+    //           product: result.product,
+    //           updated_at: new Date(),
+    //           last_time_checked_product: new Date(),
+    //         });
+    //       }
+    //     } catch (error) {
+    //       console.log(`user_id: ${user.id} - error:: ${error.message}`);
+    //     }
+    //   });
+    // }
   }
 
-  async loadUsers() {
+  async loadUsers(id: number) {
     return await this.userRepository.find({
+      take: 2,
       where: {
         deleted: false,
         situation: false,
         have_accepted: true,
+        id: MoreThan(id),
       },
       select: ['id', 'credentials', 'product'],
     });
