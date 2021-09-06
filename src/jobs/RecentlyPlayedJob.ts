@@ -49,14 +49,13 @@ export class RecentlyPlayedJob {
   // @Cron('60 * * * * *')
   @Cron(CronExpression.EVERY_10_HOURS)
   async handleCron() {
-    console.time('recently_played');
-    const listUsers = await this.loadUsers();
-
+    // console.time('recently_played');
+    // const listUsers = await this.loadUsers();
     // while (listUsers.length > 0) {
     //   const users = listUsers.splice(0, 10);
     //   await this.recentlyQueue.add(users, { attempts: 2 });
     // }
-    console.timeEnd('recently_played');
+    // console.timeEnd('recently_played');
   }
 
   async runJob(users: User[]) {

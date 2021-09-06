@@ -38,7 +38,7 @@ export class UserService {
          LEFT OUTER JOIN products
           ON products.id = orders.product_id AND products.deleted = FALSE 
          LEFT OUTER JOIN users 
-          ON users.id = orders.user_id
+          ON users.id = orders.user_id AND users.deleted = FALSE 
          LEFT OUTER JOIN addresses 
           ON addresses.user_id = users.id AND addresses.deleted = FALSE AND addresses.order_id IS NULL
           WHERE users.email LIKE '%${query}%' OR addresses.cep LIKE '%${query}%' OR

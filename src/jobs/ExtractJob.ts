@@ -2,7 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { User } from 'src/entities/user.entity';
 import { Extract } from 'src/entities/extract.entity';
-import { Between, Repository } from 'typeorm';
+import { Between, MoreThan, Repository } from 'typeorm';
 import { Statement } from 'src/entities/statement.entity';
 import { Withdrawal } from 'src/entities/withdrawals.entity';
 
@@ -20,60 +20,71 @@ export class ExtractJob {
   ) {}
 
   // @Cron('30 * * * * *')
-  @Cron(CronExpression.EVERY_DAY_AT_1AM)
+  @Cron(CronExpression.EVERY_DAY_AT_2AM)
   async handleCron() {
     const yerterday = this.getYesterday();
 
-    const users = await this.loadUsers();
-    users.forEach(async (user) => {
-      const extract = await this.extractRepository.findOne({
-        order: { created_at: 'DESC' },
-        select: ['created_at'],
-      });
+    let iteration = 0;
 
-      if (!this.compareDate(extract.created_at)) {
-        const depositsStatements = await this.statementRepository.find({
-          where: {
-            user: user,
-            created_at: Between(yerterday.start, yerterday.end),
-          },
-        });
-
-        const expiredStatements = await this.statementRepository.find({
-          where: {
-            user: user,
-            expiration_date: yerterday.expiration,
-            kind: 1,
-          },
-        });
-
-        const expired =
-          expiredStatements.reduce(
-            (acc, statement) => acc + Number(statement.amount),
-            0,
-          ) || 0;
-
-        const deposited =
-          depositsStatements.reduce((acc, statement) => {
-            if (statement.kind == 1) return acc + Number(statement.amount);
-          }, 0) || 0;
-
-        const withdraw =
-          depositsStatements.reduce((acc, statement) => {
-            if (statement.kind == 0) return acc + Number(statement.amount);
-          }, 0) || 0;
-
-        await this.extractRepository.save({
-          created_at: new Date(),
-          updated_at: new Date(),
-          user: user,
-          date_day: yerterday.expiration,
-          deposit: deposited,
-          expired: expired,
-          withdrawals: withdraw,
-        });
+    while (iteration != -1) {
+      const users = await this.loadUsers(iteration);
+      if (!users.length) {
+        iteration = -1;
+      } else {
+        iteration = users[users.length - 1].id;
       }
-    });
+
+      users.forEach(async (user) => {
+        console.log(user.id);
+        const extract = await this.extractRepository.findOne({
+          order: { created_at: 'DESC' },
+          select: ['created_at'],
+        });
+
+        if (!this.compareDate(extract.created_at)) {
+          const depositsStatements = await this.statementRepository.find({
+            where: {
+              user: user,
+              created_at: Between(yerterday.start, yerterday.end),
+            },
+          });
+
+          const expiredStatements = await this.statementRepository.find({
+            where: {
+              user: user,
+              expiration_date: yerterday.expiration,
+              kind: 1,
+            },
+          });
+
+          const expired =
+            expiredStatements.reduce(
+              (acc, statement) => acc + Number(statement.amount),
+              0,
+            ) || 0;
+
+          const deposited =
+            depositsStatements.reduce((acc, statement) => {
+              if (statement.kind == 1) return acc + Number(statement.amount);
+            }, 0) || 0;
+
+          const withdraw =
+            depositsStatements.reduce((acc, statement) => {
+              if (statement.kind == 0) return acc + Number(statement.amount);
+            }, 0) || 0;
+
+          await this.extractRepository.save({
+            created_at: new Date(),
+            updated_at: new Date(),
+            user: user,
+            date_day: yerterday.expiration,
+            deposit: deposited,
+            expired: expired,
+            withdrawals: withdraw,
+          });
+        }
+      });
+    }
   }
 
   getYesterday() {
@@ -102,13 +113,15 @@ export class ExtractJob {
     );
   }
 
-  async loadUsers() {
+  async loadUsers(id: number) {
     return await this.userRepository.find({
       where: {
         deleted: false,
         situation: false,
         have_accepted: true,
+        id: MoreThan(id),
       },
+      take: 10,
       select: ['id'],
     });
   }
