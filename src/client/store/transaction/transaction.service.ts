@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { User } from 'src/entities/user.entity';
 import { Statement } from 'src/entities/statement.entity';
 import { LessThanOrEqual, MoreThanOrEqual, Repository } from 'typeorm';
@@ -50,6 +50,14 @@ export class TransactionService {
       where: { code_product: code },
     });
 
+    if (product && product.quantities_purchased < product.quantity) {
+      throw new UnauthorizedException('Produto indisponível.');
+    }
+
+    await this.productRepository.update(product.id, {
+      quantities_purchased: product.quantities_purchased + 1,
+    });
+
     await this.statementRepository.save({
       user: user,
       amount: product.value,
@@ -86,13 +94,9 @@ export class TransactionService {
       order: order,
     });
 
-    await this.productRepository.update(product.id, {
-      quantities_purchased: product.quantities_purchased + 1,
-    });
-
     this.sendMailProducer.sendOrderEmail(user, product, address);
 
-    return 'This action adds a new transaction';
+    return { message: 'Produto resgatado com sucesso.' };
   }
 
   getToday() {
