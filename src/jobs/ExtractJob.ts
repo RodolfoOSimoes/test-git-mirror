@@ -20,7 +20,7 @@ export class ExtractJob {
   ) {}
 
   // @Cron('30 * * * * *')
-  @Cron(CronExpression.EVERY_DAY_AT_2AM)
+  @Cron(CronExpression.EVERY_10_SECONDS)
   async handleCron() {
     const yerterday = this.getYesterday();
 
@@ -36,11 +36,12 @@ export class ExtractJob {
 
       users.forEach(async (user) => {
         const extract = await this.extractRepository.findOne({
+          where: { user: user },
           order: { created_at: 'DESC' },
           select: ['created_at'],
         });
 
-        if (!this.compareDate(extract.created_at)) {
+        if (!this.hasTodayExtract(extract?.created_at)) {
           const depositsStatements = await this.statementRepository.find({
             where: {
               user: user,
@@ -89,7 +90,7 @@ export class ExtractJob {
   getYesterday() {
     const date = new Date();
     const month = date.getMonth() + 1;
-    const day = date.getDate() - 1;
+    const day = date.getDate();
     const year = date.getFullYear();
     const formatedData = `${year}-${month < 10 ? '0' + month : month}-${
       day < 10 ? '0' + day : day
@@ -102,7 +103,8 @@ export class ExtractJob {
     };
   }
 
-  compareDate(date: Date): boolean {
+  hasTodayExtract(date: Date): boolean {
+    if (!date) return false;
     const date1 = new Date(date);
     const date2 = new Date();
     return (
