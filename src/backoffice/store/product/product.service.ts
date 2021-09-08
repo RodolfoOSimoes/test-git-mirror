@@ -134,7 +134,7 @@ export class ProductService {
       date_start: getBrlUtcDate(product.date_start),
       date_finish: getBrlUtcDate(product.date_finish),
       status: product.status,
-      kind: product.kind,
+      kind: product.kind == 0 ? 'delivery' : 'coupon',
     };
   }
 }
