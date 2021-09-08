@@ -32,9 +32,10 @@ export class TransactionService {
   ) {}
 
   async create(user_id: number, code: string) {
-    console.log(`Resgate ${user_id}, produto: ${code}`);
-    const user = await this.userRepository.findOne(user_id);
-
+    const user = await this.userRepository.findOne({
+      where: { id: user_id },
+    });
+    console.log(user.email);
     const address = await this.addressRepository.findOne({
       where: { user: user },
       order: { id: 'DESC' },
@@ -50,6 +51,8 @@ export class TransactionService {
     const product = await this.productRepository.findOne({
       where: { code_product: code },
     });
+
+    console.log(product);
 
     if (product && product.quantity < product.quantities_purchased) {
       throw new UnauthorizedException('Produto indisponível.');
