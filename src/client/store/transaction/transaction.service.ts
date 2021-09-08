@@ -32,6 +32,7 @@ export class TransactionService {
   ) {}
 
   async create(user_id: number, code: string) {
+    console.log(`Resgate ${user_id}, produto: ${code}`);
     const user = await this.userRepository.findOne(user_id);
 
     const address = await this.addressRepository.findOne({
