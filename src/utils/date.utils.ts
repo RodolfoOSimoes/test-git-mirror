@@ -17,4 +17,8 @@ const getDate = (date: string) => {
   return moment(date).format('YYYY-MM-DD HH:mm');
 };
 
-export { formatDate, getDate };
+const getBrlUtcDate = (date) => {
+  return moment(new Date()).utcOffset('-0300').format('YYYY-MM-DD HH:mm');
+};
+
+export { formatDate, getDate, getBrlUtcDate };

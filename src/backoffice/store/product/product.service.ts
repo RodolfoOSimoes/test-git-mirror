@@ -8,7 +8,7 @@ import { UpdateProductDto } from './dto/update-product.dto';
 import { Product } from '../../../entities/product.entity';
 import { generateCode } from 'src/utils/code.utils';
 import { StorageService } from 'src/utils/storage/storage.service';
-import { getDate } from 'src/utils/date.utils';
+import { getBrlUtcDate, getDate } from 'src/utils/date.utils';
 
 @Injectable()
 export class ProductService {
@@ -86,7 +86,9 @@ export class ProductService {
   }
 
   async findOne(id: number) {
-    return await this.productRepository.findOne(id);
+    const product = await this.productRepository.findOne(id);
+
+    return product ?? this.productMapper(product);
   }
 
   async update(admin_id: number, id: number, dto: UpdateProductDto) {
@@ -129,8 +131,10 @@ export class ProductService {
       name: product.name,
       value: product.value,
       quantity: product.quantity,
-      date_start: product.date_start,
+      date_start: getBrlUtcDate(product.date_start),
+      date_finish: getBrlUtcDate(product.date_finish),
       status: product.status,
+      kind: product.kind,
     };
   }
 }
