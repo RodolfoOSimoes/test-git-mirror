@@ -35,7 +35,6 @@ export class ExtractJob {
       }
 
       users.forEach(async (user) => {
-        console.log(user.id);
         const extract = await this.extractRepository.findOne({
           order: { created_at: 'DESC' },
           select: ['created_at'],
