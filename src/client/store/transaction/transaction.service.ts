@@ -50,7 +50,7 @@ export class TransactionService {
       where: { code_product: code },
     });
 
-    if (product && product.quantities_purchased < product.quantity) {
+    if (product && product.quantity < product.quantities_purchased) {
       throw new UnauthorizedException('Produto indisponível.');
     }
 
