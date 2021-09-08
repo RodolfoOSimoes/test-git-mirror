@@ -29,8 +29,12 @@ export class ProductService {
       code_product: generateCode(11),
       name: product.name,
       value: product.value,
-      date_start: product.date_start,
-      date_finish: product.date_finish,
+      date_start: new Date(product.date_start).toLocaleString('pt-BR', {
+        timeZone: 'America/Sao_Paulo',
+      }),
+      date_finish: new Date(product.date_finish).toLocaleString('pt-BR', {
+        timeZone: 'America/Sao_Paulo',
+      }),
       status: product.status,
       deleted: false,
       quantity: product.quantity,
@@ -99,8 +103,12 @@ export class ProductService {
       admin: admin,
       name: product.name,
       value: product.value,
-      date_start: product.date_start,
-      date_finish: product.date_finish,
+      date_start: new Date(product.date_start).toLocaleString('pt-BR', {
+        timeZone: 'America/Sao_Paulo',
+      }),
+      date_finish: new Date(product.date_finish).toLocaleString('pt-BR', {
+        timeZone: 'America/Sao_Paulo',
+      }),
       status: product.status,
       quantity: product.quantity,
       updated_at: new Date(),
