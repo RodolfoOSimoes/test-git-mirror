@@ -12,7 +12,7 @@ export class SendMailConsumer {
 
     try {
       await this.mailService.sendMail({
-        from: `"Filtrgame" <${process.env.SMTP_USER}>`,
+        from: `"Filtrgame" <filtrgame@sonymusic.com>`,
         to: data.to,
         subject: 'Código de validação',
         html: `<h1>Código de validação: ${data.token}</h1>`,
@@ -28,7 +28,7 @@ export class SendMailConsumer {
 
     try {
       await this.mailService.sendMail({
-        from: `"Filtrgame" <${process.env.SMTP_USER}>`,
+        from: `"Filtrgame" <filtrgame@sonymusic.com>`,
         to: data.email,
         subject: 'Nova senha gerada com sucesso',
         html: `<h1>Nova senha gerada com sucesso: ${data.password.toString()}</h1>`,
@@ -74,7 +74,7 @@ export class SendMailConsumer {
        Grande abraço! :-)`;
 
       await this.mailService.sendMail({
-        from: `"Filtrgame" <${process.env.SMTP_USER}>`,
+        from: `"Filtrgame" <filtrgame@sonymusic.com>`,
         to: data.user.email,
         subject: 'Recebemos seu pedido!',
         html: html,
