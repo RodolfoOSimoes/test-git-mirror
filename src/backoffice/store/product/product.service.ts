@@ -88,7 +88,7 @@ export class ProductService {
   async findOne(id: number) {
     const product = await this.productRepository.findOne(id);
 
-    return product ?? this.productMapper(product);
+    return this.productMapper(product);
   }
 
   async update(admin_id: number, id: number, dto: UpdateProductDto) {
@@ -126,6 +126,7 @@ export class ProductService {
   }
 
   productMapper(product: Product) {
+    if (!product) return undefined;
     return {
       id: product.id,
       name: product.name,
