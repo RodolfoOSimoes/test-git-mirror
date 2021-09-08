@@ -35,7 +35,7 @@ export class TransactionService {
     const user = await this.userRepository.findOne({
       where: { id: user_id },
     });
-    console.log(user.email);
+
     const address = await this.addressRepository.findOne({
       where: { user: user },
       order: { id: 'DESC' },
@@ -51,8 +51,6 @@ export class TransactionService {
     const product = await this.productRepository.findOne({
       where: { code_product: code },
     });
-
-    console.log(product);
 
     if (product && product.quantity < product.quantities_purchased) {
       throw new UnauthorizedException('Produto indisponível.');

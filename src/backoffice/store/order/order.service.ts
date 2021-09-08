@@ -49,12 +49,9 @@ export class OrderService {
   }
 
   async update(id: number, dto: UpdateOrderDto) {
-    const product = await this.productService.findOne(dto.order.product_id);
-    const user = await this.userService.findOne(dto.order.user_id);
     await this.orderRepository.update(id, {
-      ...dto.order,
-      user: user,
-      product: product,
+      tracking_code: dto.order.tracking_code,
+      sent: dto.order.sent,
     });
     return { message: 'Ordem atualizada com sucesso.' };
   }
