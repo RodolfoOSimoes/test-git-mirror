@@ -1,3 +1,6 @@
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const moment = require('moment');
+
 const formatDate = (date) => {
   const d = new Date(date);
   let month = '' + (d.getMonth() + 1);
@@ -10,4 +13,8 @@ const formatDate = (date) => {
   return [year, month, day].join('-');
 };
 
-export { formatDate };
+const getDate = (date: string) => {
+  return moment(date).format('YYYY-MM-DD HH:mm');
+};
+
+export { formatDate, getDate };

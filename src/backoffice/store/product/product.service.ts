@@ -8,6 +8,7 @@ import { UpdateProductDto } from './dto/update-product.dto';
 import { Product } from '../../../entities/product.entity';
 import { generateCode } from 'src/utils/code.utils';
 import { StorageService } from 'src/utils/storage/storage.service';
+import { getDate } from 'src/utils/date.utils';
 
 @Injectable()
 export class ProductService {
@@ -29,12 +30,8 @@ export class ProductService {
       code_product: generateCode(11),
       name: product.name,
       value: product.value,
-      date_start: new Date(product.date_start).toLocaleString('pt-BR', {
-        timeZone: 'America/Sao_Paulo',
-      }),
-      date_finish: new Date(product.date_finish).toLocaleString('pt-BR', {
-        timeZone: 'America/Sao_Paulo',
-      }),
+      date_start: getDate(product.date_start),
+      date_finish: getDate(product.date_finish),
       status: product.status,
       deleted: false,
       quantity: product.quantity,
@@ -103,12 +100,8 @@ export class ProductService {
       admin: admin,
       name: product.name,
       value: product.value,
-      date_start: new Date(product.date_start).toLocaleString('pt-BR', {
-        timeZone: 'America/Sao_Paulo',
-      }),
-      date_finish: new Date(product.date_finish).toLocaleString('pt-BR', {
-        timeZone: 'America/Sao_Paulo',
-      }),
+      date_start: getDate(product.date_start),
+      date_finish: getDate(product.date_finish),
       status: product.status,
       quantity: product.quantity,
       updated_at: new Date(),
