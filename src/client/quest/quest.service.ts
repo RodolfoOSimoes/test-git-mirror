@@ -433,14 +433,6 @@ export class QuestService {
       }
 
       if (!userQuestSpotify.question_answered) {
-        await this.userQuestSpotifyRepository.update(userQuestSpotify.id, {
-          question_answered: true,
-          complete: !userQuestSpotify.quest_spotify_playlists.question_2
-            ? true
-            : false,
-          updated_at: new Date(),
-        });
-
         if (!userQuestSpotify.quest_spotify_playlists.question_2) {
           const accomplishedPromise = this.accomplishedQuestsRepository.save({
             quest: quest,
@@ -465,6 +457,14 @@ export class QuestService {
           });
           await Promise.all([statementPromise, accomplishedPromise]);
         }
+
+        await this.userQuestSpotifyRepository.update(userQuestSpotify.id, {
+          question_answered: true,
+          complete: !userQuestSpotify.quest_spotify_playlists.question_2
+            ? true
+            : false,
+          updated_at: new Date(),
+        });
       }
 
       if (
