@@ -660,9 +660,8 @@ export class QuestService {
     userQuest: UserQuestSpotifyPlaylist,
     questSpotify: QuestSpotifyPlaylists,
   ) {
-    if (!userQuest || (questSpotify.question_2 && !userQuest.complete))
-      return false;
-    return true;
+    if (!userQuest) return false;
+    return userQuest.complete;
   }
 
   getYoutubeId(url: string) {
