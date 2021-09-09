@@ -19,6 +19,7 @@ import { extractProviders } from 'src/providers/extract.providers';
 import { cityProviders } from 'src/providers/city.providers';
 import { invitationProviders } from 'src/providers/invitation.providers';
 import { campaignProviders } from 'src/providers/campaign.providers';
+import { withdrawalProviders } from 'src/providers/withdrawal.providers';
 
 @Module({
   imports: [DatabaseModule, StorageModule],
@@ -37,6 +38,7 @@ import { campaignProviders } from 'src/providers/campaign.providers';
     ...cityProviders,
     ...invitationProviders,
     ...campaignProviders,
+    ...withdrawalProviders,
     UserService,
     PaginationService,
     AuthenticationService,
