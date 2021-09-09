@@ -626,7 +626,7 @@ export class QuestService {
         return {
           kind: 'SpotifyPlaylist',
           id: quest.quest_spotify_playlists.id,
-          completed: userQuest ? true : false,
+          completed: userQuest && userQuest.complete ? true : false,
           cover_url: quest.quest_spotify_playlists.cover_url,
           name: quest.quest_spotify_playlists.name,
           points_for_question:
