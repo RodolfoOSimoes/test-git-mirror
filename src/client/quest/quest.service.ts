@@ -634,10 +634,7 @@ export class QuestService {
         return {
           kind: 'SpotifyPlaylist',
           id: quest.quest_spotify_playlists.id,
-          completed: this.getSpotifyPlaylistStatus(
-            userQuest,
-            quest.quest_spotify_playlists,
-          ),
+          completed: this.getSpotifyPlaylistStatus(userQuest),
           cover_url: quest.quest_spotify_playlists.cover_url,
           name: quest.quest_spotify_playlists.name,
           points_for_question:
@@ -657,10 +654,7 @@ export class QuestService {
     }
   }
 
-  getSpotifyPlaylistStatus(
-    userQuest: UserQuestSpotifyPlaylist,
-    questSpotify: QuestSpotifyPlaylists,
-  ) {
+  getSpotifyPlaylistStatus(userQuest: UserQuestSpotifyPlaylist) {
     if (!userQuest) return false;
     return userQuest.complete;
   }

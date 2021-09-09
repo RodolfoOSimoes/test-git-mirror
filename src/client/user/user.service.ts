@@ -21,6 +21,7 @@ import { City } from 'src/entities/city.entity';
 import { Invitation } from 'src/entities/invitations.entity';
 import { Campaign } from 'src/entities/campaign.entity';
 import { formatDate } from 'src/utils/date.utils';
+import { Withdrawal } from 'src/entities/withdrawals.entity';
 
 @Injectable()
 export class UserService {
@@ -45,6 +46,8 @@ export class UserService {
     private invitatonRepository: Repository<Invitation>,
     @Inject('CAMPAIGN_REPOSITORY')
     private campaignRepository: Repository<Campaign>,
+    @Inject('WITHDRAWAL_REPOSITORY')
+    private withdrawRepository: Repository<Withdrawal>,
     private authenticationTokenService: AuthenticationService,
     private storageService: StorageService,
   ) {}
@@ -132,6 +135,10 @@ export class UserService {
       where: { user: user },
     });
 
+    user.withdrawals = await this.withdrawRepository.find({
+      where: { user: user },
+    });
+
     const setting = await this.settingRepository.findOne();
 
     const quests = await this.questRepository.find({
@@ -178,7 +185,11 @@ export class UserService {
       },
       score: {
         general_balance:
-          this.getGeneralBalance(user.statements, user.extracts) || 0,
+          this.getGeneralBalance(
+            user.statements,
+            user.extracts,
+            user.withdrawals,
+          ) || 0,
         expired_today: this.getExpiredToday(user.extracts) || 0,
       },
     };
@@ -280,14 +291,18 @@ export class UserService {
     return year == year2 && month == month2 && day == day2;
   }
 
-  getGeneralBalance(statements: Statement[], extracts: Extract[]): number {
+  getGeneralBalance(
+    statements: Statement[],
+    extracts: Extract[],
+    withdrawals: Withdrawal[],
+  ): number {
     const amount = statements.reduce(
       (current, total) => current + Number(total.amount),
       0,
     );
 
-    const withdrawals = extracts.reduce(
-      (current, total) => current + Number(total.withdrawal),
+    const withdrawal = withdrawals.reduce(
+      (current, total) => current + Number(total.spending),
       0,
     );
 
@@ -296,7 +311,7 @@ export class UserService {
       0,
     );
 
-    return amount - withdrawals - expired;
+    return amount - withdrawal - expired;
   }
 
   hasDailyOrder(orders: Order[]): boolean {
