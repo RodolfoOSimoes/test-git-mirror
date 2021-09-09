@@ -435,7 +435,7 @@ export class QuestService {
       if (!userQuestSpotify.question_answered) {
         await this.userQuestSpotifyRepository.update(userQuestSpotify.id, {
           question_answered: true,
-          complete: quest.quest_spotify_playlists?.points_for_question_2
+          complete: !userQuestSpotify.quest_spotify_playlists.question_2
             ? true
             : false,
           updated_at: new Date(),
