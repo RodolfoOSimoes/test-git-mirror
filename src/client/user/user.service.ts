@@ -22,6 +22,7 @@ import { Invitation } from 'src/entities/invitations.entity';
 import { Campaign } from 'src/entities/campaign.entity';
 import { formatDate } from 'src/utils/date.utils';
 import { Withdrawal } from 'src/entities/withdrawals.entity';
+import { generateBalance } from 'src/utils/balance.utils';
 
 @Injectable()
 export class UserService {
@@ -185,11 +186,8 @@ export class UserService {
       },
       score: {
         general_balance:
-          this.getGeneralBalance(
-            user.statements,
-            user.extracts,
-            user.withdrawals,
-          ) || 0,
+          generateBalance(user.statements, user.extracts, user.withdrawals) ||
+          0,
         expired_today: this.getExpiredToday(user.extracts) || 0,
       },
     };
@@ -291,28 +289,28 @@ export class UserService {
     return year == year2 && month == month2 && day == day2;
   }
 
-  getGeneralBalance(
-    statements: Statement[],
-    extracts: Extract[],
-    withdrawals: Withdrawal[],
-  ): number {
-    const amount = statements.reduce(
-      (current, total) => current + Number(total.amount),
-      0,
-    );
+  // getGeneralBalance(
+  //   statements: Statement[],
+  //   extracts: Extract[],
+  //   withdrawals: Withdrawal[],
+  // ): number {
+  //   const amount = statements.reduce(
+  //     (current, total) => current + Number(total.amount),
+  //     0,
+  //   );
 
-    const withdrawal = withdrawals.reduce(
-      (current, total) => current + Number(total.spending),
-      0,
-    );
+  //   const withdrawal = withdrawals.reduce(
+  //     (current, total) => current + Number(total.spending),
+  //     0,
+  //   );
 
-    const expired = extracts.reduce(
-      (current, total) => current + Number(total.expired),
-      0,
-    );
+  //   const expired = extracts.reduce(
+  //     (current, total) => current + Number(total.expired),
+  //     0,
+  //   );
 
-    return amount - withdrawal - expired;
-  }
+  //   return amount - withdrawal - expired;
+  // }
 
   hasDailyOrder(orders: Order[]): boolean {
     const order = orders.find((order) => this.compareDate(order.created_at));
@@ -323,4 +321,11 @@ export class UserService {
     const [day, month, year] = birthDate.split('/');
     return new Date(Number(year), Number(month) - 1, Number(day));
   }
+}
+function getGeneralBalance(
+  statements: Statement[],
+  extracts: Extract[],
+  withdrawals: Withdrawal[],
+) {
+  throw new Error('Function not implemented.');
 }
