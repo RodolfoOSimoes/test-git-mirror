@@ -109,7 +109,9 @@ export class TransactionService {
 
     await this.withdrawRepository.save({
       user: user,
-      date_spent: this.getToday(),
+      date_spent: moment(
+        new Date(new Date().setDate(new Date().getDate() + 90)),
+      ).format('YYYY-MM-DD'),
       spending: product.value,
       created_at: new Date(),
       updated_at: new Date(),
