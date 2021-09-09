@@ -21,4 +21,8 @@ const getBrlUtcDate = (date) => {
   return moment(date).utcOffset('0000').format('YYYY-MM-DD HH:mm');
 };
 
-export { formatDate, getDate, getBrlUtcDate };
+const prepareDate = () => {
+  return `${moment(new Date()).format('YYYY-MM-DD')} 00:00:00`;
+};
+
+export { formatDate, getDate, getBrlUtcDate, prepareDate };

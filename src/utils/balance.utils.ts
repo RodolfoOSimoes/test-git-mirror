@@ -1,10 +1,8 @@
 import { Statement } from 'src/entities/statement.entity';
 import { Withdrawal } from 'src/entities/withdrawals.entity';
-import { Extract } from 'src/entities/extract.entity';
 
 const generateBalance = (
   statements: Statement[],
-  extracts: Extract[],
   withdrawals: Withdrawal[],
 ) => {
   const amount = statements.reduce(
@@ -17,12 +15,7 @@ const generateBalance = (
     0,
   );
 
-  const expired = extracts.reduce(
-    (current, total) => current + Number(total.expired),
-    0,
-  );
-
-  return amount - withdrawal - expired;
+  return amount - withdrawal;
 };
 
 export { generateBalance };

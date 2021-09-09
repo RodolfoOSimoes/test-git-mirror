@@ -9,7 +9,9 @@ import { generateCode } from 'src/utils/code.utils';
 import { SendMailProducerService } from 'src/jobs/producers/sendMail-producer-service';
 import { Withdrawal } from 'src/entities/withdrawals.entity';
 import { Campaign } from 'src/entities/campaign.entity';
-import { formatDate } from 'src/utils/date.utils';
+import { formatDate, prepareDate } from 'src/utils/date.utils';
+import { generateBalance } from 'src/utils/balance.utils';
+import moment from 'moment';
 
 @Injectable()
 export class TransactionService {
@@ -51,6 +53,27 @@ export class TransactionService {
     const product = await this.productRepository.findOne({
       where: { code_product: code },
     });
+
+    user.withdrawals = await this.withdrawRepository.find({
+      where: {
+        user: user,
+        date_spent: MoreThanOrEqual(moment(new Date()).format('YYYY-MM-DD')),
+      },
+    });
+
+    user.statements = await this.statementRepository.find({
+      where: {
+        user: user,
+        kind: 1,
+        expiration_date: MoreThanOrEqual(prepareDate()),
+      },
+    });
+
+    const balance = generateBalance(user.statements, user.withdrawals) || 0;
+
+    if (balance < product.value) {
+      throw new UnauthorizedException('Saldo insuficiente.');
+    }
 
     if (product && product.quantity < product.quantities_purchased) {
       throw new UnauthorizedException('Produto indisponível.');

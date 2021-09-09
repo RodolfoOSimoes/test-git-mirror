@@ -20,9 +20,11 @@ import { generateCode } from 'src/utils/code.utils';
 import { City } from 'src/entities/city.entity';
 import { Invitation } from 'src/entities/invitations.entity';
 import { Campaign } from 'src/entities/campaign.entity';
-import { formatDate } from 'src/utils/date.utils';
+import { formatDate, prepareDate } from 'src/utils/date.utils';
 import { Withdrawal } from 'src/entities/withdrawals.entity';
 import { generateBalance } from 'src/utils/balance.utils';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const moment = require('moment');
 
 @Injectable()
 export class UserService {
@@ -124,7 +126,11 @@ export class UserService {
     });
 
     user.statements = await this.statmentsRepository.find({
-      where: { user: user, kind: 1 },
+      where: {
+        user: user,
+        kind: 1,
+        expiration_date: MoreThanOrEqual(prepareDate()),
+      },
     });
 
     user.accomplished_quests = await this.accomplishedRepository.find({
@@ -137,7 +143,10 @@ export class UserService {
     });
 
     user.withdrawals = await this.withdrawRepository.find({
-      where: { user: user },
+      where: {
+        user: user,
+        date_spent: MoreThanOrEqual(moment(new Date()).format('YYYY-MM-DD')),
+      },
     });
 
     const setting = await this.settingRepository.findOne();
@@ -186,8 +195,7 @@ export class UserService {
       },
       score: {
         general_balance:
-          generateBalance(user.statements, user.extracts, user.withdrawals) ||
-          0,
+          generateBalance(user.statements, user.withdrawals) || 0,
         expired_today: this.getExpiredToday(user.extracts) || 0,
       },
     };
