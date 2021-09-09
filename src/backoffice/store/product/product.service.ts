@@ -8,7 +8,7 @@ import { UpdateProductDto } from './dto/update-product.dto';
 import { Product } from '../../../entities/product.entity';
 import { generateCode } from 'src/utils/code.utils';
 import { StorageService } from 'src/utils/storage/storage.service';
-import { getBrlUtcDate, getDate } from 'src/utils/date.utils';
+import { getBrlUtcDate } from 'src/utils/date.utils';
 
 @Injectable()
 export class ProductService {
@@ -30,8 +30,8 @@ export class ProductService {
       code_product: generateCode(11),
       name: product.name,
       value: product.value,
-      date_start: getDate(product.date_start),
-      date_finish: getDate(product.date_finish),
+      date_start: product.date_start,
+      date_finish: product.date_finish,
       status: product.status,
       deleted: false,
       quantity: product.quantity,
@@ -102,8 +102,8 @@ export class ProductService {
       admin: admin,
       name: product.name,
       value: product.value,
-      date_start: getDate(product.date_start),
-      date_finish: getDate(product.date_finish),
+      date_start: product.date_start,
+      date_finish: product.date_finish,
       status: product.status,
       quantity: product.quantity,
       updated_at: new Date(),
