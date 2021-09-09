@@ -647,6 +647,7 @@ export class QuestService {
           points_for_track: quest.quest_spotify_playlists.points_for_track,
           question: quest.quest_spotify_playlists.question,
           question_2: quest.quest_spotify_playlists.question_2,
+          question_answered: userQuest?.question_answered,
           songs_heard: userQuest?.isrcs.split(' ').length - 1 || 0,
           tracks_count: quest.quest_spotify_playlists.tracks_count,
           uri: quest.quest_spotify_playlists.uri,
