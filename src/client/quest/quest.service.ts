@@ -626,7 +626,10 @@ export class QuestService {
         return {
           kind: 'SpotifyPlaylist',
           id: quest.quest_spotify_playlists.id,
-          completed: userQuest && userQuest.complete ? true : false,
+          completed: this.getSpotifyPlaylistStatus(
+            userQuest,
+            quest.quest_spotify_playlists,
+          ),
           cover_url: quest.quest_spotify_playlists.cover_url,
           name: quest.quest_spotify_playlists.name,
           points_for_question:
@@ -643,6 +646,15 @@ export class QuestService {
       default:
         return undefined;
     }
+  }
+
+  getSpotifyPlaylistStatus(
+    userQuest: UserQuestSpotifyPlaylist,
+    questSpotify: QuestSpotifyPlaylists,
+  ) {
+    if (!userQuest || (questSpotify.question_2 && !userQuest.complete))
+      return false;
+    return true;
   }
 
   getYoutubeId(url: string) {
