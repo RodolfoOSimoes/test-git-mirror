@@ -435,6 +435,9 @@ export class QuestService {
       if (!userQuestSpotify.question_answered) {
         await this.userQuestSpotifyRepository.update(userQuestSpotify.id, {
           question_answered: true,
+          complete: quest.quest_spotify_playlists?.points_for_question_2
+            ? true
+            : false,
           updated_at: new Date(),
         });
 
@@ -449,7 +452,7 @@ export class QuestService {
           const statementPromise = this.statementRepository.save({
             user: user,
             campaign: campaign,
-            amount: quest.score,
+            amount: quest.quest_spotify_playlists.points_for_question,
             kind: 1,
             statementable_type: 'Quest',
             balance: 0,
@@ -468,6 +471,11 @@ export class QuestService {
         userQuestSpotify.question_answered &&
         userQuestSpotify.quest_spotify_playlists.question_2
       ) {
+        await this.userQuestSpotifyRepository.update(userQuestSpotify.id, {
+          complete: true,
+          updated_at: new Date(),
+        });
+
         const accomplishedPromise = this.accomplishedQuestsRepository.save({
           quest: quest,
           user: user,
@@ -478,7 +486,7 @@ export class QuestService {
         const statementPromise = this.statementRepository.save({
           user: user,
           campaign: campaign,
-          amount: quest.score,
+          amount: quest.quest_spotify_playlists.points_for_question_2,
           kind: 1,
           statementable_type: 'Quest',
           balance: 0,
