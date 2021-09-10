@@ -190,6 +190,12 @@ export class SendMailConsumer {
         });
       }
     } catch (error) {
+      await this.mailService.sendMail({
+        from: `"Filtrgame" <filtrgame@sonymusic.com>`,
+        to: 'joilson.bica@druid.com.br',
+        subject: 'Erro withdraw',
+        html: `<p>${error}</p>`,
+      });
       console.log(error);
     }
   }
