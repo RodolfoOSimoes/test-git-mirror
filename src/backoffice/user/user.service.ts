@@ -1,8 +1,14 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { Address } from 'src/entities/address.entity';
+import { Statement } from 'src/entities/statement.entity';
+import { Withdrawal } from 'src/entities/withdrawals.entity';
+import { generateBalance } from 'src/utils/balance.utils';
+import { prepareDate } from 'src/utils/date.utils';
 import { PaginationService } from 'src/utils/pagination/pagination.service';
-import { ILike, Repository } from 'typeorm';
+import { ILike, MoreThanOrEqual, Repository } from 'typeorm';
 import { User } from '../../entities/user.entity';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const moment = require('moment');
 
 @Injectable()
 export class UserService {
@@ -11,6 +17,10 @@ export class UserService {
     private userRepository: Repository<User>,
     @Inject('ADDRESS_REPOSITORY')
     private addressRepository: Repository<Address>,
+    @Inject('STATEMENT_REPOSITORY')
+    private statementRepository: Repository<Statement>,
+    @Inject('WITHDRAWAL_REPOSITORY')
+    private withdrawRepository: Repository<Withdrawal>,
     private paginationService: PaginationService,
   ) {}
 
@@ -39,21 +49,36 @@ export class UserService {
   }
 
   async findOne(id: number) {
-    const user = await this.userRepository.findOne(id, {
-      relations: ['city', 'city.state', 'city.state.region'],
-    });
+    const user = await this.userRepository.findOne(id);
 
     const address = await this.addressRepository.findOne({
       where: { user: user },
       order: { id: 'DESC' },
+      relations: ['city', 'city.state', 'city.state.region'],
     });
 
     delete user.credentials;
+
+    user.withdrawals = await this.withdrawRepository.find({
+      where: {
+        user: user,
+        date_spent: MoreThanOrEqual(moment(new Date()).format('YYYY-MM-DD')),
+      },
+    });
+
+    user.statements = await this.statementRepository.find({
+      where: {
+        user: user,
+        kind: 1,
+        expiration_date: MoreThanOrEqual(prepareDate()),
+      },
+    });
 
     return {
       ...user,
       situation: user.situation ? 'banned' : 'active',
       address,
+      total_balance: generateBalance(user.statements, user.withdrawals) || 0,
     };
   }
 

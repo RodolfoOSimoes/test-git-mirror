@@ -6,6 +6,8 @@ import { DatabaseModule } from 'src/database/database.module';
 import { PaginationService } from 'src/utils/pagination/pagination.service';
 import { SpotifyService } from 'src/apis/spotify/spotify.service';
 import { addressProviders } from 'src/providers/address.providers';
+import { statementProviders } from 'src/providers/statement.providers';
+import { withdrawalProviders } from 'src/providers/withdrawal.providers';
 
 @Module({
   imports: [DatabaseModule],
@@ -13,6 +15,8 @@ import { addressProviders } from 'src/providers/address.providers';
   providers: [
     ...userProviders,
     ...addressProviders,
+    ...statementProviders,
+    ...withdrawalProviders,
     UserService,
     PaginationService,
     SpotifyService,
