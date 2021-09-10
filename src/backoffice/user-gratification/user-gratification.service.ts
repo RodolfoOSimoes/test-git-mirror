@@ -23,7 +23,7 @@ export class UserGratificationService {
 
   async create(admin_id: number, data: CreateUserGratificationDto) {
     const admin = await this.adminService.findById(admin_id);
-    const user = await this.userService.findOne(data.gratification.user_id);
+    const user = await this.userService.findById(data.gratification.user_id);
 
     const userGratification = await this.userGratificationRepository.save({
       admin: admin,
