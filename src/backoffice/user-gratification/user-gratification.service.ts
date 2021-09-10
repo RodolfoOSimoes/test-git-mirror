@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { LessThanOrEqual, MoreThanOrEqual, Repository } from 'typeorm';
 import { AdminService } from '../admin/admin.service';
 import { UserService } from '../user/user.service';
@@ -22,6 +22,10 @@ export class UserGratificationService {
   ) {}
 
   async create(admin_id: number, data: CreateUserGratificationDto) {
+    if (data.gratification.score != data.gratification.score_gratification) {
+      throw new UnauthorizedException(['Não é igual a Score']);
+    }
+
     const admin = await this.adminService.findById(admin_id);
     const user = await this.userService.findById(data.gratification.user_id);
 
@@ -60,18 +64,13 @@ export class UserGratificationService {
   }
 
   async delete(id: number) {
-    const userGratification = await this.userGratificationRepository.findOne(
-      id,
-    );
+    const statment = await this.statementRepository.findOne(id);
 
-    await this.statementRepository.delete({
-      statementable_type: 'UserGratification',
-      statementable_id: userGratification.id,
-    });
-
-    this.userGratificationRepository.update(userGratification.id, {
+    await this.userGratificationRepository.update(statment.statementable_id, {
       updated_at: new Date(),
       deleted: true,
     });
+
+    await this.statementRepository.delete(statment.id);
   }
 }

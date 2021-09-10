@@ -8,6 +8,7 @@ import {
   UnauthorizedException,
   Query,
   Delete,
+  Param,
 } from '@nestjs/common';
 import { UserGratificationService } from './user-gratification.service';
 import { CreateUserGratificationDto } from './dto/create-user-gratification.dto';
@@ -26,17 +27,17 @@ export class UserGratificationController {
     @Request() req,
     @Body() createUserGratificationDto: CreateUserGratificationDto,
   ) {
-    if (req.user.roles === AdminRole.MASTER)
+    if (req.user.roles === AdminRole.MASTER) {
       return this.userGratificationService.create(
         req.user.id,
         createUserGratificationDto,
       );
-    else throw new UnauthorizedException();
+    } else throw new UnauthorizedException();
   }
 
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
-  delete(@Request() req, @Query('id') id: number) {
+  delete(@Request() req, @Param('id') id: number) {
     if (req.user.roles === AdminRole.MASTER)
       return this.userGratificationService.delete(id);
     else throw new UnauthorizedException();
