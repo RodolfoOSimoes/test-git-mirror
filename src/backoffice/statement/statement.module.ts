@@ -5,6 +5,9 @@ import { DatabaseModule } from 'src/database/database.module';
 import { statementProviders } from '../../providers/statement.providers';
 import { PaginationService } from 'src/utils/pagination/pagination.service';
 import { userProviders } from 'src/providers/user.providers';
+import { productProviders } from 'src/providers/product.providers';
+import { cashBackProviders } from 'src/providers/cash-backs.providers';
+import { questProviders } from 'src/providers/quest.providers';
 
 @Module({
   controllers: [StatementController],
@@ -12,6 +15,9 @@ import { userProviders } from 'src/providers/user.providers';
   providers: [
     ...statementProviders,
     ...userProviders,
+    ...productProviders,
+    ...cashBackProviders,
+    ...questProviders,
     StatementService,
     PaginationService,
   ],
