@@ -44,7 +44,6 @@ export class SettingService {
     }
 
     delete setting.created_at;
-    delete setting.updated_at;
 
     return setting;
   }
