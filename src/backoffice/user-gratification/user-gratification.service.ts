@@ -29,7 +29,7 @@ export class UserGratificationService {
   async create(admin_id: number, data: CreateUserGratificationDto) {
     if (data.gratification.score != data.gratification.score_gratification) {
       throw new ForbiddenException({
-        confirmation_score: ['Não é igual a Score'],
+        score_confirmation: ['Não é igual a Score'],
       });
     }
 
