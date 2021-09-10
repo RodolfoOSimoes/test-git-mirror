@@ -48,13 +48,12 @@ export class UserService {
       order: { id: 'DESC' },
     });
 
-    if (address) user.addresses.push(address);
-
     delete user.credentials;
 
     return {
       ...user,
       situation: user.situation ? 'banned' : 'active',
+      address,
     };
   }
 
