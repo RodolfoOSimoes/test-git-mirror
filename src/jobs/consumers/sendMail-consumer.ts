@@ -128,34 +128,34 @@ export class SendMailConsumer {
 
       let product_value = product.value;
 
-      if (withdrawal) {
-        product_value -= withdrawal.spending;
+      // if (withdrawal) {
+      //   product_value -= withdrawal.spending;
 
-        const statements = await this.statementRepository.find({
-          where: {
-            user: user,
-            expiration_date: date_start,
-            kind: 1,
-          },
-          select: ['amount', 'expiration_date'],
-          order: { expiration_date: 'ASC' },
-        });
+      //   const statements = await this.statementRepository.find({
+      //     where: {
+      //       user: user,
+      //       expiration_date: date_start,
+      //       kind: 1,
+      //     },
+      //     select: ['amount', 'expiration_date'],
+      //     order: { expiration_date: 'ASC' },
+      //   });
 
-        const value = statements.reduce(
-          (acc, statement) => acc + Number(statement.amount),
-          0,
-        );
+      //   const value = statements.reduce(
+      //     (acc, statement) => acc + Number(statement.amount),
+      //     0,
+      //   );
 
-        if (value) {
-          await this.withdrawRepository.save({
-            created_at: new Date(),
-            updated_at: new Date(),
-            spending: value - withdrawal.spending,
-            date_spent: date_start,
-            user: user,
-          });
-        }
-      }
+      //   if (value) {
+      //     await this.withdrawRepository.save({
+      //       created_at: new Date(),
+      //       updated_at: new Date(),
+      //       spending: value - withdrawal.spending,
+      //       date_spent: date_start,
+      //       user: user,
+      //     });
+      //   }
+      // }
 
       const whidrawls = [];
 
