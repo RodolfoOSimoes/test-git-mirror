@@ -128,35 +128,54 @@ export class SendMailConsumer {
 
       let product_value = Number(product.value);
 
-      // TODO: lógica de saque mesmo dia
-      // if (withdrawal) {
-      //   product_value -= withdrawal.spending;
+      if (withdrawal) {
+        const statements = await this.statementRepository.find({
+          where: {
+            user: user,
+            expiration_date: date_start,
+            kind: 1,
+          },
+          select: ['amount', 'expiration_date'],
+          order: { expiration_date: 'ASC' },
+        });
 
-      //   const statements = await this.statementRepository.find({
-      //     where: {
-      //       user: user,
-      //       expiration_date: date_start,
-      //       kind: 1,
-      //     },
-      //     select: ['amount', 'expiration_date'],
-      //     order: { expiration_date: 'ASC' },
-      //   });
+        let value = statements.reduce(
+          (acc, statement) => acc + Number(statement.amount),
+          0,
+        );
 
-      //   const value = statements.reduce(
-      //     (acc, statement) => acc + Number(statement.amount),
-      //     0,
-      //   );
+        const withdrawals = await this.withdrawRepository.find({
+          where: {
+            user: user,
+            date_spent: date_start,
+          },
+          select: ['spending'],
+        });
 
-      //   if (value) {
-      //     await this.withdrawRepository.save({
-      //       created_at: new Date(),
-      //       updated_at: new Date(),
-      //       spending: value - withdrawal.spending,
-      //       date_spent: date_start,
-      //       user: user,
-      //     });
-      //   }
-      // }
+        const withdralDaySpending = withdrawals.reduce(
+          (acc, withdraw) => acc + Number(withdraw.spending),
+          0,
+        );
+
+        value -= withdralDaySpending;
+
+        if (value > product_value) {
+          value = product_value;
+          product_value = 0;
+        }
+
+        if (value > 0) {
+          await this.withdrawRepository.save({
+            created_at: new Date(),
+            updated_at: new Date(),
+            spending: value,
+            date_spent: date_start,
+            user: user,
+          });
+
+          product_value -= value;
+        }
+      }
 
       const whidrawls = [];
 
