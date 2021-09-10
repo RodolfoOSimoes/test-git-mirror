@@ -9,6 +9,7 @@ import {
   Query,
   Delete,
   Param,
+  ForbiddenException,
 } from '@nestjs/common';
 import { UserGratificationService } from './user-gratification.service';
 import { CreateUserGratificationDto } from './dto/create-user-gratification.dto';

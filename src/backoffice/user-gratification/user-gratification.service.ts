@@ -1,4 +1,9 @@
-import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Inject,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { LessThanOrEqual, MoreThanOrEqual, Repository } from 'typeorm';
 import { AdminService } from '../admin/admin.service';
 import { UserService } from '../user/user.service';
@@ -23,7 +28,9 @@ export class UserGratificationService {
 
   async create(admin_id: number, data: CreateUserGratificationDto) {
     if (data.gratification.score != data.gratification.score_gratification) {
-      throw new UnauthorizedException(['Não é igual a Score']);
+      throw new ForbiddenException({
+        confirmation_score: ['Não é igual a Score'],
+      });
     }
 
     const admin = await this.adminService.findById(admin_id);
