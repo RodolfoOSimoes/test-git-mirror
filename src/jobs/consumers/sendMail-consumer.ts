@@ -128,6 +128,7 @@ export class SendMailConsumer {
 
       let product_value = Number(product.value);
 
+      // TODO: lógica de saque mesmo dia
       // if (withdrawal) {
       //   product_value -= withdrawal.spending;
 
@@ -191,12 +192,6 @@ export class SendMailConsumer {
         });
       }
     } catch (error) {
-      await this.mailService.sendMail({
-        from: `"Filtrgame" <filtrgame@sonymusic.com>`,
-        to: 'joilson.bica@druid.com.br',
-        subject: 'Erro withdraw',
-        html: `<p>${error}</p>`,
-      });
       console.log(error);
     }
   }
