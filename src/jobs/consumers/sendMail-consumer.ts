@@ -126,7 +126,7 @@ export class SendMailConsumer {
         order: { expiration_date: 'ASC' },
       });
 
-      let product_value = product.value;
+      let product_value = Number(product.value);
 
       // if (withdrawal) {
       //   product_value -= withdrawal.spending;
@@ -166,7 +166,9 @@ export class SendMailConsumer {
           (withdraw) => withdraw.date_spent == statement.expiration_date,
         );
         const value =
-          product_value >= statement.amount ? statement.amount : product_value;
+          product_value >= Number(statement.amount)
+            ? Number(statement.amount)
+            : product_value;
 
         if (hasStatement) {
           hasStatement.amount += value;
@@ -178,8 +180,6 @@ export class SendMailConsumer {
         }
         product_value -= value;
       }
-
-      console.log(whidrawls);
 
       for (const withdraw of whidrawls) {
         await this.withdrawRepository.save({
