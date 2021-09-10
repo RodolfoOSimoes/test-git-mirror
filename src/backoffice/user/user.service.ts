@@ -39,10 +39,13 @@ export class UserService {
     const user = await this.userRepository.findOne(id, {
       relations: ['city', 'city.state', 'city.state.region'],
     });
-    if (user) {
-      return this.userMapper(user);
-    }
-    return undefined;
+
+    delete user.credentials;
+
+    return {
+      ...user,
+      situation: user.situation ? 'banned' : 'active',
+    };
   }
 
   async findById(id: number) {
