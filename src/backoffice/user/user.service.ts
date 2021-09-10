@@ -1,4 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
+import { Address } from 'src/entities/address.entity';
 import { PaginationService } from 'src/utils/pagination/pagination.service';
 import { ILike, Repository } from 'typeorm';
 import { User } from '../../entities/user.entity';
@@ -8,6 +9,8 @@ export class UserService {
   constructor(
     @Inject('USER_REPOSITORY')
     private userRepository: Repository<User>,
+    @Inject('ADDRESS_REPOSITORY')
+    private addressRepository: Repository<Address>,
     private paginationService: PaginationService,
   ) {}
 
@@ -39,6 +42,13 @@ export class UserService {
     const user = await this.userRepository.findOne(id, {
       relations: ['city', 'city.state', 'city.state.region'],
     });
+
+    const address = await this.addressRepository.findOne({
+      where: { user: user },
+      order: { id: 'DESC' },
+    });
+
+    if (address) user.addresses.push(address);
 
     delete user.credentials;
 

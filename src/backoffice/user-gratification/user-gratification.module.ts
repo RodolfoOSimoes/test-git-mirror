@@ -8,6 +8,7 @@ import { AdminModule } from '../admin/admin.module';
 import { userGratificationProviders } from '../../providers/user-gratification.providers';
 import { statementProviders } from 'src/providers/statement.providers';
 import { campaignProviders } from 'src/providers/campaign.providers';
+import { addressProviders } from 'src/providers/address.providers';
 
 @Module({
   controllers: [UserGratificationController],
@@ -16,6 +17,7 @@ import { campaignProviders } from 'src/providers/campaign.providers';
     ...userGratificationProviders,
     ...statementProviders,
     ...campaignProviders,
+    ...addressProviders,
     UserGratificationService,
   ],
 })
