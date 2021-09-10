@@ -1,10 +1,26 @@
 import { MailerService } from '@nestjs-modules/mailer';
 import { Process, Processor } from '@nestjs/bull';
+import { Inject } from '@nestjs/common';
 import { Job } from 'bull';
+import { Product } from 'src/entities/product.entity';
+import { Statement } from 'src/entities/statement.entity';
+import { User } from 'src/entities/user.entity';
+import { Withdrawal } from 'src/entities/withdrawals.entity';
+import { MoreThan, MoreThanOrEqual, Repository } from 'typeorm';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const moment = require('moment');
 
 @Processor('sendMail-queue')
 export class SendMailConsumer {
-  constructor(private mailService: MailerService) {}
+  constructor(
+    private mailService: MailerService,
+    @Inject('USER_REPOSITORY')
+    private userRepository: Repository<User>,
+    @Inject('STATEMENT_REPOSITORY')
+    private statementRepository: Repository<Statement>,
+    @Inject('WITHDRAWAL_REPOSITORY')
+    private withdrawRepository: Repository<Withdrawal>,
+  ) {}
 
   @Process('sendMail-job')
   async sendMailJob(job: Job) {
@@ -42,6 +58,8 @@ export class SendMailConsumer {
   async sendOrderMailJob(job: Job) {
     const { data } = job;
     try {
+      await this.processWithdraw(data.user, data.product);
+
       const html = `Oi! ${data?.user?.name}<br><br>
        
        Seu resgate foi confirmado :)<br><br>
@@ -82,6 +100,97 @@ export class SendMailConsumer {
     } catch (error) {
       console.log(error);
       throw Error(error.message);
+    }
+  }
+
+  async processWithdraw(user: User, product: Product) {
+    try {
+      const withdrawal = await this.withdrawRepository.findOne({
+        where: {
+          user: user,
+          order: { date_spent: 'DESC' },
+        },
+      });
+
+      const date_start = withdrawal
+        ? withdrawal.date_spent
+        : moment(new Date()).format('YYYY-MM-DD');
+
+      const statements = await this.statementRepository.find({
+        where: {
+          user: user,
+          expiration_date: MoreThan(date_start),
+          kind: 1,
+          order: { expiration_date: 'ASC' },
+          select: ['amount', 'expiration_date'],
+        },
+      });
+
+      let product_value = product.value;
+
+      if (withdrawal) {
+        product_value -= withdrawal.spending;
+
+        const statements = await this.statementRepository.find({
+          where: {
+            user: user,
+            expiration_date: date_start,
+            kind: 1,
+            order: { expiration_date: 'ASC' },
+            select: ['amount', 'expiration_date'],
+          },
+        });
+
+        const value = statements.reduce(
+          (acc, statement) => acc + Number(statement.amount),
+          0,
+        );
+
+        if (value) {
+          await this.withdrawRepository.save({
+            created_at: new Date(),
+            updated_at: new Date(),
+            spending: value - withdrawal.spending,
+            date_spent: date_start,
+            user: user,
+          });
+        }
+      }
+
+      const whidrawls = [];
+
+      for (const statement of statements) {
+        if (product_value <= 0) break;
+
+        const hasStatement = whidrawls.find(
+          (withdraw) => withdraw.date_spent == statement.expiration_date,
+        );
+        const value =
+          product_value >= statement.amount ? statement.amount : product_value;
+
+        if (hasStatement) {
+          hasStatement.amount += value;
+        } else {
+          whidrawls.push({
+            date_spent: statement.expiration_date,
+            amount: value,
+          });
+        }
+
+        product_value -= value;
+      }
+
+      for (const withdraw of whidrawls) {
+        await this.withdrawRepository.save({
+          created_at: new Date(),
+          updated_at: new Date(),
+          spending: withdraw.amount,
+          date_spent: withdraw.date_spent,
+          user: user,
+        });
+      }
+    } catch (error) {
+      console.log(error);
     }
   }
 }

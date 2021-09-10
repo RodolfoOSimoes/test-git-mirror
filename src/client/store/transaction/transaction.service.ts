@@ -108,21 +108,23 @@ export class TransactionService {
       price_of_product: product.value,
     });
 
-    await this.withdrawRepository.save({
-      user: user,
-      date_spent: moment(
-        new Date(new Date().setDate(new Date().getDate() + 90)),
-      ).format('YYYY-MM-DD'),
-      spending: product.value,
-      created_at: new Date(),
-      updated_at: new Date(),
-    });
-
     await this.addressRepository.update(address.id, {
       order: order,
     });
 
     this.sendMailProducer.sendOrderEmail(user, product, address);
+
+    //processar withdraws
+
+    // await this.withdrawRepository.save({
+    //   user: user,
+    //   date_spent: moment(
+    //     new Date(new Date().setDate(new Date().getDate() + 90)),
+    //   ).format('YYYY-MM-DD'),
+    //   spending: product.value,
+    //   created_at: new Date(),
+    //   updated_at: new Date(),
+    // });
 
     return { message: 'Produto resgatado com sucesso.' };
   }

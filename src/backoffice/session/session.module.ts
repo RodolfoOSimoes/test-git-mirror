@@ -11,9 +11,14 @@ import { BullModule } from '@nestjs/bull';
 import { SendMailConsumer } from 'src/jobs/consumers/sendMail-consumer';
 import { UserModule } from 'src/client/user/user.module';
 import { SpotifyService } from 'src/apis/spotify/spotify.service';
+import { userProviders } from 'src/providers/user.providers';
+import { statementProviders } from 'src/providers/statement.providers';
+import { withdrawalProviders } from 'src/providers/withdrawal.providers';
+import { DatabaseModule } from 'src/database/database.module';
 
 @Module({
   imports: [
+    DatabaseModule,
     AdminModule,
     AuthModule,
     UserModule,
@@ -29,6 +34,9 @@ import { SpotifyService } from 'src/apis/spotify/spotify.service';
     SendMailProducerService,
     SendMailConsumer,
     SpotifyService,
+    ...statementProviders,
+    ...withdrawalProviders,
+    ...userProviders,
   ],
 })
 export class SessionModule {}
