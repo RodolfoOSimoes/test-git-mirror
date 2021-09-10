@@ -16,9 +16,13 @@ export class StatementController {
   constructor(private readonly statementService: StatementService) {}
   @UseGuards(JwtAuthGuard)
   @Get()
-  findAll(@Request() req, @Query('page') page: number) {
+  findAll(
+    @Request() req,
+    @Query('user_id') user_id: number,
+    @Query('page') page: number,
+  ) {
     if (req.user.roles === AdminRole.MASTER)
-      return this.statementService.findAll(page);
+      return this.statementService.findAll(user_id, page);
     else throw new UnauthorizedException();
   }
 

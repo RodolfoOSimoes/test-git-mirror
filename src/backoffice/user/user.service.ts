@@ -74,11 +74,17 @@ export class UserService {
       },
     });
 
+    const total_balance =
+      generateBalance(user.statements, user.withdrawals) || 0;
+
+    delete user.withdrawals;
+    delete user.statements;
+
     return {
       ...user,
       situation: user.situation ? 'banned' : 'active',
       address,
-      total_balance: generateBalance(user.statements, user.withdrawals) || 0,
+      total_balance,
     };
   }
 
