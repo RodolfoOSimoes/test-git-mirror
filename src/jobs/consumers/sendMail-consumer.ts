@@ -121,8 +121,8 @@ export class SendMailConsumer {
           user: user,
           expiration_date: MoreThan(date_start),
           kind: 1,
-          select: ['amount', 'expiration_date'],
         },
+        select: ['amount', 'expiration_date'],
         order: { expiration_date: 'ASC' },
       });
 
@@ -136,8 +136,8 @@ export class SendMailConsumer {
             user: user,
             expiration_date: date_start,
             kind: 1,
-            select: ['amount', 'expiration_date'],
           },
+          select: ['amount', 'expiration_date'],
           order: { expiration_date: 'ASC' },
         });
 
