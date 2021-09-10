@@ -108,8 +108,8 @@ export class SendMailConsumer {
       const withdrawal = await this.withdrawRepository.findOne({
         where: {
           user: user,
-          order: { date_spent: 'DESC' },
         },
+        order: { date_spent: 'DESC' },
       });
 
       const date_start = withdrawal
@@ -121,9 +121,9 @@ export class SendMailConsumer {
           user: user,
           expiration_date: MoreThan(date_start),
           kind: 1,
-          order: { expiration_date: 'ASC' },
           select: ['amount', 'expiration_date'],
         },
+        order: { expiration_date: 'ASC' },
       });
 
       let product_value = product.value;
@@ -136,9 +136,9 @@ export class SendMailConsumer {
             user: user,
             expiration_date: date_start,
             kind: 1,
-            order: { expiration_date: 'ASC' },
             select: ['amount', 'expiration_date'],
           },
+          order: { expiration_date: 'ASC' },
         });
 
         const value = statements.reduce(
