@@ -125,7 +125,7 @@ export class SendMailConsumer {
         select: ['amount', 'expiration_date'],
         order: { expiration_date: 'ASC' },
       });
-
+      console.log(product.value);
       let product_value = product.value;
 
       // if (withdrawal) {
@@ -176,7 +176,7 @@ export class SendMailConsumer {
             amount: value,
           });
         }
-
+        console.log(product_value);
         product_value -= value;
       }
 
