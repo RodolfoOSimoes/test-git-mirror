@@ -56,7 +56,7 @@ export class UserService {
       balance: user.balance,
       opt_in_mailing: user.opt_in_mailing,
       have_accepted: user.have_accepted,
-      situation: user.situation,
+      situation: user.situation ? 'banned' : 'active',
     };
   }
 }
