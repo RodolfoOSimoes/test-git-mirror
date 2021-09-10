@@ -39,16 +39,14 @@ export class UserService {
     const user = await this.userRepository.findOne(id, {
       relations: ['city', 'city.state', 'city.state.region'],
     });
-    delete user.credentials;
-    return user;
-  }
-
-  async findById(id: number) {
-    const user = await this.userRepository.findOne(id);
     if (user) {
       return this.userMapper(user);
     }
     return undefined;
+  }
+
+  async findById(id: number) {
+    return await this.userRepository.findOne(id);
   }
 
   userMapper(user: User) {
