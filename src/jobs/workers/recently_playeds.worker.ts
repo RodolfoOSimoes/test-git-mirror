@@ -26,28 +26,30 @@ async function runWorker() {
   const rescueList = process.env.RESCUES_CAMPAIGN
     ? process.env.RESCUES_CAMPAIGN.split(';')
     : [];
-  const connection = null;
+  let connection = null;
   const spotifyService = new SpotifyService();
   console.log('Starting worker');
-  // connection = await getConnection();
-  // let iteration = 0;
-  // const limit = 20;
+  connection = await getConnection();
+  let iteration = 101015;
+  const limit = 20;
   // while (true) {
-  //   try {
-  //     const usersData = await connection.query(
-  //       `SELECT id, credentials, last_heard FROM users WHERE deleted = ? AND situation = ? AND last_time_verified < ? AND id > ? LIMIT ${limit}`,
-  //       [false, false, new Date().getTime(), iteration],
-  //     );
-  //     if (!usersData.length) {
-  //       iteration = 0;
-  //     } else {
-  //       iteration = usersData[usersData.length - 1].id;
-  //     }
-  //     const users = await getUsers(usersData, connection);
-  //     await prepareJob(users, connection, spotifyService, rescueList);
-  //   } catch (error) {
-  //     console.log(error);
-  //   }
+  setInterval(async () => {
+    try {
+      const usersData = await connection.query(
+        `SELECT id, credentials, last_heard FROM users WHERE deleted = ? AND situation = ? AND last_time_verified < ? AND id = ? LIMIT ${limit}`,
+        [false, false, new Date().getTime(), iteration],
+      );
+      if (!usersData.length) {
+        iteration = 0;
+      } else {
+        iteration = usersData[usersData.length - 1].id;
+      }
+      const users = await getUsers(usersData, connection);
+      await prepareJob(users, connection, spotifyService, rescueList);
+    } catch (error) {
+      console.log(error);
+    }
+  }, 10000);
   // }
 }
 
