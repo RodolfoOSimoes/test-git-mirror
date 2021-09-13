@@ -23,12 +23,15 @@ async function getConnection() {
 }
 
 async function runWorker() {
-  // let connection = null;
-  // const spotifyService = new SpotifyService();
-  // console.log('Starting worker');
-  // connection = await getConnection();
+  const rescueList = process.env.RESCUES_CAMPAIGN
+    ? process.env.RESCUES_CAMPAIGN.split(';')
+    : [];
+  let connection = null;
+  const spotifyService = new SpotifyService();
+  console.log('Starting worker');
+  connection = await getConnection();
   // let iteration = 0;
-  // const limit = 50;
+  // const limit = 20;
   // while (true) {
   //   try {
   //     const usersData = await connection.query(
@@ -41,29 +44,29 @@ async function runWorker() {
   //       iteration = usersData[usersData.length - 1].id;
   //     }
   //     const users = await getUsers(usersData, connection);
-  //     await prepareJob(users, connection, spotifyService);
+  //     await prepareJob(users, connection, spotifyService, rescueList);
   //   } catch (error) {
   //     console.log(error);
   //   }
   // }
 }
 
-async function prepareJob(users, connection, spotifyService) {
+async function prepareJob(users, connection, spotifyService, rescueList) {
   await Promise.all([
-    runJob(users.splice(0, 10), connection, spotifyService),
-    runJob(users.splice(0, 10), connection, spotifyService),
-    runJob(users.splice(0, 10), connection, spotifyService),
-    runJob(users.splice(0, 10), connection, spotifyService),
-    runJob(users.splice(0, 10), connection, spotifyService),
-    runJob(users.splice(0, 10), connection, spotifyService),
-    runJob(users.splice(0, 10), connection, spotifyService),
-    runJob(users.splice(0, 10), connection, spotifyService),
-    runJob(users.splice(0, 10), connection, spotifyService),
-    runJob(users.splice(0, 10), connection, spotifyService),
+    runJob(users.splice(0, 10), connection, spotifyService, rescueList),
+    runJob(users.splice(0, 10), connection, spotifyService, rescueList),
+    runJob(users.splice(0, 10), connection, spotifyService, rescueList),
+    runJob(users.splice(0, 10), connection, spotifyService, rescueList),
+    runJob(users.splice(0, 10), connection, spotifyService, rescueList),
+    runJob(users.splice(0, 10), connection, spotifyService, rescueList),
+    runJob(users.splice(0, 10), connection, spotifyService, rescueList),
+    runJob(users.splice(0, 10), connection, spotifyService, rescueList),
+    runJob(users.splice(0, 10), connection, spotifyService, rescueList),
+    runJob(users.splice(0, 10), connection, spotifyService, rescueList),
   ]);
 }
 
-async function runJob(users, connection, spotifyService) {
+async function runJob(users, connection, spotifyService, rescueList) {
   try {
     for (const user of users) {
       console.log(`Processing user: ${user.id}`);
@@ -98,6 +101,7 @@ async function runJob(users, connection, spotifyService) {
             campaign,
             questPlaylistSpotify,
             connection,
+            rescueList,
           );
           await updateUser(user, recently, connection);
         }
@@ -174,6 +178,11 @@ async function loadRescues(connection) {
 
 function getYesterday() {
   const date = new Date();
+  return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate() - 1}`;
+}
+
+function getToday() {
+  const date = new Date();
   return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
 }
 
@@ -235,6 +244,7 @@ async function prepareCashbacks(
   campaign,
   questPlaylistSpotify,
   connection,
+  rescueList,
 ) {
   const todayCashBacks = await connection.query(
     `SELECT * FROM cash_backs WHERE user_id = ? AND played_at > ? ORDER BY track_id DESC`,
@@ -252,6 +262,8 @@ async function prepareCashbacks(
   const userQuestPlaylist = [];
 
   const statementCashbacks = [];
+
+  const rescuesCampaign = [];
 
   recently.items.forEach((item) => {
     const isrc = item['track']['external_ids']['isrc'];
@@ -290,6 +302,17 @@ async function prepareCashbacks(
             playlist: qsp,
             id: userQuest.id,
             user: user,
+          });
+        }
+
+        if (rescueList.includes(item['track']['id'])) {
+          rescuesCampaign.push({
+            uri: item['track']['id']?.split(':')?.[2],
+            date: getToday(),
+            name: item['track']['name'],
+            user_id: user.id,
+            created_at: new Date(),
+            updated_at: new Date(),
           });
         }
       }
@@ -344,12 +367,37 @@ async function prepareCashbacks(
       saveStatements(statements, connection),
       saveCashBacks(cashbacks, connection),
       saveUserQuestSpotify(userQuestSpotifySave, connection),
+      saveRescueCampaign(rescuesCampaign, connection),
     ]);
     await updateUserQuestSpotify(userQuestSpotifyUpdate, connection);
   } catch (error) {
     console.log(error.message);
   }
   console.log('finishing worker');
+}
+
+async function saveRescueCampaign(rescuesCampaign, connection) {
+  for (const rescue of rescuesCampaign) {
+    await connection.query(
+      `INSERT INTO rescue_records (
+        user_id, 
+        uri,
+        name,
+        date, 
+        created_at, 
+        updated_at) VALUES (
+          ?,?,?,?,?
+        )`,
+      [
+        rescue.user_id,
+        rescue.uri,
+        rescue.name,
+        rescue.date,
+        rescue.created_at,
+        rescue.updated_at,
+      ],
+    );
+  }
 }
 
 async function saveStatements(statements, connection) {
