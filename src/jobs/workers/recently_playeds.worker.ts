@@ -49,7 +49,7 @@ async function runWorker() {
     } catch (error) {
       console.log(error);
     }
-  }, 10000);
+  }, 120000);
   // }
 }
 
