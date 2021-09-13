@@ -30,37 +30,29 @@ async function runWorker() {
   const spotifyService = new SpotifyService();
   console.log('Starting worker');
   connection = await getConnection();
-  // let iteration = 0;
-  // const limit = 20;
+  let iteration = 607;
+  const limit = 20;
   // while (true) {
-  //   try {
-  //     const usersData = await connection.query(
-  //       `SELECT id, credentials, last_heard FROM users WHERE deleted = ? AND situation = ? AND last_time_verified < ? AND id > ? LIMIT ${limit}`,
-  //       [false, false, new Date().getTime(), iteration],
-  //     );
-  //     if (!usersData.length) {
-  //       iteration = 0;
-  //     } else {
-  //       iteration = usersData[usersData.length - 1].id;
-  //     }
-  //     const users = await getUsers(usersData, connection);
-  //     await prepareJob(users, connection, spotifyService, rescueList);
-  //   } catch (error) {
-  //     console.log(error);
-  //   }
+  try {
+    const usersData = await connection.query(
+      `SELECT id, credentials, last_heard FROM users WHERE deleted = ? AND situation = ? AND last_time_verified < ? AND id = ? LIMIT ${limit}`,
+      [false, false, new Date().getTime(), iteration],
+    );
+    if (!usersData.length) {
+      iteration = 0;
+    } else {
+      iteration = usersData[usersData.length - 1].id;
+    }
+    const users = await getUsers(usersData, connection);
+    await prepareJob(users, connection, spotifyService, rescueList);
+  } catch (error) {
+    console.log(error);
+  }
   // }
 }
 
 async function prepareJob(users, connection, spotifyService, rescueList) {
   await Promise.all([
-    runJob(users.splice(0, 10), connection, spotifyService, rescueList),
-    runJob(users.splice(0, 10), connection, spotifyService, rescueList),
-    runJob(users.splice(0, 10), connection, spotifyService, rescueList),
-    runJob(users.splice(0, 10), connection, spotifyService, rescueList),
-    runJob(users.splice(0, 10), connection, spotifyService, rescueList),
-    runJob(users.splice(0, 10), connection, spotifyService, rescueList),
-    runJob(users.splice(0, 10), connection, spotifyService, rescueList),
-    runJob(users.splice(0, 10), connection, spotifyService, rescueList),
     runJob(users.splice(0, 10), connection, spotifyService, rescueList),
     runJob(users.splice(0, 10), connection, spotifyService, rescueList),
   ]);
@@ -307,12 +299,13 @@ async function prepareCashbacks(
 
         if (rescueList.includes(item['track']['id'])) {
           rescuesCampaign.push({
-            uri: item['track']['id']?.split(':')?.[2],
+            uri: item['track']['id'],
             date: getToday(),
             name: item['track']['name'],
             user_id: user.id,
             created_at: new Date(),
             updated_at: new Date(),
+            played_at: item['played_at'],
           });
         }
       }
@@ -384,15 +377,17 @@ async function saveRescueCampaign(rescuesCampaign, connection) {
         uri,
         name,
         date, 
+        played_at,
         created_at, 
         updated_at) VALUES (
-          ?,?,?,?,?
+          ?,?,?,?,?,?,?
         )`,
       [
         rescue.user_id,
         rescue.uri,
         rescue.name,
         rescue.date,
+        rescue.played_at,
         rescue.created_at,
         rescue.updated_at,
       ],

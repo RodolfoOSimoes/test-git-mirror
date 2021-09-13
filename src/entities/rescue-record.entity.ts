@@ -28,6 +28,9 @@ export class RescueRecords {
   @Column({ type: 'date', nullable: true })
   date: Date;
 
+  @Column({ type: 'datetime', nullable: true })
+  played_at: Date;
+
   @CreateDateColumn({ type: 'datetime', nullable: true })
   created_at: Date;
 
