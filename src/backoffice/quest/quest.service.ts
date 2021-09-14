@@ -10,6 +10,7 @@ import { QuestMissionType, YoutubeKind } from 'src/enums/QuestTypes';
 import { AdminRole } from 'src/enums/AdminRoles';
 import { QuestOpts } from 'src/entities/quest-opts.entity';
 import { QuestPreSaves } from 'src/entities/quest-pre-saves.entity';
+import { getBrlUtcDate } from 'src/utils/date.utils';
 
 @Injectable()
 export class QuestService {
@@ -203,7 +204,7 @@ export class QuestService {
   questMapper(quest: Quest) {
     return {
       id: quest.id,
-      date_start: quest.date_start,
+      date_start: getBrlUtcDate(quest.date_start),
       kind: QuestMissionType[quest.kind],
       status: quest.status,
       accomplished_count: quest.accomplished_quests.length,
