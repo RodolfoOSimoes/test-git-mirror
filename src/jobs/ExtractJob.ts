@@ -24,67 +24,67 @@ export class ExtractJob {
   async handleCron() {
     const yerterday = this.getYesterday();
 
-    let iteration = 0;
+    // let iteration = 0;
 
-    while (iteration != -1) {
-      const users = await this.loadUsers(iteration);
-      if (!users.length) {
-        iteration = -1;
-      } else {
-        iteration = users[users.length - 1].id;
-      }
+    // while (iteration != -1) {
+    //   const users = await this.loadUsers(iteration);
+    //   if (!users.length) {
+    //     iteration = -1;
+    //   } else {
+    //     iteration = users[users.length - 1].id;
+    //   }
 
-      users.forEach(async (user) => {
-        const extract = await this.extractRepository.findOne({
-          where: { user: user },
-          order: { created_at: 'DESC' },
-          select: ['created_at'],
-        });
+    //   users.forEach(async (user) => {
+    //     const extract = await this.extractRepository.findOne({
+    //       where: { user: user },
+    //       order: { created_at: 'DESC' },
+    //       select: ['created_at'],
+    //     });
 
-        if (!this.hasTodayExtract(extract?.created_at)) {
-          const depositsStatements = await this.statementRepository.find({
-            where: {
-              user: user,
-              created_at: Between(yerterday.start, yerterday.end),
-            },
-          });
+    //     if (!this.hasTodayExtract(extract?.created_at)) {
+    //       const depositsStatements = await this.statementRepository.find({
+    //         where: {
+    //           user: user,
+    //           created_at: Between(yerterday.start, yerterday.end),
+    //         },
+    //       });
 
-          const expiredStatements = await this.statementRepository.find({
-            where: {
-              user: user,
-              expiration_date: yerterday.expiration,
-              kind: 1,
-            },
-          });
+    //       const expiredStatements = await this.statementRepository.find({
+    //         where: {
+    //           user: user,
+    //           expiration_date: yerterday.expiration,
+    //           kind: 1,
+    //         },
+    //       });
 
-          const expired =
-            expiredStatements.reduce(
-              (acc, statement) => acc + Number(statement.amount),
-              0,
-            ) || 0;
+    //       const expired =
+    //         expiredStatements.reduce(
+    //           (acc, statement) => acc + Number(statement.amount),
+    //           0,
+    //         ) || 0;
 
-          const deposited =
-            depositsStatements.reduce((acc, statement) => {
-              if (statement.kind == 1) return acc + Number(statement.amount);
-            }, 0) || 0;
+    //       const deposited =
+    //         depositsStatements.reduce((acc, statement) => {
+    //           if (statement.kind == 1) return acc + Number(statement.amount);
+    //         }, 0) || 0;
 
-          const withdraw =
-            depositsStatements.reduce((acc, statement) => {
-              if (statement.kind == 0) return acc + Number(statement.amount);
-            }, 0) || 0;
+    //       const withdraw =
+    //         depositsStatements.reduce((acc, statement) => {
+    //           if (statement.kind == 0) return acc + Number(statement.amount);
+    //         }, 0) || 0;
 
-          await this.extractRepository.save({
-            created_at: new Date(),
-            updated_at: new Date(),
-            user: user,
-            date_day: yerterday.expiration,
-            deposit: deposited,
-            expired: expired,
-            withdrawals: withdraw,
-          });
-        }
-      });
-    }
+    //       await this.extractRepository.save({
+    //         created_at: new Date(),
+    //         updated_at: new Date(),
+    //         user: user,
+    //         date_day: yerterday.expiration,
+    //         deposit: deposited,
+    //         expired: expired,
+    //         withdrawals: withdraw,
+    //       });
+    //     }
+    //   });
+    // }
   }
 
   getYesterday() {

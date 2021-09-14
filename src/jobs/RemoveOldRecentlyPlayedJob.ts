@@ -7,16 +7,16 @@ import { getConnection } from 'typeorm';
 export class RemoveOldRecentlyPlayedJob {
   @Cron(CronExpression.EVERY_10_SECONDS)
   async handleCron() {
-    try {
-      await getConnection()
-        .createQueryBuilder()
-        .delete()
-        .from(RecentlyPlayeds)
-        .where('created_at < :created_at LIMIT 200', {
-          created_at: this.getDate(),
-        })
-        .execute();
-    } catch (error) {}
+    // try {
+    //   await getConnection()
+    //     .createQueryBuilder()
+    //     .delete()
+    //     .from(RecentlyPlayeds)
+    //     .where('created_at < :created_at LIMIT 200', {
+    //       created_at: this.getDate(),
+    //     })
+    //     .execute();
+    // } catch (error) {}
   }
 
   getDate(): string {

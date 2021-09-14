@@ -36,7 +36,9 @@ export class QuestController {
     if (req.user.roles == 'spotify') {
       const result = await this.questService.update(req.user.id, id, body);
       if (result.hasError) {
-        const message = result.message ? result.message : result.answer;
+        const message = result.message
+          ? { message: result.message }
+          : result.answer;
         return res.status(HttpStatus.UNAUTHORIZED).send(message);
       }
       return res.status(HttpStatus.CREATED).json('ok');
