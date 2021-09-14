@@ -2,6 +2,8 @@ import { Inject, Injectable } from '@nestjs/common';
 import { User } from 'src/entities/user.entity';
 import { formatDate } from 'src/utils/date.utils';
 import { Repository } from 'typeorm';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const moment = require('moment');
 
 @Injectable()
 export class TransactionService {
@@ -30,11 +32,7 @@ export class TransactionService {
     return data;
   }
 
-  formatExpireDate(created_at: Date) {
-    const date = new Date(
-      new Date(created_at).setDate(new Date().getDate() + 90),
-    );
-
-    return formatDate(date);
+  formatExpireDate(dateGenerated: Date) {
+    return moment(dateGenerated).add(90, 'days').format('YYYY-MM-DD');
   }
 }
