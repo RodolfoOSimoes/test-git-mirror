@@ -18,7 +18,7 @@ const getDate = (date: string) => {
 };
 
 const getBrlUtcDate = (date) => {
-  return moment(date).utcOffset('-0300').format('YYYY-MM-DD HH:mm');
+  return moment(date).utcOffset('0000').format('YYYY-MM-DD HH:mm');
 };
 
 const prepareDate = () => {
