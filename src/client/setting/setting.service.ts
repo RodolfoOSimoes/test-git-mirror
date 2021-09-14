@@ -26,6 +26,22 @@ export class SettingService {
       date_finish: MoreThanOrEqual(formatDate(new Date())),
     });
 
+    const banners = await this.campaignRepository.find({
+      where: { enable_banner: true },
+    });
+
+    setting['banners'] = [];
+    for (const banner of banners) {
+      const image = await this.storageService.getPicture(
+        'CampaignBanner',
+        banner.id,
+      );
+      setting['banners'].push({
+        name: banner.name,
+        image: image,
+      });
+    }
+
     if (campaign) {
       const image = await this.storageService.getPicture(
         'Campaign',
