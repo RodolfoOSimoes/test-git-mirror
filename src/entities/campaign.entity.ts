@@ -31,6 +31,9 @@ export class Campaign {
   status: boolean;
 
   @Column({ type: 'boolean', nullable: true, default: false })
+  enable_banner: boolean;
+
+  @Column({ type: 'boolean', nullable: true, default: false })
   deleted: boolean;
 
   @ManyToOne((type) => Admin, (entity) => entity.campaigns)

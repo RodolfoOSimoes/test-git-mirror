@@ -1,0 +1,1 @@
+ALTER TABLE campaigns ADD COLUMN enable_banner tinyint(1) DEFAULT 0;

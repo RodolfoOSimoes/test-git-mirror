@@ -27,6 +27,7 @@ export class CampaignService {
       date_finish: data.campaign.date_finish,
       date_start: data.campaign.date_start,
       status: data.campaign.status,
+      enable_banner: data.campaign.enable_banner,
       created_at: new Date(),
       updated_at: new Date(),
       users_count: 0,
@@ -37,6 +38,13 @@ export class CampaignService {
         data.campaign.image.data,
         campaing.id,
         'Campaign',
+      );
+
+    if (data?.campaign?.image?.banner)
+      await this.storageService.createPic(
+        data.campaign.image.banner,
+        campaing.id,
+        'CampaignBanner',
       );
 
     return { message: 'Campanha criada com sucesso.' };
@@ -76,6 +84,7 @@ export class CampaignService {
       slug: data.campaign.slug,
       date_finish: data.campaign.date_finish,
       date_start: data.campaign.date_start,
+      enable_banner: data.campaign.enable_banner,
       status: data.campaign.status,
       updated_at: new Date(),
     });
@@ -85,6 +94,13 @@ export class CampaignService {
         data.campaign.image.data,
         id,
         'Campaign',
+      );
+
+    if (data?.campaign?.image?.banner)
+      await this.storageService.updatePic(
+        data.campaign.image.banner,
+        id,
+        'CampaignBanner',
       );
 
     return { message: 'Campanha atualizada com sucesso.' };
