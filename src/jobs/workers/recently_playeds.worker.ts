@@ -242,7 +242,7 @@ async function prepareCashbacks(
 ) {
   const todayCashBacks = await connection.query(
     `SELECT * FROM cash_backs WHERE user_id = ? AND played_at > ? ORDER BY track_id DESC`,
-    [user.id, getYesterday()],
+    [user.id, getToday()],
   );
 
   const cashbacksLimit = getLimits(todayCashBacks, rescues);
