@@ -21,7 +21,7 @@ export class TransactionService {
         type: 'transactions',
         created_at: formatDate(extract.created_at),
         deposit: extract.deposit,
-        expiration_date: this.formatExpireDate(extract.created_at),
+        expiration_date: this.formatExpireDate(extract.date_day),
         exired: extract.expired,
         withdrawal: extract.withdrawal,
       };
