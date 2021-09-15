@@ -47,6 +47,7 @@ export class AdminService {
       admin.otp_secret = token.base32;
       admin.token = token.hex;
       admin.token_reset = token.ascii;
+      admin.created_at = new Date();
       await this.adminRepository.save(admin);
       return { message: 'Admin registrado com sucesso! ' };
     } catch (error) {
