@@ -214,7 +214,7 @@ export class StorageService {
     });
 
     if (attachment && attachment.blob) {
-      return `https://cdn.smehost.net/apifiltrgamecom-brdevel/${attachment.blob.key}`;
+      return `https://${process.env.SMEHOST_SMEHOST_CDN_URL}/${process.env.SMEHOST_STORAGE_BUCKET_NAME}/${attachment.blob.key}`;
     }
 
     return undefined;
