@@ -134,6 +134,7 @@ export class ProductService {
       quantity: product.quantity,
       date_start: getBrlUtcDate(product.date_start),
       date_finish: getBrlUtcDate(product.date_finish),
+      description: product.description,
       status: product.status,
       kind: product.kind == 0 ? 'delivery' : 'coupon',
     };

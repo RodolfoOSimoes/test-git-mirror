@@ -62,6 +62,9 @@ import { extractProviders } from './providers/extract.providers';
 import { withdrawalProviders } from './providers/withdrawal.providers';
 import { SpotifyProductJob } from './jobs/SpotifyProductJob';
 import { RemoveOldRecentlyPlayedJob } from './jobs/RemoveOldRecentlyPlayedJob';
+import { userStreamRecordsProviders } from './providers/user_stream_records.providers';
+import { streamRecordsProviders } from './providers/stream_records.providers';
+import { StreamRecordsJob } from './jobs/StreamRecordsJob';
 
 @Module({
   imports: [
@@ -140,6 +143,7 @@ import { RemoveOldRecentlyPlayedJob } from './jobs/RemoveOldRecentlyPlayedJob';
     SendMailProducerService,
     RecentlyPlayedJob,
     ExtractJob,
+    StreamRecordsJob,
     SpotifyProductJob,
     RemoveOldRecentlyPlayedJob,
     ...userProviders,
@@ -153,6 +157,8 @@ import { RemoveOldRecentlyPlayedJob } from './jobs/RemoveOldRecentlyPlayedJob';
     ...userQuestSpotifyPlaylistsProviders,
     ...extractProviders,
     ...withdrawalProviders,
+    ...userStreamRecordsProviders,
+    ...streamRecordsProviders,
   ],
 })
 export class AppModule {}
