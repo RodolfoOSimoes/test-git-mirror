@@ -561,6 +561,7 @@ function prepareRecentlyPlayed(recently: any) {
     next: recently.next,
     items: recently.items.map((item) => {
       return {
+        artists: item.artists,
         context: item.context,
         played_at: item.played_at,
         track: {
