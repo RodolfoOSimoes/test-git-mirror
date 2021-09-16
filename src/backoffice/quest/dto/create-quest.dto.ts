@@ -1,6 +1,6 @@
 export class CreateQuestDto {
   quest: {
-    date_start: Date;
+    date_start: string;
     kind: number;
     score: number;
     status: boolean;

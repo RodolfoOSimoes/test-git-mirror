@@ -97,7 +97,7 @@ export class QuestService {
       id: result.id,
       accomplished_count: result.accomplished_quests?.length,
       created_at: result.created_at,
-      date_start: moment(result.date_start),
+      date_start: getBrlUtcDate(result.date_start),
       kind: QuestMissionType[result.kind],
       score: result.score,
       status: result.status,
@@ -135,6 +135,8 @@ export class QuestService {
       where: { id: id },
       relations: ['accomplished_quests', 'accomplished_quests.user'],
     });
+
+    quest.date_start = getBrlUtcDate(quest.date_start);
 
     return {
       data: this.userListMapper(quest),

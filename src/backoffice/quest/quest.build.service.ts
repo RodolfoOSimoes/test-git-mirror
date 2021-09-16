@@ -8,6 +8,7 @@ import { QuestSpotifies } from 'src/entities/quest-spotifies.entity';
 import { QuestSpotifyPlaylists } from 'src/entities/quest-spotify-playlists.entity';
 import { QuestYoutubes } from 'src/entities/quest-youtubes.entity';
 import { Quest } from 'src/entities/quest.entity';
+import { getDate } from 'src/utils/date.utils';
 import { CreateQuestDto } from './dto/create-quest.dto';
 
 export class QuestBuildService {
@@ -21,7 +22,7 @@ export class QuestBuildService {
     newQuest.score = quest.score;
     newQuest.created_at = new Date();
     newQuest.updated_at = new Date();
-    newQuest.date_start = quest.date_start;
+    newQuest.date_start = getDate(quest.date_start);
     newQuest.accomplished_count = 0;
 
     switch (quest_kind) {
