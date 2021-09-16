@@ -101,12 +101,16 @@ export class ProductService {
     // );
 
     const { product } = dto;
+
+    console.log(product.date_start);
+    console.log(moment(product.date_start));
+
     await this.productRepository.update(id, {
       admin: admin,
       name: product.name,
       value: product.value,
-      date_start: new Date(product.date_start),
-      date_finish: new Date(product.date_finish),
+      date_start: moment(product.date_start),
+      date_finish: moment(product.date_finish),
       status: product.status,
       quantity: product.quantity,
       updated_at: new Date(),
