@@ -14,7 +14,7 @@ const formatDate = (date) => {
 };
 
 const getDate = (date: string) => {
-  return moment(date).format('YYYY-MM-DD HH:mm');
+  return moment(date).format('YYYY-MM-DD HH:mm:ss');
 };
 
 const getBrlUtcDate = (date) => {

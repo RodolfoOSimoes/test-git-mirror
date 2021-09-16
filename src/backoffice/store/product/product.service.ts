@@ -8,7 +8,7 @@ import { UpdateProductDto } from './dto/update-product.dto';
 import { Product } from '../../../entities/product.entity';
 import { generateCode } from 'src/utils/code.utils';
 import { StorageService } from 'src/utils/storage/storage.service';
-import { getBrlUtcDate } from 'src/utils/date.utils';
+import { getBrlUtcDate, getDate } from 'src/utils/date.utils';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const moment = require('moment');
 
@@ -103,7 +103,7 @@ export class ProductService {
     const { product } = dto;
 
     console.log(product.date_start);
-    console.log(moment(product.date_start));
+    console.log(getDate(product.date_start));
 
     await this.productRepository.update(id, {
       admin: admin,

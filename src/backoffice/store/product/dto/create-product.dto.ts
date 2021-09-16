@@ -2,8 +2,8 @@ export class CreateProductDto {
   product: {
     name: string;
     value: number;
-    date_start: Date;
-    date_finish: Date;
+    date_start: string;
+    date_finish: string;
     status: boolean;
     quantity: number;
     quantities_purchased: number;
