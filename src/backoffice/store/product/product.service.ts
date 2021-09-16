@@ -26,15 +26,14 @@ export class ProductService {
   async create(admin_id: number, dto: CreateProductDto) {
     const admin = await this.adminService.findById(admin_id);
     const { product } = dto;
-    console.log(product.date_start);
-    console.log(moment(product.date_start));
+
     const newProduct = await this.productRepository.save({
       admin: admin,
       code_product: generateCode(11),
       name: product.name,
       value: product.value,
-      date_start: moment(product.date_start),
-      date_finish: moment(product.date_finish),
+      date_start: getDate(product.date_start),
+      date_finish: getDate(product.date_finish),
       status: product.status,
       deleted: false,
       quantity: product.quantity,
@@ -109,8 +108,8 @@ export class ProductService {
       admin: admin,
       name: product.name,
       value: product.value,
-      date_start: moment(product.date_start),
-      date_finish: moment(product.date_finish),
+      date_start: getDate(product.date_start),
+      date_finish: getDate(product.date_finish),
       status: product.status,
       quantity: product.quantity,
       updated_at: new Date(),
