@@ -25,8 +25,9 @@ export class ProductService {
 
   async create(admin_id: number, dto: CreateProductDto) {
     const admin = await this.adminService.findById(admin_id);
-
     const { product } = dto;
+    console.log(product.date_start);
+    console.log(moment(product.date_start));
     const newProduct = await this.productRepository.save({
       admin: admin,
       code_product: generateCode(11),

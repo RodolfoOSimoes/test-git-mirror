@@ -11,6 +11,8 @@ import { AdminRole } from 'src/enums/AdminRoles';
 import { QuestOpts } from 'src/entities/quest-opts.entity';
 import { QuestPreSaves } from 'src/entities/quest-pre-saves.entity';
 import { getBrlUtcDate } from 'src/utils/date.utils';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const moment = require('moment');
 
 @Injectable()
 export class QuestService {
@@ -95,7 +97,7 @@ export class QuestService {
       id: result.id,
       accomplished_count: result.accomplished_quests?.length,
       created_at: result.created_at,
-      date_start: getBrlUtcDate(result.date_start),
+      date_start: moment(result.date_start),
       kind: QuestMissionType[result.kind],
       score: result.score,
       status: result.status,
