@@ -9,6 +9,8 @@ import { Product } from '../../../entities/product.entity';
 import { generateCode } from 'src/utils/code.utils';
 import { StorageService } from 'src/utils/storage/storage.service';
 import { getBrlUtcDate } from 'src/utils/date.utils';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const moment = require('moment');
 
 @Injectable()
 export class ProductService {
@@ -30,8 +32,8 @@ export class ProductService {
       code_product: generateCode(11),
       name: product.name,
       value: product.value,
-      date_start: new Date(product.date_start),
-      date_finish: new Date(product.date_finish),
+      date_start: moment(product.date_start),
+      date_finish: moment(product.date_finish),
       status: product.status,
       deleted: false,
       quantity: product.quantity,
