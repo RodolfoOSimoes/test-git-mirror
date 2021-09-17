@@ -1,9 +1,16 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { Between, MoreThan, Repository } from 'typeorm';
+import {
+  Between,
+  LessThanOrEqual,
+  MoreThan,
+  MoreThanOrEqual,
+  Repository,
+} from 'typeorm';
 import { UserStreamRecords } from 'src/entities/user_stream_records.entity';
 import { StreamRecords } from 'src/entities/stream_records.entity';
 import { RecentlyPlayeds } from 'src/entities/recently-playeds.entity';
+import { Rescue } from 'src/entities/rescue.entity';
 
 @Injectable()
 export class StreamRecordsJob {
@@ -14,76 +21,118 @@ export class StreamRecordsJob {
     private streamRepository: Repository<StreamRecords>,
     @Inject('RECENTLY_PLAYEDS_REPOSITORY')
     private recentlyPlayedRepository: Repository<RecentlyPlayeds>,
+    @Inject('RESCUE_REPOSITORY')
+    private rescueRepository: Repository<Rescue>,
   ) {}
 
   // @Cron('30 * * * * *')
-  @Cron(CronExpression.EVERY_30_SECONDS)
+  @Cron(CronExpression.EVERY_DAY_AT_3AM)
   async handleCron() {
-    const yerterday = this.getYesterday();
+    const yesterday = this.getYesterday();
+    const recently = await this.recentlyPlayedRepository.query(
+      `
+      SELECT COUNT(DISTINCT(user_id)) AS distinct_users FROM recently_playeds WHERE created_at BETWEEN ? AND ?`,
+      [yesterday.start, yesterday.end],
+    );
+    console.log('start StreamRecordsJob');
+    const userStream = await this.userStreamRepository.findOne({
+      where: { date: yesterday.date },
+    });
 
-    // const recently = await this.recentlyPlayedRepository.f
+    if (!userStream) {
+      await this.userStreamRepository.save({
+        date: yesterday.date,
+        quantity: recently[0]?.distinct_users,
+        created_at: new Date(),
+        updated_at: new Date(),
+      });
+    }
 
-    // let iteration = 0;
+    const rescues = await this.rescueRepository.find({
+      order: { priority: 'ASC', id: 'DESC' },
+      where: { deleted: false, status: true },
+    });
 
-    // while (iteration != -1) {
-    //   const users = await this.loadUsers(iteration);
-    //   if (!users.length) {
-    //     iteration = -1;
-    //   } else {
-    //     iteration = users[users.length - 1].id;
-    //   }
+    let iteration = 0;
+    while (iteration != -1) {
+      try {
+        const streamRecords = await this.streamRepository.find({
+          where: { date: yesterday.date },
+        });
 
-    //   users.forEach(async (user) => {
-    //     const extract = await this.extractRepository.findOne({
-    //       where: { user: user },
-    //       order: { created_at: 'DESC' },
-    //       select: ['created_at'],
-    //     });
+        const recentlyPlayeds = await this.recentlyPlayedRepository.find({
+          take: 100,
+          where: {
+            created_at: Between(yesterday.start, yesterday.end),
+            id: MoreThan(iteration),
+          },
+        });
 
-    //     if (!this.hasTodayExtract(extract?.created_at)) {
-    //       const depositsStatements = await this.statementRepository.find({
-    //         where: {
-    //           user: user,
-    //           created_at: Between(yerterday.start, yerterday.end),
-    //         },
-    //       });
+        if (!recentlyPlayeds.length) {
+          break;
+        } else {
+          iteration = recentlyPlayeds[recentlyPlayeds.length - 1].id;
+        }
 
-    //       const expiredStatements = await this.statementRepository.find({
-    //         where: {
-    //           user: user,
-    //           expiration_date: yerterday.expiration,
-    //           kind: 1,
-    //         },
-    //       });
+        for (const recently of recentlyPlayeds) {
+          const items = recently['content']['items'];
+          items?.map((item) => {
+            const date_played = item.played_at.split('T')[0];
 
-    //       const expired =
-    //         expiredStatements.reduce(
-    //           (acc, statement) => acc + Number(statement.amount),
-    //           0,
-    //         ) || 0;
+            if (date_played == yesterday.date) {
+              const rescue = rescues.find(
+                (rescue) => rescue.uri == item.track.uri,
+              );
 
-    //       const deposited =
-    //         depositsStatements.reduce((acc, statement) => {
-    //           if (statement.kind == 1) return acc + Number(statement.amount);
-    //         }, 0) || 0;
+              if (rescue) {
+                const stream = streamRecords.find(
+                  (stream) =>
+                    stream.track_uri == item.track.uri &&
+                    (stream.playlist_uri == item.context?.uri ||
+                      (!stream.playlist_uri && !item.context)),
+                );
+                if (stream) {
+                  stream.stream_quantity++;
+                } else {
+                  const streamRecord = new StreamRecords();
+                  streamRecord.artists_name = item.track.artists
+                    .map((artist) => artist.name)
+                    .join(', ');
+                  streamRecord.playlist_uri = item.context?.uri;
+                  streamRecord.stream_quantity = 1;
+                  streamRecord.track_name = item.track.name;
+                  streamRecord.track_uri = item.track.uri;
+                  streamRecords.push(streamRecord);
+                }
+              }
+            }
+          });
+        }
 
-    //       const withdraw =
-    //         depositsStatements.reduce((acc, statement) => {
-    //           if (statement.kind == 0) return acc + Number(statement.amount);
-    //         }, 0) || 0;
-
-    //       await this.extractRepository.save({
-    //         created_at: new Date(),
-    //         updated_at: new Date(),
-    //         user: user,
-    //         date_day: yerterday.expiration,
-    //         deposit: deposited,
-    //         expired: expired,
-    //         withdrawals: withdraw,
-    //       });
-    //     }
-    //   });
-    // }
+        for (const stream of streamRecords) {
+          if (stream.id) {
+            await this.streamRepository.update(stream.id, {
+              stream_quantity: stream.stream_quantity,
+              updated_at: new Date(),
+            });
+          } else {
+            await this.streamRepository.save({
+              artists_name: stream.artists_name,
+              date: yesterday.date,
+              playlist_uri: stream.playlist_uri,
+              stream_quantity: stream.stream_quantity,
+              track_name: stream.track_name,
+              track_uri: stream.track_uri,
+              created_at: new Date(),
+              updated_at: new Date(),
+            });
+          }
+        }
+      } catch (error) {
+        console.log(`StreamRecordsJob:: ${error.message}`);
+      }
+    }
+    console.log('finish StreamRecordsJob');
   }
 
   getYesterday() {
@@ -91,13 +140,14 @@ export class StreamRecordsJob {
     const month = date.getMonth() + 1;
     const day = date.getDate() - 1;
     const year = date.getFullYear();
-    const formatedData = `${year}-${month < 10 ? '0' + month : month}-${
+    const formatedDate = `${year}-${month < 10 ? '0' + month : month}-${
       day < 10 ? '0' + day : day
     }`;
 
     return {
-      start: `${formatedData} 00:00:00`,
-      end: `${formatedData} 23:59:59`,
+      start: `${formatedDate} 00:00:00`,
+      end: `${formatedDate} 23:59:59`,
+      date: formatedDate,
     };
   }
 }

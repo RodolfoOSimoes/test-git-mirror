@@ -23,20 +23,19 @@ async function getConnection() {
 }
 
 async function runWorker() {
-  // const rescueList = process.env.RESCUES_CAMPAIGN
-  //   ? process.env.RESCUES_CAMPAIGN.split(';')
-  //   : [];
-  // let connection = null;
-  // const spotifyService = new SpotifyService();
-  // console.log('Starting worker');
-  // connection = await getConnection();
-  // const iteration = 103874; // 101015;
+  const rescueList = process.env.RESCUES_CAMPAIGN
+    ? process.env.RESCUES_CAMPAIGN.split(';')
+    : [];
+  let connection = null;
+  const spotifyService = new SpotifyService();
+  console.log('Starting worker');
+  connection = await getConnection();
+  // let iteration = 0; //607; // 103874; // 101015;
   // const limit = 20;
   // while (true) {
-  // setInterval(async () => {
   //   try {
   //     const usersData = await connection.query(
-  //       `SELECT id, credentials, last_heard FROM users WHERE deleted = ? AND situation = ? AND last_time_verified < ? AND id = ? LIMIT ${limit}`,
+  //       `SELECT id, credentials, last_heard FROM users WHERE deleted = ? AND situation = ? AND last_time_verified < ? AND id > ? LIMIT ${limit}`,
   //       [false, false, new Date().getTime(), iteration],
   //     );
   //     if (!usersData.length) {
@@ -49,7 +48,6 @@ async function runWorker() {
   //   } catch (error) {
   //     console.log(error);
   //   }
-  // }, 120000);
   // }
 }
 
@@ -561,14 +559,16 @@ function prepareRecentlyPlayed(recently: any) {
     next: recently.next,
     items: recently.items.map((item) => {
       return {
-        artists: item.artists,
         context: item.context,
         played_at: item.played_at,
         track: {
           href: item.track.href,
           url: item.track.url,
+          uri: item.track.uri,
+          id: item.track.id,
           duration_ms: item.track.duration_ms,
           name: item.track.name,
+          artists: item.track.artists,
         },
       };
     }),
