@@ -39,7 +39,12 @@ export class StreamRecordsJob {
       where: { date: yesterday.date },
     });
 
-    if (!userStream) {
+    if (
+      !userStream &&
+      recently &&
+      recently[0] &&
+      recently[0].distinct_users > 0
+    ) {
       await this.userStreamRepository.save({
         date: yesterday.date,
         quantity: recently[0]?.distinct_users,
