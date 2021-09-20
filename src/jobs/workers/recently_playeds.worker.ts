@@ -28,27 +28,27 @@ async function runWorker() {
     : [];
   let connection = null;
   const spotifyService = new SpotifyService();
-  console.log('Starting worker');
+  // console.log('Starting worker');
   connection = await getConnection();
-  // let iteration = 0; //607; // 103874; // 101015;
-  // const limit = 20;
-  // while (true) {
-  //   try {
-  //     const usersData = await connection.query(
-  //       `SELECT id, credentials, last_heard FROM users WHERE deleted = ? AND situation = ? AND last_time_verified < ? AND id > ? LIMIT ${limit}`,
-  //       [false, false, new Date().getTime(), iteration],
-  //     );
-  //     if (!usersData.length) {
-  //       iteration = 0;
-  //     } else {
-  //       iteration = usersData[usersData.length - 1].id;
-  //     }
-  //     const users = await getUsers(usersData, connection);
-  //     await prepareJob(users, connection, spotifyService, rescueList);
-  //   } catch (error) {
-  //     console.log(error);
-  //   }
-  // }
+  let iteration = 0;
+  const limit = 20;
+  while (true) {
+    try {
+      const usersData = await connection.query(
+        `SELECT id, credentials, last_heard FROM users WHERE deleted = ? AND situation = ? AND last_time_verified < ? AND id > ? LIMIT ${limit}`,
+        [false, false, new Date().getTime(), iteration],
+      );
+      if (!usersData.length) {
+        iteration = 0;
+      } else {
+        iteration = usersData[usersData.length - 1].id;
+      }
+      const users = await getUsers(usersData, connection);
+      await prepareJob(users, connection, spotifyService, rescueList);
+    } catch (error) {
+      console.log(error);
+    }
+  }
 }
 
 async function prepareJob(users, connection, spotifyService, rescueList) {
@@ -61,7 +61,7 @@ async function prepareJob(users, connection, spotifyService, rescueList) {
 async function runJob(users, connection, spotifyService, rescueList) {
   try {
     for (const user of users) {
-      console.log(`Processing user: ${user.id}`);
+      // console.log(`Processing user: ${user.id}`);
       const credentials = user.credentials;
 
       let recentlyPlayeds = null;
@@ -79,7 +79,7 @@ async function runJob(users, connection, spotifyService, rescueList) {
         const recently = prepareRecentlyPlayed(recentlyPlayeds);
 
         if (recently) {
-          console.log(`Updating data for user: ${user.id}`);
+          // console.log(`Updating data for user: ${user.id}`);
           const [questPlaylistSpotify, campaign, rescues] = await Promise.all([
             loadSpotifyPlaylistQuests(connection),
             loadCampaign(connection),
@@ -98,7 +98,7 @@ async function runJob(users, connection, spotifyService, rescueList) {
           await updateUser(user, recently, connection);
         }
       }
-      console.log(`Finish processing user: ${user.id}`);
+      // console.log(`Finish processing user: ${user.id}`);
     }
   } catch (error) {
     console.log(error);
@@ -366,7 +366,7 @@ async function prepareCashbacks(
   } catch (error) {
     console.log(error.message);
   }
-  console.log('finishing worker');
+  // console.log('finishing worker');
 }
 
 async function saveRescueCampaign(rescuesCampaign, connection) {

@@ -13,42 +13,42 @@ export class SpotifyProductJob {
   ) {}
 
   // @Cron('30 * * * * *')
-  @Cron(CronExpression.EVERY_DAY_AT_1AM)
+  @Cron(CronExpression.EVERY_DAY_AT_3AM)
   async handleCron() {
-    const iteration = 0;
+    let iteration = 0;
 
-    // while (iteration != -1) {
-    //   const users = await this.loadUsers(iteration);
+    while (true) {
+      const users = await this.loadUsers(iteration);
 
-    //   if (!users.length) {
-    //     iteration = -1;
-    //   } else {
-    //     iteration = users[users.length - 1].id;
-    //   }
+      if (!users.length) {
+        break;
+      } else {
+        iteration = users[users.length - 1].id;
+      }
 
-    //   users.forEach(async (user) => {
-    //     try {
-    //       const result = await this.spotifyService.getuser(
-    //         user.credentials['refresh_token'],
-    //       );
+      users.forEach(async (user) => {
+        try {
+          const result = await this.spotifyService.getuser(
+            user.credentials['refresh_token'],
+          );
 
-    //       if (result && result.product) {
-    //         await this.userRepository.update(user.id, {
-    //           product: result.product,
-    //           updated_at: new Date(),
-    //           last_time_checked_product: new Date(),
-    //         });
-    //       }
-    //     } catch (error) {
-    //       console.log(`user_id: ${user.id} - error:: ${error.message}`);
-    //     }
-    //   });
-    // }
+          if (result && result.product) {
+            await this.userRepository.update(user.id, {
+              product: result.product,
+              updated_at: new Date(),
+              last_time_checked_product: new Date(),
+            });
+          }
+        } catch (error) {
+          console.log(`user_id: ${user.id} - error:: ${error.message}`);
+        }
+      });
+    }
   }
 
   async loadUsers(id: number) {
     return await this.userRepository.find({
-      take: 2,
+      take: 10,
       where: {
         deleted: false,
         situation: false,
