@@ -13,10 +13,10 @@ export class RemoveOldRecentlyPlayedJob {
   @Cron(CronExpression.EVERY_10_SECONDS)
   async handleCron() {
     try {
-      await this.recentlyRepository.query(
-        `DELETE FROM recently_playeds WHERE created_at <= ? LIMIT 200`,
-        [this.getDate()],
-      );
+      // await this.recentlyRepository.query(
+      //   `DELETE FROM recently_playeds WHERE created_at <= ? LIMIT 200`,
+      //   [this.getDate()],
+      // );
     } catch (error) {
       console.log(error.message);
     }
