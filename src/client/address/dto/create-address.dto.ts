@@ -7,5 +7,7 @@ export class CreateAddressDto {
     cpf: string;
     complement: string;
     neighborhood: string;
+    number: string;
+    street: string;
   };
 }

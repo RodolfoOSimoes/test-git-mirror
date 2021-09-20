@@ -5,6 +5,7 @@ import {
   UseGuards,
   UnauthorizedException,
   Param,
+  Body,
 } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { TransactionService } from './transaction.service';
