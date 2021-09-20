@@ -1,7 +1,13 @@
 import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { User } from 'src/entities/user.entity';
 import { Statement } from 'src/entities/statement.entity';
-import { LessThanOrEqual, MoreThanOrEqual, Repository } from 'typeorm';
+import {
+  EntityManager,
+  LessThanOrEqual,
+  MoreThanOrEqual,
+  Repository,
+  TransactionManager,
+} from 'typeorm';
 import { Address } from 'src/entities/address.entity';
 import { Order } from 'src/entities/order.entity';
 import { Product } from 'src/entities/product.entity';
@@ -12,6 +18,10 @@ import { Campaign } from 'src/entities/campaign.entity';
 import { formatDate, prepareDate } from 'src/utils/date.utils';
 import { generateBalance } from 'src/utils/balance.utils';
 import { getManager } from 'typeorm';
+import {
+  initializeTransactionalContext,
+  Transactional,
+} from 'typeorm-transactional-cls-hooked';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const moment = require('moment');
 
