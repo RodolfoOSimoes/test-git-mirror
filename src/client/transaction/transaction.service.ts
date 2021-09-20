@@ -14,7 +14,7 @@ export class TransactionService {
   async findAll(id: number) {
     const user = await this.userRepository.findOne(id, {
       relations: ['extracts'],
-      order: { id: 'ASC' },
+      order: { id: 'DESC' },
     });
 
     const data = user.extracts.map((extract) => {
