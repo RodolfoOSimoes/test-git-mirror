@@ -30,7 +30,7 @@ export class TransactionService {
       return {
         id: extract.id,
         type: 'transactions',
-        created_at: formatDate(extract.created_at),
+        created_at: extract.date_day,
         deposit: extract.deposit,
         expiration_date: this.formatExpireDate(extract.date_day),
         exired: extract.expired,
