@@ -27,16 +27,15 @@ export class TransactionService {
     });
 
     const data = extracts.map((extract) => {
-      if (extract.withdrawal > 0 || extract.expired > 0 || extract.deposit > 0)
-        return {
-          id: extract.id,
-          type: 'transactions',
-          created_at: formatDate(extract.created_at),
-          deposit: extract.deposit,
-          expiration_date: this.formatExpireDate(extract.date_day),
-          exired: extract.expired,
-          withdrawal: extract.withdrawal,
-        };
+      return {
+        id: extract.id,
+        type: 'transactions',
+        created_at: formatDate(extract.created_at),
+        deposit: extract.deposit,
+        expiration_date: this.formatExpireDate(extract.date_day),
+        exired: extract.expired,
+        withdrawal: extract.withdrawal,
+      };
     });
 
     return data;
