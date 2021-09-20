@@ -36,7 +36,7 @@ export class TransactionService {
   ) {}
 
   async create(user_id: number, code: string) {
-    await getManager().transaction(async (transactionalEntityManager) => {
+    try {
       const user = await this.userRepository.findOne({
         where: { id: user_id },
       });
@@ -46,7 +46,7 @@ export class TransactionService {
         order: { id: 'DESC' },
         relations: ['city', 'city.state'],
       });
-      console.log(address);
+
       const campaign = await this.campaignRepository.findOne({
         status: true,
         date_start: LessThanOrEqual(formatDate(new Date())),
@@ -85,7 +85,7 @@ export class TransactionService {
       await this.productRepository.update(product.id, {
         quantities_purchased: product.quantities_purchased + 1,
       });
-      throw Error('erro');
+
       await this.statementRepository.save({
         user: user,
         amount: product.value,
@@ -115,7 +115,10 @@ export class TransactionService {
       });
 
       this.sendMailProducer.sendOrderEmail(user, product, address);
-    });
+    } catch (error) {
+      console.log(error.message);
+      return { message: 'Erro ao resgatar produto.' };
+    }
 
     return { message: 'Produto resgatado com sucesso.' };
   }
