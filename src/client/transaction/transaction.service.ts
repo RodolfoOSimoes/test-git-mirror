@@ -23,7 +23,7 @@ export class TransactionService {
       where: {
         user: user,
         deposit: MoreThan(0),
-        withdraw: MoreThan(0),
+        withdrawal: MoreThan(0),
         expired: MoreThan(0),
       },
       order: { id: 'DESC' },
