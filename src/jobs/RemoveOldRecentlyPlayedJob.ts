@@ -1,22 +1,25 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { RecentlyPlayeds } from 'src/entities/recently-playeds.entity';
-import { getConnection } from 'typeorm';
+import { getConnection, Repository } from 'typeorm';
 
 @Injectable()
 export class RemoveOldRecentlyPlayedJob {
+  constructor(
+    @Inject('RECENTLY_PLAYEDS_REPOSITORY')
+    private recentlyRepository: Repository<RecentlyPlayeds>,
+  ) {}
+
   @Cron(CronExpression.EVERY_10_SECONDS)
   async handleCron() {
     try {
-      await getConnection()
-        .createQueryBuilder()
-        .delete()
-        .from(RecentlyPlayeds)
-        .where('created_at < :created_at LIMIT 200', {
-          created_at: this.getDate(),
-        })
-        .execute();
-    } catch (error) {}
+      await this.recentlyRepository.query(
+        `DELETE FROM recently_playeds WHERE created_at <= ? LIMIT 200`,
+        [this.getDate()],
+      );
+    } catch (error) {
+      console.log(error.message);
+    }
   }
 
   getDate(): string {
