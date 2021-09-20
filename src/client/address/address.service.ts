@@ -79,7 +79,6 @@ export class AddressService {
       updated_at: new Date(),
       created_at: new Date(),
     });
-
     return { message: 'Endereço atualizado com sucesso.' };
   }
 }

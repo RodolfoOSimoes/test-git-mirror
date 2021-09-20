@@ -11,6 +11,7 @@ import { Withdrawal } from 'src/entities/withdrawals.entity';
 import { Campaign } from 'src/entities/campaign.entity';
 import { formatDate, prepareDate } from 'src/utils/date.utils';
 import { generateBalance } from 'src/utils/balance.utils';
+import { getManager } from 'typeorm';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const moment = require('moment');
 
@@ -35,84 +36,86 @@ export class TransactionService {
   ) {}
 
   async create(user_id: number, code: string) {
-    const user = await this.userRepository.findOne({
-      where: { id: user_id },
-    });
+    await getManager().transaction(async (transactionalEntityManager) => {
+      const user = await this.userRepository.findOne({
+        where: { id: user_id },
+      });
 
-    const address = await this.addressRepository.findOne({
-      where: { user: user },
-      order: { id: 'DESC' },
-      relations: ['city', 'city.state'],
-    });
+      const address = await this.addressRepository.findOne({
+        where: { user: user },
+        order: { id: 'DESC' },
+        relations: ['city', 'city.state'],
+      });
+      console.log(address);
+      const campaign = await this.campaignRepository.findOne({
+        status: true,
+        date_start: LessThanOrEqual(formatDate(new Date())),
+        date_finish: MoreThanOrEqual(formatDate(new Date())),
+      });
 
-    const campaign = await this.campaignRepository.findOne({
-      status: true,
-      date_start: LessThanOrEqual(formatDate(new Date())),
-      date_finish: MoreThanOrEqual(formatDate(new Date())),
-    });
+      const product = await this.productRepository.findOne({
+        where: { code_product: code },
+      });
 
-    const product = await this.productRepository.findOne({
-      where: { code_product: code },
-    });
+      user.withdrawals = await this.withdrawRepository.find({
+        where: {
+          user: user,
+          date_spent: MoreThanOrEqual(moment(new Date()).format('YYYY-MM-DD')),
+        },
+      });
 
-    user.withdrawals = await this.withdrawRepository.find({
-      where: {
+      user.statements = await this.statementRepository.find({
+        where: {
+          user: user,
+          kind: 1,
+          expiration_date: MoreThanOrEqual(prepareDate()),
+        },
+      });
+
+      const balance = generateBalance(user.statements, user.withdrawals) || 0;
+
+      if (balance < product.value) {
+        throw new UnauthorizedException('Saldo insuficiente.');
+      }
+
+      if (product && product.quantity < product.quantities_purchased) {
+        throw new UnauthorizedException('Produto indisponível.');
+      }
+
+      await this.productRepository.update(product.id, {
+        quantities_purchased: product.quantities_purchased + 1,
+      });
+      throw Error('erro');
+      await this.statementRepository.save({
         user: user,
-        date_spent: MoreThanOrEqual(moment(new Date()).format('YYYY-MM-DD')),
-      },
-    });
+        amount: product.value,
+        kind: 0,
+        balance: 0,
+        statementable_type: 'Product',
+        statementable_id: product.id,
+        delete: false,
+        created_at: new Date(),
+        updated_at: new Date(),
+        campaign: campaign,
+      });
 
-    user.statements = await this.statementRepository.find({
-      where: {
+      const order = await this.orderRepository.save({
         user: user,
-        kind: 1,
-        expiration_date: MoreThanOrEqual(prepareDate()),
-      },
+        product: product,
+        created_at: new Date(),
+        updated_at: new Date(),
+        sent: false,
+        confirmation_email: true,
+        code_secret: generateCode(50),
+        price_of_product: product.value,
+      });
+
+      await this.addressRepository.update(address.id, {
+        order: order,
+      });
+
+      this.sendMailProducer.sendOrderEmail(user, product, address);
     });
-
-    const balance = generateBalance(user.statements, user.withdrawals) || 0;
-
-    if (balance < product.value) {
-      throw new UnauthorizedException('Saldo insuficiente.');
-    }
-
-    if (product && product.quantity < product.quantities_purchased) {
-      throw new UnauthorizedException('Produto indisponível.');
-    }
-
-    await this.productRepository.update(product.id, {
-      quantities_purchased: product.quantities_purchased + 1,
-    });
-
-    await this.statementRepository.save({
-      user: user,
-      amount: product.value,
-      kind: 0,
-      balance: 0,
-      statementable_type: 'Product',
-      statementable_id: product.id,
-      delete: false,
-      created_at: new Date(),
-      updated_at: new Date(),
-      campaign: campaign,
-    });
-
-    const order = await this.orderRepository.save({
-      user: user,
-      product: product,
-      created_at: new Date(),
-      updated_at: new Date(),
-      sent: false,
-      confirmation_email: true,
-      code_secret: generateCode(50),
-      price_of_product: product.value,
-    });
-
-    await this.addressRepository.update(address.id, {
-      order: order,
-    });
-
-    this.sendMailProducer.sendOrderEmail(user, product, address);
 
     return { message: 'Produto resgatado com sucesso.' };
   }

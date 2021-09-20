@@ -23,7 +23,7 @@ export class AddressController {
 
   @UseGuards(JwtAuthGuard)
   @Post()
-  create(
+  async create(
     @Request() req,
     @Body() createAddressDto: CreateAddressDto,
     @Res() res: Response,
@@ -34,7 +34,11 @@ export class AddressController {
         delete errors.hasError;
         return res.status(403).send(errors);
       }
-      return this.addressService.create(req.user.id, createAddressDto);
+      const result = await this.addressService.create(
+        req.user.id,
+        createAddressDto,
+      );
+      return res.status(200).send(result);
     }
     throw new UnauthorizedException();
   }
@@ -50,18 +54,22 @@ export class AddressController {
 
   @UseGuards(JwtAuthGuard)
   @Put()
-  update(
+  async update(
     @Request() req,
     @Body() updateAddressDto: UpdateAddressDto,
     @Res() res: Response,
   ) {
     const errors = this.validationAddress(updateAddressDto);
-    if (errors.hasError) {
-      delete errors.hasError;
-      return res.status(403).send(errors);
-    }
     if (req.user.roles == 'spotify') {
-      return this.addressService.update(req.user.id, updateAddressDto);
+      if (errors.hasError) {
+        delete errors.hasError;
+        return res.status(403).send(errors);
+      }
+      const result = await this.addressService.update(
+        req.user.id,
+        updateAddressDto,
+      );
+      return res.status(200).send(result);
     }
     throw new UnauthorizedException();
   }
