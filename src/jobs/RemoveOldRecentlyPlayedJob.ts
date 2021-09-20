@@ -14,7 +14,7 @@ export class RemoveOldRecentlyPlayedJob {
   async handleCron() {
     try {
       // await this.recentlyRepository.query(
-      //   `DELETE FROM recently_playeds WHERE created_at <= ? LIMIT 200`,
+      //   `DELETE FROM recently_playeds WHERE created_at < ? LIMIT 200`,
       //   [this.getDate()],
       // );
     } catch (error) {
@@ -29,7 +29,7 @@ export class RemoveOldRecentlyPlayedJob {
     const year = date.getFullYear();
     const formatedData = `${year}-${month < 10 ? '0' + month : month}-${
       day < 10 ? '0' + day : day
-    } 23:59:59`;
+    } 23:59:30`;
 
     return formatedData;
   }
