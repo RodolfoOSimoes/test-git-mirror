@@ -1,12 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import {
-  Between,
-  LessThanOrEqual,
-  MoreThan,
-  MoreThanOrEqual,
-  Repository,
-} from 'typeorm';
+import { Between, MoreThan, Repository } from 'typeorm';
 import { UserStreamRecords } from 'src/entities/user_stream_records.entity';
 import { StreamRecords } from 'src/entities/stream_records.entity';
 import { RecentlyPlayeds } from 'src/entities/recently-playeds.entity';
@@ -26,7 +20,7 @@ export class StreamRecordsJob {
   ) {}
 
   // @Cron('30 * * * * *')
-  @Cron(CronExpression.EVERY_DAY_AT_3AM)
+  @Cron(CronExpression.EVERY_DAY_AT_2AM)
   async handleCron() {
     // const yesterday = this.getYesterday();
     // const recently = await this.recentlyPlayedRepository.query(
@@ -56,13 +50,13 @@ export class StreamRecordsJob {
     //   where: { deleted: false, status: true },
     // });
     // let iteration = 0;
-    // while (iteration != -1) {
+    // while (true) {
     //   try {
     //     const streamRecords = await this.streamRepository.find({
     //       where: { date: yesterday.date },
     //     });
     //     const recentlyPlayeds = await this.recentlyPlayedRepository.find({
-    //       take: 100,
+    //       take: 50,
     //       where: {
     //         created_at: Between(yesterday.start, yesterday.end),
     //         id: MoreThan(iteration),
