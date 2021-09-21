@@ -92,6 +92,15 @@ export class TransactionService {
         throw new UnauthorizedException('Produto indisponível.');
       }
 
+      const statement = await this.statementRepository.findOne({
+        where: { user: user, statementable_type: 'Product' },
+        order: { created_at: 'DESC' },
+      });
+
+      if (!this.isAllowToBuy(statement)) {
+        throw new UnauthorizedException('Só pode comprar 1 produto por dia.');
+      }
+
       await this.productRepository.update(product.id, {
         quantities_purchased: product.quantities_purchased + 1,
       });
@@ -141,5 +150,16 @@ export class TransactionService {
     return `${year}-${month < 10 ? '0' + month : month}-${
       day < 10 ? '0' + day : day
     }`;
+  }
+
+  isAllowToBuy(statement: Statement): boolean {
+    if (!statement) return true;
+    try {
+      const buyDate = moment(statement.created_at).format('YYYY-MM-DD');
+      const today = moment(new Date()).format('YYYY-MM-DD');
+      return buyDate == today;
+    } catch (error) {
+      return true;
+    }
   }
 }
