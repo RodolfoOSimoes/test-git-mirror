@@ -6,6 +6,8 @@ import {
   UnauthorizedException,
   Param,
   Body,
+  Res,
+  ForbiddenException,
 } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { initializeTransactionalContext } from 'typeorm-transactional-cls-hooked';
@@ -16,10 +18,17 @@ export class TransactionController {
   constructor(private readonly transactionService: TransactionService) {}
   @UseGuards(JwtAuthGuard)
   @Post('sale/:code')
-  create(@Request() req, @Param('code') code: string) {
+  async create(@Request() req, @Param('code') code: string) {
     initializeTransactionalContext();
-    if (req.user.roles == 'spotify')
-      return this.transactionService.create(req.user.id, code);
+    if (req.user.roles == 'spotify') {
+      try {
+        return this.transactionService.create(req.user.id, code);
+      } catch (error) {
+        throw new ForbiddenException({
+          message: error.message,
+        });
+      }
+    }
     throw new UnauthorizedException();
   }
 }

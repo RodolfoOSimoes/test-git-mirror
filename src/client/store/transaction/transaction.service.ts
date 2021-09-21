@@ -1,4 +1,9 @@
-import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Inject,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { User } from 'src/entities/user.entity';
 import { Statement } from 'src/entities/statement.entity';
 import {
@@ -94,10 +99,10 @@ export class TransactionService {
 
       const statement = await this.statementRepository.findOne({
         where: { user: user, statementable_type: 'Product' },
-        order: { created_at: 'DESC' },
+        order: { id: 'DESC' },
       });
 
-      if (!this.isAllowToBuy(statement)) {
+      if (this.isntAllowToBuy(statement)) {
         throw new UnauthorizedException('Só pode comprar 1 produto por dia.');
       }
 
@@ -135,8 +140,7 @@ export class TransactionService {
 
       this.sendMailProducer.sendOrderEmail(user, product, address);
     } catch (error) {
-      console.log(error.message);
-      return { message: 'Erro ao resgatar produto.' };
+      throw new ForbiddenException({ message: error.message });
     }
 
     return { message: 'Produto resgatado com sucesso.' };
@@ -152,8 +156,8 @@ export class TransactionService {
     }`;
   }
 
-  isAllowToBuy(statement: Statement): boolean {
-    if (!statement) return true;
+  isntAllowToBuy(statement: Statement): boolean {
+    if (!statement) return false;
     try {
       const buyDate = moment(statement.created_at).format('YYYY-MM-DD');
       const today = moment(new Date()).format('YYYY-MM-DD');
