@@ -20,6 +20,9 @@ export class Extract {
   @JoinColumn({ name: 'user_id' })
   user: User;
 
+  @Column({ type: 'int' })
+  user_id: number;
+
   @Column({ type: 'date', nullable: true })
   date_day: Date;
 

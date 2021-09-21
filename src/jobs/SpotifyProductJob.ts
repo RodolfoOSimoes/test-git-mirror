@@ -15,23 +15,19 @@ export class SpotifyProductJob {
   // @Cron('30 * * * * *')
   @Cron(CronExpression.EVERY_DAY_AT_3AM)
   async handleCron() {
-    const iteration = 0;
-
+    // let iteration = 0;
     // while (true) {
     //   const users = await this.loadUsers(iteration);
-
     //   if (!users.length) {
     //     break;
     //   } else {
     //     iteration = users[users.length - 1].id;
     //   }
-
-    //   users.forEach(async (user) => {
+    //   for (const user of users) {
     //     try {
     //       const result = await this.spotifyService.getuser(
     //         user.credentials['refresh_token'],
     //       );
-
     //       if (result && result.product) {
     //         await this.userRepository.update(user.id, {
     //           product: result.product,
@@ -42,7 +38,7 @@ export class SpotifyProductJob {
     //     } catch (error) {
     //       console.log(`user_id: ${user.id} - error:: ${error.message}`);
     //     }
-    //   });
+    //   }
     // }
   }
 
