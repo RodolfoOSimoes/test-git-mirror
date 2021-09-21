@@ -22,11 +22,11 @@ export class ExtractJob {
   ) {}
 
   // @Cron('30 * * * * *')
-  @Cron(CronExpression.EVERY_DAY_AT_4AM)
+  @Cron(CronExpression.EVERY_DAY_AT_3AM)
   async handleCron() {
     const yerterday = this.getYesterday();
 
-    const iteration = 0;
+    // let iteration = 0;
 
     // while (true) {
     //   const users = await this.loadUsers(iteration);
@@ -35,7 +35,7 @@ export class ExtractJob {
     //   } else {
     //     iteration = users[users.length - 1].id;
     //   }
-
+    //   console.log('extract');
     //   for (const user of users) {
     //     try {
     //       const extract = await this.extractRepository.findOne({
@@ -85,6 +85,10 @@ export class ExtractJob {
     //           expired: expired,
     //           withdrawals: withdraw,
     //         });
+
+    //         await this.userRepository.update(user.id, {
+    //           last_update_extract: new Date(),
+    //         });
     //       }
     //     } catch (error) {
     //       console.log('ExtractJob::Error::', error.message);
@@ -122,7 +126,7 @@ export class ExtractJob {
         deleted: false,
         situation: false,
         have_accepted: true,
-        id: MoreThan(id),
+        id: 607,
       },
       take: 50,
       select: ['id'],
