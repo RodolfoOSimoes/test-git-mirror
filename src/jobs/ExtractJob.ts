@@ -5,6 +5,8 @@ import { Extract } from 'src/entities/extract.entity';
 import { Between, MoreThan, Repository } from 'typeorm';
 import { Statement } from 'src/entities/statement.entity';
 import { Withdrawal } from 'src/entities/withdrawals.entity';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const moment = require('moment');
 
 @Injectable()
 export class ExtractJob {
@@ -26,64 +28,68 @@ export class ExtractJob {
 
     let iteration = 0;
 
-    while (iteration != -1) {
+    while (true) {
       const users = await this.loadUsers(iteration);
       if (!users.length) {
-        iteration = -1;
+        break;
       } else {
         iteration = users[users.length - 1].id;
       }
 
-      users.forEach(async (user) => {
-        const extract = await this.extractRepository.findOne({
-          where: { user: user },
-          order: { created_at: 'DESC' },
-          select: ['created_at'],
-        });
+      for (const user of users) {
+        try {
+          const extract = await this.extractRepository.findOne({
+            where: { user: user },
+            order: { date_day: 'DESC' },
+            select: ['date_day'],
+          });
 
-        if (!this.hasTodayExtract(extract?.created_at)) {
-          const depositsStatements = await this.statementRepository.find({
-            where: {
+          if (!this.hasYesterdayExtract(extract.date_day)) {
+            const depositsStatements = await this.statementRepository.find({
+              where: {
+                user: user,
+                created_at: Between(yerterday.start, yerterday.end),
+              },
+            });
+
+            const expiredStatements = await this.statementRepository.find({
+              where: {
+                user: user,
+                expiration_date: yerterday.expiration,
+                kind: 1,
+              },
+            });
+
+            const expired =
+              expiredStatements.reduce(
+                (acc, statement) => acc + Number(statement.amount),
+                0,
+              ) || 0;
+
+            const deposited =
+              depositsStatements.reduce((acc, statement) => {
+                if (statement.kind == 1) return acc + Number(statement.amount);
+              }, 0) || 0;
+
+            const withdraw =
+              depositsStatements.reduce((acc, statement) => {
+                if (statement.kind == 0) return acc + Number(statement.amount);
+              }, 0) || 0;
+
+            await this.extractRepository.save({
+              created_at: new Date(),
+              updated_at: new Date(),
               user: user,
-              created_at: Between(yerterday.start, yerterday.end),
-            },
-          });
-
-          const expiredStatements = await this.statementRepository.find({
-            where: {
-              user: user,
-              expiration_date: yerterday.expiration,
-              kind: 1,
-            },
-          });
-
-          const expired =
-            expiredStatements.reduce(
-              (acc, statement) => acc + Number(statement.amount),
-              0,
-            ) || 0;
-
-          const deposited =
-            depositsStatements.reduce((acc, statement) => {
-              if (statement.kind == 1) return acc + Number(statement.amount);
-            }, 0) || 0;
-
-          const withdraw =
-            depositsStatements.reduce((acc, statement) => {
-              if (statement.kind == 0) return acc + Number(statement.amount);
-            }, 0) || 0;
-
-          await this.extractRepository.save({
-            created_at: new Date(),
-            updated_at: new Date(),
-            user: user,
-            date_day: yerterday.expiration,
-            deposit: deposited,
-            expired: expired,
-            withdrawals: withdraw,
-          });
+              date_day: yerterday.expiration,
+              deposit: deposited,
+              expired: expired,
+              withdrawals: withdraw,
+            });
+          }
+        } catch (error) {
+          console.log('ExtractJob::Error::', error.message);
         }
-      });
+      }
     }
   }
 
@@ -103,15 +109,11 @@ export class ExtractJob {
     };
   }
 
-  hasTodayExtract(date: Date): boolean {
+  hasYesterdayExtract(date: Date): boolean {
     if (!date) return false;
-    const date1 = new Date(date);
-    const date2 = new Date();
-    return (
-      date1.getFullYear() == date2.getFullYear() &&
-      date1.getMonth() == date2.getMonth() &&
-      date1.getDate() == date2.getDate()
-    );
+    const date1 = moment(date).format('YYYY-MM-DD');
+    const date2 = moment(new Date()).subtract(1, 'day').format('YYYY-MM-DD');
+    return date1 == date2;
   }
 
   async loadUsers(id: number) {
@@ -122,7 +124,7 @@ export class ExtractJob {
         have_accepted: true,
         id: MoreThan(id),
       },
-      take: 10,
+      take: 50,
       select: ['id'],
     });
   }
