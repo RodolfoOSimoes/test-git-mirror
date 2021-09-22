@@ -32,31 +32,28 @@ export class ExtractJob {
   @Cron('48 12 * * *')
   // @Cron(CronExpression.EVERY_10_SECONDS)
   async handleCron() {
-    const yesterday = this.getYesterday();
-    let iteration = 3448479;
-    console.log('start');
-    if (process.env.ENABLE_EXTRACT == 'true') {
-      while (true) {
-        const extracts = await this.loadExtracts(iteration);
-
-        if (!extracts.length) {
-          break;
-        } else {
-          iteration = extracts[extracts.length - 1].id;
-        }
-        console.log(`id: ${iteration} - data: ${new Date()}`);
-
-        await Promise.all([
-          this.updateExtrats(extracts.splice(0, 10)),
-          this.updateExtrats(extracts.splice(0, 10)),
-          this.updateExtrats(extracts.splice(0, 10)),
-          this.updateExtrats(extracts.splice(0, 10)),
-          this.updateExtrats(extracts.splice(0, 10)),
-        ]);
-
-        console.log('finished extract');
-      }
-    }
+    // const yesterday = this.getYesterday();
+    // let iteration = 3448479;
+    // console.log('start');
+    // if (process.env.ENABLE_EXTRACT == 'true') {
+    //   while (true) {
+    //     const extracts = await this.loadExtracts(iteration);
+    //     if (!extracts.length) {
+    //       break;
+    //     } else {
+    //       iteration = extracts[extracts.length - 1].id;
+    //     }
+    //     console.log(`id: ${iteration} - data: ${new Date()}`);
+    //     await Promise.all([
+    //       this.updateExtrats(extracts.splice(0, 10)),
+    //       this.updateExtrats(extracts.splice(0, 10)),
+    //       this.updateExtrats(extracts.splice(0, 10)),
+    //       this.updateExtrats(extracts.splice(0, 10)),
+    //       this.updateExtrats(extracts.splice(0, 10)),
+    //     ]);
+    //     console.log('finished extract');
+    //   }
+    // }
     // while (true) {
     //   const users = await this.loadUsers(iteration);
     //   if (!users.length) {
