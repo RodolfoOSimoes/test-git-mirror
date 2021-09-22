@@ -2,7 +2,14 @@ import { Inject, Injectable } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { User } from 'src/entities/user.entity';
 import { Extract } from 'src/entities/extract.entity';
-import { Between, In, LessThan, MoreThan, Repository } from 'typeorm';
+import {
+  Between,
+  In,
+  LessThan,
+  MoreThan,
+  MoreThanOrEqual,
+  Repository,
+} from 'typeorm';
 import { Statement } from 'src/entities/statement.entity';
 import { Withdrawal } from 'src/entities/withdrawals.entity';
 
@@ -32,6 +39,7 @@ export class ExtractJob {
   @Cron(CronExpression.EVERY_DAY_AT_3AM)
   async handleCron() {
     const yesterday = this.getYesterday();
+
     const iteration = 0;
 
     console.log('start: extractJob');
@@ -44,55 +52,13 @@ export class ExtractJob {
     //     iteration = users[users.length - 1].id;
     //   }
 
-    //   for (const user of users) {
-    //     console.log(user);
-    //     try {
-    //       const extract = await this.extractRepository.findOne({
-    //         where: { user: user },
-    //         order: { date_day: 'DESC' },
-    //         select: ['date_day'],
-    //       });
-
-    //       if (!this.hasYesterdayExtract(extract.date_day)) {
-    //         const [deposit] = await this.statementRepository.query(
-    //           `
-    //         SELECT SUM(amount) AS amount FROM statements WHERE DATE(CONVERT_TZ(created_at, 'UTC', 'America/Sao_Paulo')) = ? AND user_id = ? AND kind = ?
-    //       `,
-    //           [yesterday.expiration, user.id, 1],
-    //         );
-
-    //         const [withdraw] = await this.statementRepository.query(
-    //           `
-    //         SELECT SUM(amount) AS amount FROM statements WHERE DATE(CONVERT_TZ(created_at, 'UTC', 'America/Sao_Paulo')) = ? AND user_id = ? AND kind = ?
-    //       `,
-    //           [yesterday.expiration, user.id, 0],
-    //         );
-
-    //         const [expired] = await this.statementRepository.query(
-    //           `
-    //         SELECT SUM(amount) AS amount FROM statements WHERE expiration_date = ? AND user_id = ? AND kind = ?
-    //       `,
-    //           [yesterday.expiration, user.id, 1],
-    //         );
-
-    //         await this.extractRepository.save({
-    //           created_at: new Date(),
-    //           updated_at: new Date(),
-    //           user: user,
-    //           date_day: yesterday.expiration,
-    //           deposit: deposit.amount || 0,
-    //           expired: expired.amount || 0,
-    //           withdrawal: withdraw.amount || 0,
-    //         });
-
-    //         await this.userRepository.update(user.id, {
-    //           last_update_extract: new Date(),
-    //         });
-    //       }
-    //     } catch (error) {
-    //       console.log('ExtractJob::Error::', error.message);
-    //     }
-    //   }
+    //   await Promise.all([
+    //     this.processExtracts(users.splice(0, 10), yesterday),
+    //     this.processExtracts(users.splice(0, 10), yesterday),
+    //     this.processExtracts(users.splice(0, 10), yesterday),
+    //     this.processExtracts(users.splice(0, 10), yesterday),
+    //     this.processExtracts(users.splice(0, 10), yesterday),
+    //   ]);
     // }
     console.log('finish: extractJob');
   }
@@ -131,5 +97,56 @@ export class ExtractJob {
       take: 50,
       select: ['id'],
     });
+  }
+
+  async processExtracts(users, yesterday) {
+    for (const user of users) {
+      try {
+        const extract = await this.extractRepository.findOne({
+          where: { user: user },
+          order: { date_day: 'DESC' },
+          select: ['date_day'],
+        });
+
+        if (!this.hasYesterdayExtract(extract.date_day)) {
+          const [deposit] = await this.statementRepository.query(
+            `
+          SELECT SUM(amount) AS amount FROM statements WHERE DATE(CONVERT_TZ(created_at, 'UTC', 'America/Sao_Paulo')) = ? AND user_id = ? AND kind = ?
+        `,
+            [yesterday.expiration, user.id, 1],
+          );
+
+          const [withdraw] = await this.statementRepository.query(
+            `
+          SELECT SUM(amount) AS amount FROM statements WHERE DATE(CONVERT_TZ(created_at, 'UTC', 'America/Sao_Paulo')) = ? AND user_id = ? AND kind = ?
+        `,
+            [yesterday.expiration, user.id, 0],
+          );
+
+          const [expired] = await this.statementRepository.query(
+            `
+          SELECT SUM(amount) AS amount FROM statements WHERE expiration_date = ? AND user_id = ? AND kind = ?
+        `,
+            [yesterday.expiration, user.id, 1],
+          );
+
+          await this.extractRepository.save({
+            created_at: new Date(),
+            updated_at: new Date(),
+            user: user,
+            date_day: yesterday.expiration,
+            deposit: deposit.amount || 0,
+            expired: expired.amount || 0,
+            withdrawal: withdraw.amount || 0,
+          });
+
+          await this.userRepository.update(user.id, {
+            last_update_extract: new Date(),
+          });
+        }
+      } catch (error) {
+        console.log('ExtractJob::Error::', error.message);
+      }
+    }
   }
 }
