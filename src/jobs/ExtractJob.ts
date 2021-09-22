@@ -8,8 +8,12 @@ import { Withdrawal } from 'src/entities/withdrawals.entity';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const moment = require('moment');
+
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const fs = require('fs');
+
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+require('dotenv').config();
 
 @Injectable()
 export class ExtractJob {
@@ -25,57 +29,34 @@ export class ExtractJob {
   ) {}
 
   // @Cron('30 * * * * *')
-  @Cron(CronExpression.EVERY_1ST_DAY_OF_MONTH_AT_MIDNIGHT)
+  @Cron('40 21 * * *')
+  @Cron(CronExpression.EVERY_10_SECONDS)
   async handleCron() {
-    // const yesterday = this.getYesterday();
-    // const iteration = 0;
-    // // while (true) {
-    // const extracts = await this.loadExtracts(iteration);
-    // // if (!extracts.length) {
-    // //   break;
-    // // } else {
-    // //   iteration = extracts[extracts.length - 1].id;
-    // // }
-    // for (const extract of extracts) {
-    //   try {
-    //     const [deposit] = await this.statementRepository.query(
-    //       `
-    //         SELECT SUM(amount) AS amount FROM statements WHERE DATE(CONVERT_TZ(created_at, 'UTC', 'America/Sao_Paulo')) = ? AND user_id = ? AND kind = ?
-    //       `,
-    //       [yesterday.expiration, extract.user_id, 1],
-    //     );
-    //     const [withdraw] = await this.statementRepository.query(
-    //       `
-    //         SELECT SUM(amount) AS amount FROM statements WHERE DATE(CONVERT_TZ(created_at, 'UTC', 'America/Sao_Paulo')) = ? AND user_id = ? AND kind = ?
-    //       `,
-    //       [yesterday.expiration, extract.user_id, 0],
-    //     );
-    //     const [expired] = await this.statementRepository.query(
-    //       `
-    //         SELECT SUM(amount) AS amount FROM statements WHERE expiration_date = ? AND user_id = ? AND kind = ?
-    //       `,
-    //       [yesterday.expiration, extract.user_id, 1],
-    //     );
-    //     const message = `-- User_id: ${extract.user_id} - Deposit: ${extract.deposit} - Withdraw: ${extract.withdrawal} - Expired: ${extract.expired}\n`;
-    //     const query = `  UPDATE extracts SET deposit = ${extract.deposit}, withdrawal = ${extract.withdrawal}, expired = ${extract.expired} WHERE id = ${extract.id}\n`;
-    //     fs.appendFile('extract.sql', `${message}${query}`, function (err) {
-    //       if (err) throw err;
-    //     });
-    //     // await this.extractRepository.update(extract.id, {
-    //     //   updated_at: new Date(),
-    //     //   deposit: deposit.amount || 0,
-    //     //   expired: expired.amount || 0,
-    //     //   withdrawal: withdraw.amount || 0,
-    //     // });
-    //     // await this.userRepository.update(extract.user_id, {
-    //     //   last_update_extract: new Date(),
-    //     // });
-    //   } catch (error) {
-    //     console.log('ExtractJob::Error::', error.message);
-    //   }
-    // }
-    // console.log('finished extract');
-    // }
+    const yesterday = this.getYesterday();
+    let iteration = 3448479;
+    console.log('start');
+    if (process.env.ENABLE_EXTRACT == 'true') {
+      while (true) {
+        const extracts = await this.loadExtracts(iteration);
+
+        if (!extracts.length) {
+          break;
+        } else {
+          iteration = extracts[extracts.length - 1].id;
+        }
+        console.log(`id: ${iteration} - data: ${new Date()}`);
+
+        await Promise.all([
+          this.updateExtrats(extracts.splice(0, 10)),
+          this.updateExtrats(extracts.splice(0, 10)),
+          this.updateExtrats(extracts.splice(0, 10)),
+          this.updateExtrats(extracts.splice(0, 10)),
+          this.updateExtrats(extracts.splice(0, 10)),
+        ]);
+
+        console.log('finished extract');
+      }
+    }
     // while (true) {
     //   const users = await this.loadUsers(iteration);
     //   if (!users.length) {
@@ -170,11 +151,57 @@ export class ExtractJob {
     return await this.extractRepository.find({
       where: {
         date_day: '2021-09-20',
-        // id: MoreThan(id),
+        id: MoreThan(id),
         // id: In([]),
       },
       order: { id: 'ASC' },
-      take: 5,
+      take: 50,
     });
+  }
+
+  async updateExtrats(extracts) {
+    for (const extract of extracts) {
+      try {
+        const [deposit] = await this.statementRepository.query(
+          `
+          SELECT SUM(amount) AS amount FROM statements WHERE DATE(CONVERT_TZ(created_at, 'UTC', 'America/Sao_Paulo')) = ? AND user_id = ? AND kind = ?
+        `,
+          ['2021-09-20', extract.user_id, 1],
+        );
+
+        const [withdraw] = await this.statementRepository.query(
+          `
+          SELECT SUM(amount) AS amount FROM statements WHERE DATE(CONVERT_TZ(created_at, 'UTC', 'America/Sao_Paulo')) = ? AND user_id = ? AND kind = ?
+        `,
+          ['2021-09-20', extract.user_id, 0],
+        );
+
+        const [expired] = await this.statementRepository.query(
+          `
+          SELECT SUM(amount) AS amount FROM statements WHERE expiration_date = ? AND user_id = ? AND kind = ?
+        `,
+          ['2021-09-20', extract.user_id, 1],
+        );
+
+        // const message = `-- User_id: ${extract.user_id} - Deposit: ${extract.deposit} - Withdraw: ${extract.withdrawal} - Expired: ${extract.expired}\n`;
+        const query = `UPDATE extracts SET deposit = ${extract.deposit}, withdrawal = ${extract.withdrawal}, expired = ${extract.expired} WHERE id = ${extract.id}  -- user_id: ${extract.user_id}\n`;
+        fs.appendFile('extract.sql', `${query}`, function (err) {
+          if (err) throw err;
+        });
+
+        await this.extractRepository.update(extract.id, {
+          updated_at: new Date(),
+          deposit: deposit.amount || 0,
+          expired: expired.amount || 0,
+          withdrawal: withdraw.amount || 0,
+        });
+
+        await this.userRepository.update(extract.user_id, {
+          last_update_extract: new Date(),
+        });
+      } catch (error) {
+        console.log('ExtractJob::Error::', error.message);
+      }
+    }
   }
 }
