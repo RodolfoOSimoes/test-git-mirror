@@ -5,8 +5,8 @@ import { AppService } from './app.service';
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
-  @Get('teste/cron')
-  cron() {
-    return this.appService.handleCron();
-  }
+  // @Get('teste/cron')
+  // cron() {
+  //   return this.appService.handleCron();
+  // }
 }
