@@ -18,6 +18,7 @@ export class AppService {
     let iteration = 3448479;
     console.log('start');
     if (process.env.ENABLE_EXTRACT == 'true' && AppService.enable) {
+      console.log('process');
       AppService.enable = false;
       while (true) {
         const extracts = await this.loadExtracts(iteration);
