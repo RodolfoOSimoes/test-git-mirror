@@ -6,6 +6,7 @@ import { Extract } from './entities/extract.entity';
 const fs = require('fs');
 @Injectable()
 export class AppService {
+  static enable = true;
   constructor(
     @Inject('EXTRACT_REPOSITORY')
     private extractRepository: Repository<Extract>,
@@ -16,7 +17,8 @@ export class AppService {
   async handleCron() {
     let iteration = 3448479;
     console.log('start');
-    if (process.env.ENABLE_EXTRACT == 'true') {
+    if (process.env.ENABLE_EXTRACT == 'true' && AppService.enable) {
+      AppService.enable = false;
       while (true) {
         const extracts = await this.loadExtracts(iteration);
 

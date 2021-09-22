@@ -9,10 +9,4 @@ export class AppController {
   cron() {
     return this.appService.handleCron();
   }
-
-  @Get('test')
-  teste() {
-    console.log('ok');
-    return 'ok';
-  }
 }
