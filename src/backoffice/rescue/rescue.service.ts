@@ -122,7 +122,7 @@ export class RescueService {
     const count = uniqueUserIds.length;
 
     const users = await this.rescueRepository.query(
-      `SELECT u.id, u.name, u.email, count(*) AS total_streams FROM cash_backs cb INNER JOIN users u ON cb.user_id = u.id
+      `SELECT u.id, u.name, u.email, u.deleted, count(*) AS total_streams FROM cash_backs cb INNER JOIN users u ON cb.user_id = u.id
     WHERE rescue_id = ? GROUP BY user_id ORDER BY total_streams DESC LIMIT ? OFFSET ?`,
       [id, limit, (page - 1) * limit],
     );
@@ -142,12 +142,23 @@ export class RescueService {
 
   usersMapper(users) {
     return users.map((user) => {
-      return {
-        type: 'cash_backs',
-        id: user.id,
-        name: user.name,
-        total_streams: user.total_streams,
-      };
+      if (user.deleted) {
+        return {
+          type: 'cash_backs',
+          id: user.id,
+          name: '-',
+          email: '-',
+          total_streams: '-',
+        };
+      } else {
+        return {
+          type: 'cash_backs',
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          total_streams: user.total_streams,
+        };
+      }
     });
   }
 
