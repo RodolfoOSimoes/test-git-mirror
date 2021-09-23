@@ -45,6 +45,18 @@ export class RescueController {
     else throw new UnauthorizedException();
   }
 
+  // @UseGuards(JwtAuthGuard)
+  @Get(':id/users')
+  findUsers(
+    @Request() req,
+    @Param('id') id: number,
+    @Query('page') page: number,
+  ) {
+    // if (req.user.roles === AdminRole.MASTER)
+    return this.rescueService.findUsers(id, page);
+    // else throw new UnauthorizedException();
+  }
+
   @UseGuards(JwtAuthGuard)
   @Put(':id')
   update(

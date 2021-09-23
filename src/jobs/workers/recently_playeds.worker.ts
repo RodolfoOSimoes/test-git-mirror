@@ -29,19 +29,16 @@ async function runWorker() {
   let connection = null;
   const spotifyService = new SpotifyService();
   connection = await getConnection();
-  let iteration = 119146;
-  const limit = 1;
-  // while (true) {
-  setInterval(async () => {
-    try {
-      console.log('Starting worker');
+  let iteration = 0;
+  console.log('Starting worker');
 
+  const limit = 30;
+  while (true) {
+    try {
       const usersData = await connection.query(
-        `SELECT id, credentials, last_heard FROM users WHERE have_accepted = ? AND deleted = ? AND situation = ? AND last_time_verified < ? AND id = ? LIMIT ${limit}`,
+        `SELECT id, credentials, last_heard FROM users WHERE have_accepted = ? AND deleted = ? AND situation = ? AND last_time_verified < ? AND id : ? LIMIT ${limit}`,
         [true, false, false, new Date().getTime(), iteration],
       );
-      console.log(usersData);
-
       if (!usersData.length) {
         iteration = 0;
       } else {
@@ -52,9 +49,8 @@ async function runWorker() {
     } catch (error) {
       console.log(error);
     }
-  }, 120000);
+  }
 }
-// }
 
 async function prepareJob(users, connection, spotifyService, rescueList) {
   await Promise.all([
@@ -308,7 +304,6 @@ async function prepareCashbacks(
       }
     });
 
-    console.log(item['track']['id']);
     if ('6nTUAzQDgyD9BJkXKWWPxM' == item['track']['id']) {
       rescuesCampaign.push({
         uri: item['track']['id'],

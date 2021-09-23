@@ -113,6 +113,44 @@ export class RescueService {
     return { message: 'Hit deletada com sucesso.' };
   }
 
+  async findUsers(id: number, page = 1, limit = 25) {
+    const uniqueUserIds = await this.rescueRepository.query(
+      `SELECT DISTINCT(user_id) FROM cash_backs cb INNER JOIN users u ON cb.user_id = u.id WHERE rescue_id = ? GROUP BY user_id`,
+      [id],
+    );
+
+    const count = uniqueUserIds.length;
+
+    const users = await this.rescueRepository.query(
+      `SELECT u.id, u.name, u.email, count(*) AS total_streams FROM cash_backs cb INNER JOIN users u ON cb.user_id = u.id
+    WHERE rescue_id = ? GROUP BY user_id ORDER BY total_streams DESC LIMIT ? OFFSET ?`,
+      [id, limit, (page - 1) * limit],
+    );
+
+    return {
+      data: this.usersMapper(users),
+      currentPage: page,
+      size: Math.ceil(count / limit),
+      links: this.paginationService.pagination(
+        'v1/backoffice/rescues',
+        page,
+        limit,
+        count,
+      ),
+    };
+  }
+
+  usersMapper(users) {
+    return users.map((user) => {
+      return {
+        type: 'cash_backs',
+        id: user.id,
+        name: user.name,
+        total_streams: user.total_streams,
+      };
+    });
+  }
+
   rescueMapper(rescue: Rescue) {
     return {
       id: rescue.id,
