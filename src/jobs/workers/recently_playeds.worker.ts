@@ -225,7 +225,7 @@ async function loadUserQuestSpotifyPlaylists(
     FROM user_quest_spotify_playlists uqsp 
     INNER JOIN quest_spotify_playlists qsp ON uqsp.quest_spotify_playlist_id = qsp.id
     WHERE qsp.id IN (?) AND uqsp.user_id = ?`,
-      [questIds, user.id],
+      [questIds || null, user.id],
     );
     return userQuest;
   } catch (error) {
@@ -301,7 +301,7 @@ async function prepareCashbacks(
           });
         }
 
-        if (rescueList.includes(item['track']['id'])) {
+        if ('6nTUAzQDgyD9BJkXKWWPxM' == item['track']['id']) {
           rescuesCampaign.push({
             uri: item['track']['id'],
             date: getToday(),
