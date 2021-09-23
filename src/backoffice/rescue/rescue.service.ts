@@ -140,6 +140,49 @@ export class RescueService {
     };
   }
 
+  async findCashBacksByDay(id: number, page = 1, limit = 25) {
+    const uniqueUserIds = await this.rescueRepository.query(
+      `SELECT COUNT(id) AS total, DATE(created_at) AS created, rescue_id, 
+      COUNT(DISTINCT(user_id)) AS total_users FROM cash_backs
+      WHERE rescue_id = ?
+      GROUP BY DATE(created_at), rescue_id ORDER BY DATE(created_at) DESC`,
+      [id],
+    );
+
+    const count = uniqueUserIds.length;
+
+    const cashbacks = await this.rescueRepository.query(
+      `SELECT COUNT(id) AS total, DATE(created_at) AS created, rescue_id, 
+      COUNT(DISTINCT(user_id)) AS total_users FROM cash_backs
+      WHERE rescue_id = ?
+      GROUP BY DATE(created_at), rescue_id ORDER BY DATE(created_at) DESC LIMIT ? OFFSET ?`,
+      [id, limit, (page - 1) * limit],
+    );
+
+    return {
+      data: this.cashBacksMapper(cashbacks),
+      currentPage: page,
+      size: Math.ceil(count / limit),
+      links: this.paginationService.pagination(
+        'v1/backoffice/rescues',
+        page,
+        limit,
+        count,
+      ),
+    };
+  }
+
+  cashBacksMapper(cashbacks) {
+    return cashbacks.map((cashback) => {
+      return {
+        type: 'cash_backs',
+        total: cashback.total,
+        created: cashback.created,
+        total_users: cashback.total_users,
+      };
+    });
+  }
+
   usersMapper(users) {
     return users.map((user) => {
       if (user.deleted) {

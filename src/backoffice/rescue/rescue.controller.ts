@@ -45,15 +45,27 @@ export class RescueController {
     else throw new UnauthorizedException();
   }
 
-  // @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Get(':id/users')
   findUsers(
     @Request() req,
     @Param('id') id: number,
     @Query('page') page: number,
   ) {
+    if (req.user.roles === AdminRole.MASTER)
+      return this.rescueService.findUsers(id, page);
+    else throw new UnauthorizedException();
+  }
+
+  // @UseGuards(JwtAuthGuard)
+  @Get(':id/cash_backs')
+  findCashBacksByDay(
+    @Request() req,
+    @Param('id') id: number,
+    @Query('page') page: number,
+  ) {
     // if (req.user.roles === AdminRole.MASTER)
-    return this.rescueService.findUsers(id, page);
+    return this.rescueService.findCashBacksByDay(id, page);
     // else throw new UnauthorizedException();
   }
 
