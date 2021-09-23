@@ -5,7 +5,8 @@ import { UserStreamRecords } from 'src/entities/user_stream_records.entity';
 import { StreamRecords } from 'src/entities/stream_records.entity';
 import { RecentlyPlayeds } from 'src/entities/recently-playeds.entity';
 import { Rescue } from 'src/entities/rescue.entity';
-
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const moment = require('moment');
 @Injectable()
 export class StreamRecordsJob {
   constructor(
@@ -69,12 +70,12 @@ export class StreamRecordsJob {
         for (const recently of recentlyPlayeds) {
           const items = recently['content']['items'];
           for (const item of items) {
-            const date_played = item.played_at.split('T')[0];
-            if (date_played == yesterday.date) {
-              const rescue = rescues.find(
-                (rescue) => rescue.uri == item.track.uri,
-              );
-              if (rescue) {
+            const rescue = rescues.find(
+              (rescue) => rescue.uri == item.track.uri,
+            );
+            if (rescue) {
+              const date_played = item.played_at.split('T')[0];
+              if (date_played == yesterday.date) {
                 const stream = streamRecords.find(
                   (stream) =>
                     stream.track_uri == item.track.uri &&
@@ -95,42 +96,43 @@ export class StreamRecordsJob {
                   streamRecord.date = date_played;
                   streamRecords.push(streamRecord);
                 }
-              }
-            } else {
-              let stream = streamRecords.find(
-                (stream) =>
-                  stream.track_uri == item.track.uri &&
-                  stream.date == date_played &&
-                  (stream.playlist_uri == item.context?.uri ||
-                    (!stream.playlist_uri && !item.context)),
-              );
-              if (!stream) {
-                stream = await this.streamRepository.findOne({
-                  where: {
-                    playlist_uri: item.context?.uri,
-                    date: date_played,
-                    track_uri: item.track.uri,
-                  },
-                });
-                if (stream) streamRecords.push(stream);
-              }
-              if (stream) {
-                stream.stream_quantity++;
               } else {
-                const streamRecord = new StreamRecords();
-                streamRecord.artists_name = item.track.artists
-                  .map((artist) => artist.name)
-                  .join(', ');
-                streamRecord.playlist_uri = item.context?.uri;
-                streamRecord.stream_quantity = 1;
-                streamRecord.track_name = item.track.name;
-                streamRecord.track_uri = item.track.uri;
-                streamRecord.date = date_played;
-                streamRecords.push(streamRecord);
+                let stream = streamRecords.find(
+                  (stream) =>
+                    stream.track_uri == item.track.uri &&
+                    stream.date == date_played &&
+                    (stream.playlist_uri == item.context?.uri ||
+                      (!stream.playlist_uri && !item.context)),
+                );
+                if (!stream) {
+                  stream = await this.streamRepository.findOne({
+                    where: {
+                      playlist_uri: item.context?.uri,
+                      date: date_played,
+                      track_uri: item.track.uri,
+                    },
+                  });
+                  if (stream) streamRecords.push(stream);
+                }
+                if (stream) {
+                  stream.stream_quantity++;
+                } else {
+                  const streamRecord = new StreamRecords();
+                  streamRecord.artists_name = item.track.artists
+                    .map((artist) => artist.name)
+                    .join(', ');
+                  streamRecord.playlist_uri = item.context?.uri;
+                  streamRecord.stream_quantity = 1;
+                  streamRecord.track_name = item.track.name;
+                  streamRecord.track_uri = item.track.uri;
+                  streamRecord.date = date_played;
+                  streamRecords.push(streamRecord);
+                }
               }
             }
           }
         }
+
         for (const stream of streamRecords) {
           if (stream.id) {
             await this.streamRepository.update(stream.id, {
@@ -169,7 +171,7 @@ export class StreamRecordsJob {
     return {
       start: `${formatedDate} 00:00:00`,
       end: `${formatedDate} 23:59:59`,
-      date: formatedDate,
+      date: moment(new Date()).subtract(1, 'day').format('YYYY-MM-DD'),
     };
   }
 }
