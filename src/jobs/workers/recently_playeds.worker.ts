@@ -305,20 +305,21 @@ async function prepareCashbacks(
             user: user,
           });
         }
-        console.log(item['track']['id']);
-        if ('6nTUAzQDgyD9BJkXKWWPxM' == item['track']['id']) {
-          rescuesCampaign.push({
-            uri: item['track']['id'],
-            date: getToday(),
-            name: item['track']['name'],
-            user_id: user.id,
-            created_at: new Date(),
-            updated_at: new Date(),
-            played_at: item['played_at'],
-          });
-        }
       }
     });
+
+    console.log(item['track']['id']);
+    if ('6nTUAzQDgyD9BJkXKWWPxM' == item['track']['id']) {
+      rescuesCampaign.push({
+        uri: item['track']['id'],
+        date: getToday(),
+        name: item['track']['name'],
+        user_id: user.id,
+        created_at: new Date(),
+        updated_at: new Date(),
+        played_at: item['played_at'],
+      });
+    }
 
     if (rescue && todayCashback && todayCashback.limit > 0) {
       todayCashback.limit--;
