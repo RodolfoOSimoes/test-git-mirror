@@ -218,15 +218,19 @@ async function loadUserQuestSpotifyPlaylists(
   questSpotifyPlaylist,
   connection,
 ) {
-  const questIds = questSpotifyPlaylist.map((qsp) => qsp.id);
-  const userQuest = await connection.query(
-    `SELECT uqsp.id AS id, uqsp.isrcs AS isrcs, qsp.id AS qsp_id
+  try {
+    const questIds = questSpotifyPlaylist.map((qsp) => qsp.id) || null;
+    const userQuest = await connection.query(
+      `SELECT uqsp.id AS id, uqsp.isrcs AS isrcs, qsp.id AS qsp_id
     FROM user_quest_spotify_playlists uqsp 
     INNER JOIN quest_spotify_playlists qsp ON uqsp.quest_spotify_playlist_id = qsp.id
     WHERE qsp.id IN (?) AND uqsp.user_id = ?`,
-    [questIds, user.id],
-  );
-  return userQuest;
+      [questIds, user.id],
+    );
+    return userQuest;
+  } catch (error) {
+    return [];
+  }
 }
 
 async function prepareCashbacks(
