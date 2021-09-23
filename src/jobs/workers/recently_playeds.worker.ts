@@ -53,9 +53,8 @@ async function runWorker() {
 
 async function prepareJob(users, connection, spotifyService, rescueList) {
   await Promise.all([
-    runJob(users.splice(0, 10), connection, spotifyService, rescueList),
-    runJob(users.splice(0, 10), connection, spotifyService, rescueList),
-    runJob(users.splice(0, 10), connection, spotifyService, rescueList),
+    runJob(users.splice(0, 15), connection, spotifyService, rescueList),
+    runJob(users.splice(0, 15), connection, spotifyService, rescueList),
   ]);
 }
 
