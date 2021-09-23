@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { RecentlyPlayeds } from 'src/entities/recently-playeds.entity';
-import { getConnection, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class RemoveOldRecentlyPlayedJob {
@@ -13,17 +13,17 @@ export class RemoveOldRecentlyPlayedJob {
   @Cron(CronExpression.EVERY_30_SECONDS)
   async handleCron() {
     try {
-      // const date = this.getDate();
-      // const [result] = await this.recentlyRepository.query(
-      //   `SELECT COUNT(*) AS count FROM recently_playeds WHERE created_at < ?`,
-      //   [date],
-      // );
-      // if (result && result.count > 500) {
-      //   await this.recentlyRepository.query(
-      //     `DELETE FROM recently_playeds WHERE created_at < ? LIMIT 400`,
-      //     [date],
-      //   );
-      // }
+      const date = this.getDate();
+      const [result] = await this.recentlyRepository.query(
+        `SELECT COUNT(*) AS count FROM recently_playeds WHERE created_at < ?`,
+        [date],
+      );
+      if (result && result.count > 500) {
+        await this.recentlyRepository.query(
+          `DELETE FROM recently_playeds WHERE created_at < ? LIMIT 400`,
+          [date],
+        );
+      }
     } catch (error) {
       console.log(error.message);
     }

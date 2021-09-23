@@ -1,18 +1,11 @@
 import {
   ForbiddenException,
-  Inject,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
 import { User } from 'src/entities/user.entity';
 import { Statement } from 'src/entities/statement.entity';
-import {
-  EntityManager,
-  LessThanOrEqual,
-  MoreThanOrEqual,
-  Repository,
-  TransactionManager,
-} from 'typeorm';
+import { getConnection, LessThanOrEqual, MoreThanOrEqual } from 'typeorm';
 import { Address } from 'src/entities/address.entity';
 import { Order } from 'src/entities/order.entity';
 import { Product } from 'src/entities/product.entity';
@@ -22,82 +15,44 @@ import { Withdrawal } from 'src/entities/withdrawals.entity';
 import { Campaign } from 'src/entities/campaign.entity';
 import { formatDate, prepareDate } from 'src/utils/date.utils';
 import { generateBalance } from 'src/utils/balance.utils';
-import { getManager } from 'typeorm';
-import {
-  initializeTransactionalContext,
-  Transactional,
-} from 'typeorm-transactional-cls-hooked';
+
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const moment = require('moment');
 
 @Injectable()
 export class TransactionService {
-  constructor(
-    @Inject('USER_REPOSITORY')
-    private userRepository: Repository<User>,
-    @Inject('STATEMENT_REPOSITORY')
-    private statementRepository: Repository<Statement>,
-    @Inject('ADDRESS_REPOSITORY')
-    private addressRepository: Repository<Address>,
-    @Inject('ORDER_REPOSITORY')
-    private orderRepository: Repository<Order>,
-    @Inject('PRODUCT_REPOSITORY')
-    private productRepository: Repository<Product>,
-    @Inject('WITHDRAWAL_REPOSITORY')
-    private withdrawRepository: Repository<Withdrawal>,
-    @Inject('CAMPAIGN_REPOSITORY')
-    private campaignRepository: Repository<Campaign>,
-    private sendMailProducer: SendMailProducerService,
-  ) {}
+  constructor(private sendMailProducer: SendMailProducerService) {}
 
   async create(user_id: number, code: string) {
+    const connection = getConnection();
+    const queryRunner = connection.createQueryRunner();
+    await queryRunner.connect();
     try {
-      const user = await this.userRepository.findOne({
+      await queryRunner.startTransaction();
+
+      const user = await queryRunner.manager.findOne(User, {
         where: { id: user_id },
       });
 
-      const address = await this.addressRepository.findOne({
+      const address = await queryRunner.manager.findOne(Address, {
         where: { user: user },
         order: { id: 'DESC' },
         relations: ['city', 'city.state'],
       });
 
-      const campaign = await this.campaignRepository.findOne({
+      const campaign = await queryRunner.manager.findOne(Campaign, {
         status: true,
         date_start: LessThanOrEqual(formatDate(new Date())),
         date_finish: MoreThanOrEqual(formatDate(new Date())),
       });
 
-      const product = await this.productRepository.findOne({
+      let product = await queryRunner.manager.findOne(Product, {
         where: { code_product: code },
       });
 
-      user.withdrawals = await this.withdrawRepository.find({
-        where: {
-          user: user,
-          date_spent: MoreThanOrEqual(moment(new Date()).format('YYYY-MM-DD')),
-        },
-      });
+      await this.validateBuy(product, user, queryRunner);
 
-      user.statements = await this.statementRepository.find({
-        where: {
-          user: user,
-          kind: 1,
-          expiration_date: MoreThanOrEqual(prepareDate()),
-        },
-      });
-
-      const balance = generateBalance(user.statements, user.withdrawals) || 0;
-
-      if (balance < product.value) {
-        throw new UnauthorizedException('Saldo insuficiente.');
-      }
-
-      if (product && product.quantity < product.quantities_purchased) {
-        throw new UnauthorizedException('Produto indisponível.');
-      }
-
-      const statement = await this.statementRepository.findOne({
+      const statement = await queryRunner.manager.findOne(Statement, {
         where: { user: user, statementable_type: 'Product' },
         order: { id: 'DESC' },
       });
@@ -106,11 +61,7 @@ export class TransactionService {
         throw new UnauthorizedException('Só pode comprar 1 produto por dia.');
       }
 
-      await this.productRepository.update(product.id, {
-        quantities_purchased: product.quantities_purchased + 1,
-      });
-
-      await this.statementRepository.save({
+      await queryRunner.manager.save(Statement, {
         user: user,
         amount: product.value,
         kind: 0,
@@ -123,7 +74,7 @@ export class TransactionService {
         campaign: campaign,
       });
 
-      const order = await this.orderRepository.save({
+      const order = await queryRunner.manager.save(Order, {
         user: user,
         product: product,
         created_at: new Date(),
@@ -134,13 +85,27 @@ export class TransactionService {
         price_of_product: product.value,
       });
 
-      await this.addressRepository.update(address.id, {
+      product = await queryRunner.manager.findOne(Product, {
+        where: { code_product: code },
+      });
+
+      await queryRunner.manager.update(Product, product.id, {
+        quantities_purchased: product.quantities_purchased + 1,
+      });
+
+      await queryRunner.manager.update(Address, address.id, {
         order: order,
       });
 
+      await this.validateBuy(product, user, queryRunner);
+
+      await queryRunner.commitTransaction();
       this.sendMailProducer.sendOrderEmail(user, product, address);
     } catch (error) {
+      await queryRunner.rollbackTransaction();
       throw new ForbiddenException({ message: error.message });
+    } finally {
+      await queryRunner.release();
     }
 
     return { message: 'Produto resgatado com sucesso.' };
@@ -164,6 +129,33 @@ export class TransactionService {
       return buyDate == today;
     } catch (error) {
       return true;
+    }
+  }
+
+  async validateBuy(product, user, queryRunner) {
+    const withdrawals = await queryRunner.manager.find(Withdrawal, {
+      where: {
+        user: user,
+        date_spent: MoreThanOrEqual(moment(new Date()).format('YYYY-MM-DD')),
+      },
+    });
+
+    const statements = await queryRunner.manager.find(Statement, {
+      where: {
+        user: user,
+        kind: 1,
+        expiration_date: MoreThanOrEqual(prepareDate()),
+      },
+    });
+
+    const balance = generateBalance(statements, withdrawals) || 0;
+
+    if (balance < product.value) {
+      throw new UnauthorizedException('Saldo insuficiente.');
+    }
+
+    if (product && product.quantity < product.quantities_purchased) {
+      throw new UnauthorizedException('Produto indisponível.');
     }
   }
 }
