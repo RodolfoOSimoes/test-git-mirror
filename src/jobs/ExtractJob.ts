@@ -36,7 +36,7 @@ export class ExtractJob {
   ) {}
 
   // @Cron('30 * * * * *')
-  @Cron(CronExpression.EVERY_30_SECONDS)
+  @Cron(CronExpression.EVERY_DAY_AT_3AM)
   async handleCron() {
     const yesterday = this.getYesterday();
     const iteration = 0;
@@ -68,6 +68,7 @@ export class ExtractJob {
 
   hasYesterdayExtract(date: Date, yesterday): boolean {
     if (!date) return false;
+    console.log(date, yesterday);
     const date1 = moment(date).format('YYYY-MM-DD');
     return date1 == yesterday;
   }
@@ -126,7 +127,7 @@ export class ExtractJob {
           let expire = expired.amount || 0;
 
           if (withdrawSpending && withdrawSpending.amount) {
-            const unExpired = withdrawSpending.amount - expire;
+            const unExpired = expire - withdrawSpending.amount;
             expire = unExpired < 0 ? 0 : unExpired;
           }
 
