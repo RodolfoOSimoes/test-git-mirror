@@ -219,23 +219,23 @@ async function loadUserQuestSpotifyPlaylists(
   questSpotifyPlaylist,
   connection,
 ) {
-  try {
-    const questIds = questSpotifyPlaylist.map((qsp) => qsp.id);
-    if (questIds) {
-      const userQuest = await connection.query(
-        `SELECT uqsp.id AS id, uqsp.isrcs AS isrcs, qsp.id AS qsp_id
-    FROM user_quest_spotify_playlists uqsp
-    INNER JOIN quest_spotify_playlists qsp ON uqsp.quest_spotify_playlist_id = qsp.id
-    WHERE qsp.id IN (?) AND uqsp.user_id = ?`,
-        [questIds || null, user.id],
-      );
-      return userQuest;
-    } else {
-      return [];
-    }
-  } catch (error) {
-    return [];
-  }
+  // try {
+  //   const questIds = questSpotifyPlaylist.map((qsp) => qsp.id);
+  //   if (questIds) {
+  //     const userQuest = await connection.query(
+  //       `SELECT uqsp.id AS id, uqsp.isrcs AS isrcs, qsp.id AS qsp_id
+  //   FROM user_quest_spotify_playlists uqsp
+  //   INNER JOIN quest_spotify_playlists qsp ON uqsp.quest_spotify_playlist_id = qsp.id
+  //   WHERE qsp.id IN (?) AND uqsp.user_id = ?`,
+  //       [questIds || null, user.id],
+  //     );
+  //     return userQuest;
+  //   } else {
+  //     return [];
+  //   }
+  // } catch (error) {
+  return [];
+  // }
 }
 
 async function prepareCashbacks(
