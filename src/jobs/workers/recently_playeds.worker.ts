@@ -30,7 +30,7 @@ async function runWorker() {
   const spotifyService = new SpotifyService();
   console.log('Starting worker');
   connection = await getConnection();
-  let iteration = 607;
+  let iteration = 119146;
   const limit = 1;
   // while (true) {
   setInterval(async () => {
