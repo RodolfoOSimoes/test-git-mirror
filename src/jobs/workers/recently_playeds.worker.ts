@@ -29,14 +29,15 @@ async function runWorker() {
   let connection = null;
   const spotifyService = new SpotifyService();
   connection = await getConnection();
-  let iteration = 0;
+  let iteration = 119146;
   console.log('Starting worker');
 
-  const limit = 30;
-  while (true) {
+  const limit = 1;
+  // while (true) {
+  setInterval(async () => {
     try {
       const usersData = await connection.query(
-        `SELECT id, credentials, last_heard FROM users WHERE have_accepted = ? AND deleted = ? AND situation = ? AND last_time_verified < ? AND id : ? LIMIT ${limit}`,
+        `SELECT id, credentials, last_heard FROM users WHERE have_accepted = ? AND deleted = ? AND situation = ? AND last_time_verified < ? AND id = ? LIMIT ${limit}`,
         [true, false, false, new Date().getTime(), iteration],
       );
       if (!usersData.length) {
@@ -49,7 +50,8 @@ async function runWorker() {
     } catch (error) {
       console.log(error);
     }
-  }
+  }, 120000);
+  // }
 }
 
 async function prepareJob(users, connection, spotifyService, rescueList) {
@@ -219,19 +221,23 @@ async function loadUserQuestSpotifyPlaylists(
   questSpotifyPlaylist,
   connection,
 ) {
-  // try {
-  //   const questIds = questSpotifyPlaylist.map((qsp) => qsp.id) || null;
-  //   const userQuest = await connection.query(
-  //     `SELECT uqsp.id AS id, uqsp.isrcs AS isrcs, qsp.id AS qsp_id
-  //   FROM user_quest_spotify_playlists uqsp
-  //   INNER JOIN quest_spotify_playlists qsp ON uqsp.quest_spotify_playlist_id = qsp.id
-  //   WHERE qsp.id IN (?) AND uqsp.user_id = ?`,
-  //     [questIds || null, user.id],
-  //   );
-  //   return userQuest;
-  // } catch (error) {
-  return [];
-  // }
+  try {
+    const questIds = questSpotifyPlaylist.map((qsp) => qsp.id);
+    if (questIds) {
+      const userQuest = await connection.query(
+        `SELECT uqsp.id AS id, uqsp.isrcs AS isrcs, qsp.id AS qsp_id
+    FROM user_quest_spotify_playlists uqsp
+    INNER JOIN quest_spotify_playlists qsp ON uqsp.quest_spotify_playlist_id = qsp.id
+    WHERE qsp.id IN (?) AND uqsp.user_id = ?`,
+        [questIds || null, user.id],
+      );
+      return userQuest;
+    } else {
+      return [];
+    }
+  } catch (error) {
+    return [];
+  }
 }
 
 async function prepareCashbacks(
@@ -304,7 +310,7 @@ async function prepareCashbacks(
       }
     });
 
-    if ('6nTUAzQDgyD9BJkXKWWPxM' == item['track']['id']) {
+    if (rescueList.includes(item['track']['id'])) {
       rescuesCampaign.push({
         uri: item['track']['id'],
         date: getToday(),
@@ -328,7 +334,7 @@ async function prepareCashbacks(
       });
     }
   });
-  console.log(rescuesCampaign);
+
   const userQuestSpotifySave = [];
   const userQuestSpotifyUpdate = [];
 
