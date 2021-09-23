@@ -68,7 +68,6 @@ export class ExtractJob {
 
   hasYesterdayExtract(date: Date, yesterday): boolean {
     if (!date) return false;
-    console.log(date, yesterday);
     const date1 = moment(date).format('YYYY-MM-DD');
     return date1 == yesterday;
   }
