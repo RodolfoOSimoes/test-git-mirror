@@ -36,10 +36,9 @@ export class ExtractJob {
   ) {}
 
   // @Cron('30 * * * * *')
-  @Cron(CronExpression.EVERY_DAY_AT_3AM)
+  @Cron(CronExpression.EVERY_30_SECONDS)
   async handleCron() {
     const yesterday = this.getYesterday();
-
     const iteration = 0;
 
     console.log('start: extractJob');
@@ -64,26 +63,13 @@ export class ExtractJob {
   }
 
   getYesterday() {
-    const date = new Date();
-    const month = date.getMonth() + 1;
-    const day = date.getDate() - 1;
-    const year = date.getFullYear();
-    const formatedData = `${year}-${month < 10 ? '0' + month : month}-${
-      day < 10 ? '0' + day : day
-    }`;
-
-    return {
-      start: `${formatedData} 00:00:00`,
-      end: `${formatedData} 23:59:59`,
-      expiration: formatedData,
-    };
+    return moment(new Date()).subtract(1, 'day').format('YYYY-MM-DD');
   }
 
-  hasYesterdayExtract(date: Date): boolean {
+  hasYesterdayExtract(date: Date, yesterday): boolean {
     if (!date) return false;
     const date1 = moment(date).format('YYYY-MM-DD');
-    const date2 = moment(new Date()).subtract(1, 'day').format('YYYY-MM-DD');
-    return date1 == date2;
+    return date1 == yesterday;
   }
 
   async loadUsers(id: number) {
@@ -108,35 +94,49 @@ export class ExtractJob {
           select: ['date_day'],
         });
 
-        if (!this.hasYesterdayExtract(extract.date_day)) {
+        if (!this.hasYesterdayExtract(extract.date_day, yesterday)) {
           const [deposit] = await this.statementRepository.query(
             `
           SELECT SUM(amount) AS amount FROM statements WHERE DATE(CONVERT_TZ(created_at, 'UTC', 'America/Sao_Paulo')) = ? AND user_id = ? AND kind = ?
         `,
-            [yesterday.expiration, user.id, 1],
+            [yesterday, user.id, 1],
           );
 
           const [withdraw] = await this.statementRepository.query(
             `
           SELECT SUM(amount) AS amount FROM statements WHERE DATE(CONVERT_TZ(created_at, 'UTC', 'America/Sao_Paulo')) = ? AND user_id = ? AND kind = ?
         `,
-            [yesterday.expiration, user.id, 0],
+            [yesterday, user.id, 0],
           );
 
           const [expired] = await this.statementRepository.query(
             `
           SELECT SUM(amount) AS amount FROM statements WHERE expiration_date = ? AND user_id = ? AND kind = ?
         `,
-            [yesterday.expiration, user.id, 1],
+            [yesterday, user.id, 1],
           );
+
+          const [withdrawSpending] = await this.statementRepository.query(
+            `
+            SELECT SUM(spending) AS amount FROM withdrawals WHERE user_id = ? AND date_spent = ?
+        `,
+            [user.id, yesterday],
+          );
+
+          let expire = expired.amount || 0;
+
+          if (withdrawSpending && withdrawSpending.amount) {
+            const unExpired = withdrawSpending.amount - expire;
+            expire = unExpired < 0 ? 0 : unExpired;
+          }
 
           await this.extractRepository.save({
             created_at: new Date(),
             updated_at: new Date(),
             user: user,
-            date_day: yesterday.expiration,
+            date_day: yesterday,
             deposit: deposit.amount || 0,
-            expired: expired.amount || 0,
+            expired: expire,
             withdrawal: withdraw.amount || 0,
           });
 

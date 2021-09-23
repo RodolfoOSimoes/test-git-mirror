@@ -18,9 +18,9 @@ export class RemoveOldRecentlyPlayedJob {
       //   `SELECT COUNT(*) AS count FROM recently_playeds WHERE created_at < ?`,
       //   [date],
       // );
-      // if (result && result.count > 300) {
+      // if (result && result.count > 500) {
       //   await this.recentlyRepository.query(
-      //     `DELETE FROM recently_playeds WHERE created_at < ? LIMIT 200`,
+      //     `DELETE FROM recently_playeds WHERE created_at < ? LIMIT 400`,
       //     [date],
       //   );
       // }

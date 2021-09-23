@@ -35,8 +35,8 @@ async function runWorker() {
   while (true) {
     try {
       const usersData = await connection.query(
-        `SELECT id, credentials, last_heard FROM users WHERE deleted = ? AND situation = ? AND last_time_verified < ? AND id > ? LIMIT ${limit}`,
-        [false, false, new Date().getTime(), iteration],
+        `SELECT id, credentials, last_heard FROM users WHERE have_accepted = ? AND deleted = ? AND situation = ? AND last_time_verified < ? AND id > ? LIMIT ${limit}`,
+        [true, false, false, new Date().getTime(), iteration],
       );
       if (!usersData.length) {
         iteration = 0;
