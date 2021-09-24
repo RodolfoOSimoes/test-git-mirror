@@ -179,7 +179,7 @@ function getYesterday() {
 }
 
 function getToday() {
-  return moment(new Date()).utcOffset('-0300').format('YYYY-MM-DD');
+  return moment(new Date()).format('YYYY-MM-DD');
 }
 
 function getLimits(cashbacks, rescues) {
@@ -251,7 +251,7 @@ async function prepareCashbacks(
   rescueList,
 ) {
   const todayCashBacks = await connection.query(
-    `SELECT * FROM cash_backs WHERE user_id = ? AND DATE(CONVERT_TZ(played_at, 'UTC', 'America/Sao_Paulo')) >= ? ORDER BY track_id DESC`,
+    `SELECT * FROM cash_backs WHERE user_id = ? AND played_at >= ? ORDER BY track_id DESC`,
     [user.id, moment(new Date()).utcOffset('-0300').format('YYYY-MM-DD')],
   );
 
