@@ -152,6 +152,10 @@ export class TransactionService {
   }
 
   async validateBuy(product, user) {
+    if (product && product.quantity < product.quantities_purchased) {
+      throw new UnauthorizedException('Produto indisponível.');
+    }
+
     const withdrawals = await this.withdrawRepository.find({
       where: {
         user: user,
@@ -171,10 +175,6 @@ export class TransactionService {
 
     if (balance < product.value) {
       throw new UnauthorizedException('Saldo insuficiente.');
-    }
-
-    if (product && product.quantity < product.quantities_purchased) {
-      throw new UnauthorizedException('Produto indisponível.');
     }
   }
 }
