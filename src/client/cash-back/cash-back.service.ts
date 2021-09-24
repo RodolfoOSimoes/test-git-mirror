@@ -81,7 +81,7 @@ export class CashBackService {
   }
 
   compareDate(date: Date): boolean {
-    const date1 = moment(date).subtract(3, 'hours').format('YYYY-MM-DD');
+    const date1 = moment(date).format('YYYY-MM-DD');
     const date2 = moment(new Date()).format('YYYY-MM-DD');
     return date1 == date2;
   }
