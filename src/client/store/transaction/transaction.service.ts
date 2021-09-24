@@ -1,11 +1,17 @@
 import {
   ForbiddenException,
+  Inject,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
 import { User } from 'src/entities/user.entity';
 import { Statement } from 'src/entities/statement.entity';
-import { getConnection, LessThanOrEqual, MoreThanOrEqual } from 'typeorm';
+import {
+  getConnection,
+  LessThanOrEqual,
+  MoreThanOrEqual,
+  Repository,
+} from 'typeorm';
 import { Address } from 'src/entities/address.entity';
 import { Order } from 'src/entities/order.entity';
 import { Product } from 'src/entities/product.entity';
@@ -21,48 +27,59 @@ const moment = require('moment');
 
 @Injectable()
 export class TransactionService {
-  constructor(private sendMailProducer: SendMailProducerService) {}
+  constructor(
+    @Inject('USER_REPOSITORY')
+    private userRepository: Repository<User>,
+    @Inject('ADDRESS_REPOSITORY')
+    private addressRepository: Repository<Address>,
+    @Inject('CAMPAIGN_REPOSITORY')
+    private campaignRepository: Repository<Campaign>,
+    @Inject('PRODUCT_REPOSITORY')
+    private productRepository: Repository<Product>,
+    @Inject('STATEMENT_REPOSITORY')
+    private statementRepository: Repository<Statement>,
+    @Inject('WITHDRAWAL_REPOSITORY')
+    private withdrawRepository: Repository<Withdrawal>,
+    private sendMailProducer: SendMailProducerService,
+  ) {}
 
   async create(user_id: number, code: string) {
-    throw new UnauthorizedException('Resgate temporariamente indisponível.');
-
     const connection = getConnection();
     const queryRunner = connection.createQueryRunner();
-    await queryRunner.connect();
-    try {
-      await queryRunner.startTransaction();
 
-      const user = await queryRunner.manager.findOne(User, {
-        where: { id: user_id },
-      });
+    const user = await this.userRepository.findOne({
+      where: { id: user_id },
+    });
 
-      const address = await queryRunner.manager.findOne(Address, {
-        where: { user: user },
-        order: { id: 'DESC' },
-        relations: ['city', 'city.state'],
-      });
+    const address = await this.addressRepository.findOne({
+      where: { user: user },
+      order: { id: 'DESC' },
+      relations: ['city', 'city.state'],
+    });
 
-      const campaign = await queryRunner.manager.findOne(Campaign, {
+    const campaign = await this.campaignRepository.findOne({
+      where: {
         status: true,
         date_start: LessThanOrEqual(formatDate(new Date())),
         date_finish: MoreThanOrEqual(formatDate(new Date())),
-      });
+      },
+    });
 
-      let product = await queryRunner.manager.findOne(Product, {
-        where: { code_product: code },
-      });
+    let product = await this.productRepository.findOne({
+      where: { code_product: code },
+    });
 
-      await this.validateBuy(product, user, queryRunner);
+    const statement = await this.statementRepository.findOne({
+      where: { user: user, statementable_type: 'Product' },
+      order: { id: 'DESC' },
+    });
 
-      const statement = await queryRunner.manager.findOne(Statement, {
-        where: { user: user, statementable_type: 'Product' },
-        order: { id: 'DESC' },
-      });
-
-      if (this.isntAllowToBuy(statement)) {
-        throw new UnauthorizedException('Só pode comprar 1 produto por dia.');
-      }
-
+    if (this.isntAllowToBuy(statement)) {
+      throw new UnauthorizedException('Só pode comprar 1 produto por dia.');
+    }
+    await this.validateBuy(product, user);
+    await queryRunner.startTransaction();
+    try {
       await queryRunner.manager.save(Statement, {
         user: user,
         amount: product.value,
@@ -87,7 +104,7 @@ export class TransactionService {
         price_of_product: product.value,
       });
 
-      product = await queryRunner.manager.findOne(Product, {
+      product = await this.productRepository.findOne({
         where: { code_product: code },
       });
 
@@ -99,8 +116,7 @@ export class TransactionService {
         order: order,
       });
 
-      await this.validateBuy(product, user, queryRunner);
-
+      await this.validateBuy(product, user);
       await queryRunner.commitTransaction();
       this.sendMailProducer.sendOrderEmail(user, product, address);
     } catch (error) {
@@ -134,15 +150,15 @@ export class TransactionService {
     }
   }
 
-  async validateBuy(product, user, queryRunner) {
-    const withdrawals = await queryRunner.manager.find(Withdrawal, {
+  async validateBuy(product, user) {
+    const withdrawals = await this.withdrawRepository.find({
       where: {
         user: user,
         date_spent: MoreThanOrEqual(moment(new Date()).format('YYYY-MM-DD')),
       },
     });
 
-    const statements = await queryRunner.manager.find(Statement, {
+    const statements = await this.statementRepository.find({
       where: {
         user: user,
         kind: 1,
