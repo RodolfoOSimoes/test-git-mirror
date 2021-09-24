@@ -2,6 +2,8 @@
 import { SpotifyService } from 'src/apis/spotify/spotify.service';
 import { formatDate } from 'src/utils/date.utils';
 import { createConnection } from 'typeorm';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const moment = require('moment');
 
 require('dotenv').config();
 
@@ -175,8 +177,7 @@ function getYesterday() {
 }
 
 function getToday() {
-  const date = new Date();
-  return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
+  return moment(new Date()).utcOffset('-0300').format('YYYY-MM-DD');
 }
 
 function getLimits(cashbacks, rescues) {
@@ -248,7 +249,7 @@ async function prepareCashbacks(
   rescueList,
 ) {
   const todayCashBacks = await connection.query(
-    `SELECT * FROM cash_backs WHERE user_id = ? AND played_at > ? ORDER BY track_id DESC`,
+    `SELECT * FROM cash_backs WHERE user_id = ? AND DATE(CONVERT_TZ(played_at, 'UTC', 'America/Sao_Paulo')) >= ? ORDER BY track_id DESC`,
     [user.id, getToday()],
   );
 

@@ -3,6 +3,8 @@ import { CashBack } from 'src/entities/cash-backs.entity';
 import { Rescue } from 'src/entities/rescue.entity';
 import { User } from 'src/entities/user.entity';
 import { Repository } from 'typeorm';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const moment = require('moment');
 
 @Injectable()
 export class CashBackService {
@@ -69,18 +71,17 @@ export class CashBackService {
         }, 0) || 0,
       limited:
         cashbacksFiltered?.filter((cashback) =>
-          this.compareDate(cashback.created_at),
+          this.compareDate(cashback.played_at),
         )?.length || 0,
     };
   }
 
   compareDate(date: Date): boolean {
-    const date1 = new Date(date);
-    const date2 = new Date();
-    return (
-      date1.getFullYear() == date2.getFullYear() &&
-      date1.getMonth() == date2.getMonth() &&
-      date1.getDate() == date2.getDate()
-    );
+    const date1 = moment(new Date(date))
+      .utcOffset('-0300')
+      .format('YYYY-MM-DD');
+    const date2 = moment(new Date()).utcOffset('-0300').format('YYYY-MM-DD');
+
+    return date1 == date2;
   }
 }
