@@ -24,6 +24,8 @@ export class TransactionService {
   constructor(private sendMailProducer: SendMailProducerService) {}
 
   async create(user_id: number, code: string) {
+    throw new UnauthorizedException('Resgate temporariamente indisponível.');
+
     const connection = getConnection();
     const queryRunner = connection.createQueryRunner();
     await queryRunner.connect();
