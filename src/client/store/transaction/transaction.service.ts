@@ -44,12 +44,24 @@ export class TransactionService {
   ) {}
 
   async create(user_id: number, code: string) {
-    const connection = getConnection();
-    const queryRunner = connection.createQueryRunner();
-
     const user = await this.userRepository.findOne({
       where: { id: user_id },
     });
+
+    let product = await this.productRepository.findOne({
+      where: { code_product: code },
+    });
+
+    await this.validateBuy(product, user);
+
+    const statement = await this.statementRepository.findOne({
+      where: { user: user, statementable_type: 'Product' },
+      order: { id: 'DESC' },
+    });
+
+    if (this.isntAllowToBuy(statement)) {
+      throw new UnauthorizedException('Só pode comprar 1 produto por dia.');
+    }
 
     const address = await this.addressRepository.findOne({
       where: { user: user },
@@ -65,19 +77,8 @@ export class TransactionService {
       },
     });
 
-    let product = await this.productRepository.findOne({
-      where: { code_product: code },
-    });
-
-    const statement = await this.statementRepository.findOne({
-      where: { user: user, statementable_type: 'Product' },
-      order: { id: 'DESC' },
-    });
-
-    if (this.isntAllowToBuy(statement)) {
-      throw new UnauthorizedException('Só pode comprar 1 produto por dia.');
-    }
-    await this.validateBuy(product, user);
+    const connection = getConnection();
+    const queryRunner = connection.createQueryRunner();
     await queryRunner.startTransaction();
     try {
       await queryRunner.manager.save(Statement, {
