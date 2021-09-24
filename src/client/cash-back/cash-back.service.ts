@@ -21,9 +21,9 @@ export class CashBackService {
     const user = await this.userRepository.findOne(userId);
 
     user.cashbacks = await this.cashBackRepository.query(
-      `SELECT * FROM cash_backs WHERE user_id = ? AND DATE(CONVERT_TZ(played_at, 'UTC', 'America/Sao_Paulo')) >= ? ORDER BY track_id DESC
+      `SELECT * FROM cash_backs WHERE user_id = ? ORDER BY track_id DESC
       `,
-      [userId, moment(new Date()).format('YYYY-MM-DD')],
+      [userId],
     );
 
     const rescues = await this.rescueRepository.find({
@@ -74,8 +74,10 @@ export class CashBackService {
           }
         }, 0) || 0,
       limited:
-        cashbacksFiltered?.filter((cashback) =>
-          this.compareDate(cashback.played_at),
+        cashbacksFiltered?.filter(
+          (cashback) =>
+            moment(new Date()).utcOffset('-0300').format('YYYY-MM-DD') ==
+            moment(cashback.played_at).format('YYYY-MM-DD'),
         )?.length || 0,
     };
   }

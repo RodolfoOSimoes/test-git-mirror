@@ -35,7 +35,8 @@ async function runWorker() {
   console.log('Starting worker');
 
   const limit = 40;
-  while (true) {
+  // while (true) {
+  setInterval(async () => {
     try {
       const usersData = await connection.query(
         `SELECT id, credentials, last_heard FROM users WHERE have_accepted = ? AND deleted = ? AND situation = ? AND last_time_verified < ? AND id > ? LIMIT ${limit}`,
@@ -51,7 +52,8 @@ async function runWorker() {
     } catch (error) {
       console.log(error);
     }
-  }
+  }, 120000);
+  // }
 }
 
 async function prepareJob(users, connection, spotifyService, rescueList) {
@@ -250,11 +252,11 @@ async function prepareCashbacks(
 ) {
   const todayCashBacks = await connection.query(
     `SELECT * FROM cash_backs WHERE user_id = ? AND DATE(CONVERT_TZ(played_at, 'UTC', 'America/Sao_Paulo')) >= ? ORDER BY track_id DESC`,
-    [user.id, moment(new Date()).format('YYYY-MM-DD')],
+    [user.id, moment(new Date()).utcOffset('-0300').format('YYYY-MM-DD')],
   );
 
   const cashbacksLimit = getLimits(todayCashBacks, rescues);
-
+  console.log(cashbacksLimit);
   const userQuestSpotify = await loadUserQuestSpotifyPlaylists(
     user,
     questPlaylistSpotify,
