@@ -31,7 +31,7 @@ async function runWorker() {
   let connection = null;
   const spotifyService = new SpotifyService();
   connection = await getConnection();
-  let iteration = 0;
+  const iteration = 607;
   console.log('Starting worker');
 
   const limit = 40;
@@ -39,14 +39,14 @@ async function runWorker() {
   setInterval(async () => {
     try {
       const usersData = await connection.query(
-        `SELECT id, credentials, last_heard FROM users WHERE have_accepted = ? AND deleted = ? AND situation = ? AND last_time_verified < ? AND id > ? LIMIT ${limit}`,
+        `SELECT id, credentials, last_heard FROM users WHERE have_accepted = ? AND deleted = ? AND situation = ? AND last_time_verified < ? AND id = ? LIMIT ${limit}`,
         [true, false, false, new Date().getTime(), iteration],
       );
-      if (!usersData.length) {
-        iteration = 0;
-      } else {
-        iteration = usersData[usersData.length - 1].id;
-      }
+      // if (!usersData.length) {
+      //   iteration = 0;
+      // } else {
+      //   iteration = usersData[usersData.length - 1].id;
+      // }
       const users = await getUsers(usersData, connection);
       await prepareJob(users, connection, spotifyService, rescueList);
     } catch (error) {
