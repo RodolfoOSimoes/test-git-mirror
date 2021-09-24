@@ -31,29 +31,27 @@ async function runWorker() {
   let connection = null;
   const spotifyService = new SpotifyService();
   connection = await getConnection();
-  const iteration = 607;
+  let iteration = 0;
   console.log('Starting worker');
 
   const limit = 40;
-  // while (true) {
-  setInterval(async () => {
+  while (true) {
     try {
       const usersData = await connection.query(
-        `SELECT id, credentials, last_heard FROM users WHERE have_accepted = ? AND deleted = ? AND situation = ? AND last_time_verified < ? AND id = ? LIMIT ${limit}`,
+        `SELECT id, credentials, last_heard FROM users WHERE have_accepted = ? AND deleted = ? AND situation = ? AND last_time_verified < ? AND id > ? LIMIT ${limit}`,
         [true, false, false, new Date().getTime(), iteration],
       );
-      // if (!usersData.length) {
-      //   iteration = 0;
-      // } else {
-      //   iteration = usersData[usersData.length - 1].id;
-      // }
+      if (!usersData.length) {
+        iteration = 0;
+      } else {
+        iteration = usersData[usersData.length - 1].id;
+      }
       const users = await getUsers(usersData, connection);
       await prepareJob(users, connection, spotifyService, rescueList);
     } catch (error) {
       console.log(error);
     }
-  }, 120000);
-  // }
+  }
 }
 
 async function prepareJob(users, connection, spotifyService, rescueList) {
