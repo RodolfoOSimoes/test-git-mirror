@@ -2,7 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { CashBack } from 'src/entities/cash-backs.entity';
 import { Rescue } from 'src/entities/rescue.entity';
 import { User } from 'src/entities/user.entity';
-import { Repository } from 'typeorm';
+import { MoreThanOrEqual, Repository } from 'typeorm';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const moment = require('moment');
 
@@ -18,9 +18,13 @@ export class CashBackService {
   ) {}
 
   async findAll(userId: number) {
-    const user = await this.userRepository.findOne(userId, {
-      relations: ['cashbacks', 'cashbacks.rescue'],
-    });
+    const user = await this.userRepository.findOne(userId);
+
+    user.cashbacks = await this.cashBackRepository.query(
+      `SELECT * FROM cash_backs WHERE user_id = ? AND DATE(CONVERT_TZ(played_at, 'UTC', 'America/Sao_Paulo')) >= ? ORDER BY track_id DESC
+      `,
+      [userId, moment(new Date()).format('YYYY-MM-DD')],
+    );
 
     const rescues = await this.rescueRepository.find({
       order: { priority: 'ASC', id: 'DESC' },
@@ -59,13 +63,13 @@ export class CashBackService {
     cashbacks: CashBack[],
   ): { balance: number; limited: number } {
     const cashbacksFiltered = cashbacks.filter(
-      (cashback) => cashback.rescue.id == rescue.id,
+      (cashback) => cashback.track_id == rescue.uid,
     );
 
     return {
       balance:
         cashbacksFiltered?.reduce((total, current) => {
-          if (current.rescue.id == rescue.id) {
+          if (current.track_id == rescue.uid) {
             return total + rescue.score;
           }
         }, 0) || 0,
@@ -77,11 +81,8 @@ export class CashBackService {
   }
 
   compareDate(date: Date): boolean {
-    const date1 = moment(new Date(date))
-      .utcOffset('-0300')
-      .format('YYYY-MM-DD');
-    const date2 = moment(new Date()).utcOffset('-0300').format('YYYY-MM-DD');
-
+    const date1 = moment(date).subtract(3, 'hours').format('YYYY-MM-DD');
+    const date2 = moment(new Date()).format('YYYY-MM-DD');
     return date1 == date2;
   }
 }
