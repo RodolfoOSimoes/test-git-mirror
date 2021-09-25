@@ -85,6 +85,7 @@ export class TransactionService {
     const queryRunner = connection.createQueryRunner();
     await queryRunner.startTransaction();
     try {
+      throw new UnauthorizedException('Só pode comprar 1 produto por dia.');
       await queryRunner.manager.save(Statement, {
         user: user,
         amount: product.value,
