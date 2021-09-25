@@ -52,6 +52,12 @@ export class TransactionService {
       where: { code_product: code },
     });
 
+    if (product && product.quantity <= product.quantities_purchased) {
+      throw new UnauthorizedException('Produto indisponível.');
+    }
+
+    const quantity = product.quantities_purchased;
+
     await this.purchaseValidation(product, user);
 
     const statement = await this.statementRepository.findOne({
@@ -64,7 +70,7 @@ export class TransactionService {
     }
 
     await this.productRepository.update(product.id, {
-      quantities_purchased: product.quantities_purchased + 1,
+      quantities_purchased: quantity + 1,
     });
 
     const address = await this.addressRepository.findOne({
@@ -85,7 +91,6 @@ export class TransactionService {
     const queryRunner = connection.createQueryRunner();
     await queryRunner.startTransaction();
     try {
-      throw new UnauthorizedException('Só pode comprar 1 produto por dia.');
       await queryRunner.manager.save(Statement, {
         user: user,
         amount: product.value,
@@ -124,7 +129,7 @@ export class TransactionService {
     } catch (error) {
       await queryRunner.rollbackTransaction();
       await this.productRepository.update(product.id, {
-        quantities_purchased: product.quantities_purchased - 1,
+        quantities_purchased: quantity,
       });
       throw new ForbiddenException({ message: error.message });
     } finally {
@@ -156,10 +161,6 @@ export class TransactionService {
   }
 
   async purchaseValidation(product, user) {
-    if (product && product.quantity <= product.quantities_purchased) {
-      throw new UnauthorizedException('Produto indisponível.');
-    }
-
     const withdrawals = await this.withdrawRepository.find({
       where: {
         user: user,
