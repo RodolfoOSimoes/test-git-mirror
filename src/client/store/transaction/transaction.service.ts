@@ -52,7 +52,11 @@ export class TransactionService {
       where: { code_product: code },
     });
 
-    await this.validateBuy(product, user);
+    if (product && product.quantity <= product.quantities_purchased) {
+      throw new UnauthorizedException('Produto indisponível.');
+    }
+
+    await this.purchaseValidation(product, user);
 
     const statement = await this.statementRepository.findOne({
       where: { user: user, statementable_type: 'Product' },
@@ -117,7 +121,7 @@ export class TransactionService {
         order: order,
       });
 
-      await this.validateBuy(product, user);
+      await this.purchaseValidation(product, user);
       await queryRunner.commitTransaction();
       this.sendMailProducer.sendOrderEmail(user, product, address);
     } catch (error) {
@@ -151,8 +155,8 @@ export class TransactionService {
     }
   }
 
-  async validateBuy(product, user) {
-    if (product && product.quantity < product.quantities_purchased) {
+  async purchaseValidation(product, user) {
+    if (product && product.quantity <= product.quantities_purchased) {
       throw new UnauthorizedException('Produto indisponível.');
     }
 
