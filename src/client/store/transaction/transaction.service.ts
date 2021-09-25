@@ -52,10 +52,6 @@ export class TransactionService {
       where: { code_product: code },
     });
 
-    if (product && product.quantity <= product.quantities_purchased) {
-      throw new UnauthorizedException('Produto indisponível.');
-    }
-
     await this.purchaseValidation(product, user);
 
     const statement = await this.statementRepository.findOne({
@@ -66,6 +62,10 @@ export class TransactionService {
     if (this.isntAllowToBuy(statement)) {
       throw new UnauthorizedException('Só pode comprar 1 produto por dia.');
     }
+
+    await this.productRepository.update(product.id, {
+      quantities_purchased: product.quantities_purchased + 1,
+    });
 
     const address = await this.addressRepository.findOne({
       where: { user: user },
@@ -113,10 +113,6 @@ export class TransactionService {
         where: { code_product: code },
       });
 
-      await queryRunner.manager.update(Product, product.id, {
-        quantities_purchased: product.quantities_purchased + 1,
-      });
-
       await queryRunner.manager.update(Address, address.id, {
         order: order,
       });
@@ -126,6 +122,9 @@ export class TransactionService {
       this.sendMailProducer.sendOrderEmail(user, product, address);
     } catch (error) {
       await queryRunner.rollbackTransaction();
+      await this.productRepository.update(product.id, {
+        quantities_purchased: product.quantities_purchased - 1,
+      });
       throw new ForbiddenException({ message: error.message });
     } finally {
       await queryRunner.release();
