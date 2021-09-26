@@ -15,7 +15,7 @@ export const databaseProviders = [
         synchronize: false,
         logging: ['error'],
         extra: {
-          connectionLimit: 100,
+          connectionLimit: Number(process.env.DB_POOL_CONNECTION_LIMIT) || 2,
         },
       }),
   },
