@@ -21,9 +21,14 @@ const moment = require('moment');
 
 @Injectable()
 export class TransactionService {
+  static transactionLimit = 10;
   constructor(private sendMailProducer: SendMailProducerService) {}
 
   async create(user_id: number, code: string) {
+    if (TransactionService.transactionLimit <= 0) {
+      throw new UnauthorizedException('Tente novamente em alguns instantes.');
+    }
+    TransactionService.transactionLimit--;
     const connection = getConnection();
     const queryRunner = connection.createQueryRunner();
     await queryRunner.connect();
@@ -40,11 +45,11 @@ export class TransactionService {
         relations: ['city', 'city.state'],
       });
 
-      // const campaign = await queryRunner.manager.findOne(Campaign, {
-      //   status: true,
-      //   date_start: LessThanOrEqual(formatDate(new Date())),
-      //   date_finish: MoreThanOrEqual(formatDate(new Date())),
-      // });
+      const campaign = await queryRunner.manager.findOne(Campaign, {
+        status: true,
+        date_start: LessThanOrEqual(formatDate(new Date())),
+        date_finish: MoreThanOrEqual(formatDate(new Date())),
+      });
 
       let product = await queryRunner.manager.findOne(Product, {
         where: { code_product: code },
@@ -105,8 +110,8 @@ export class TransactionService {
       throw new ForbiddenException({ message: error.message });
     } finally {
       await queryRunner.release();
+      TransactionService.transactionLimit++;
     }
-
     return { message: 'Produto resgatado com sucesso.' };
   }
 
