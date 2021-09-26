@@ -40,6 +40,8 @@ export class TransactionService {
     private statementRepository: Repository<Statement>,
     @Inject('WITHDRAWAL_REPOSITORY')
     private withdrawRepository: Repository<Withdrawal>,
+    @Inject('ORDER_REPOSITORY')
+    private orderRepository: Repository<Order>,
     private sendMailProducer: SendMailProducerService,
   ) {}
 
@@ -93,11 +95,11 @@ export class TransactionService {
       },
     });
 
-    const connection = getConnection();
-    const queryRunner = connection.createQueryRunner();
-    await queryRunner.startTransaction();
+    // const connection = getConnection();
+    // const queryRunner = connection.createQueryRunner();
+    // await queryRunner.startTransaction();
     try {
-      await queryRunner.manager.save(Statement, {
+      await this.statementRepository.save({
         user: user,
         amount: product.value,
         kind: 0,
@@ -110,7 +112,7 @@ export class TransactionService {
         campaign: campaign,
       });
 
-      const order = await queryRunner.manager.save(Order, {
+      const order = await this.orderRepository.save({
         user: user,
         product: product,
         created_at: new Date(),
@@ -125,18 +127,18 @@ export class TransactionService {
         where: { code_product: code },
       });
 
-      await queryRunner.manager.update(Address, address.id, {
+      await this.addressRepository.update(address.id, {
         order: order,
       });
 
       await this.purchaseValidation(product, user);
-      await queryRunner.commitTransaction();
+      // await queryRunner.commitTransaction();
       this.sendMailProducer.sendOrderEmail(user, product, address);
     } catch (error) {
-      await queryRunner.rollbackTransaction();
+      // await queryRunner.rollbackTransaction();
       throw new ForbiddenException({ message: error.message });
     } finally {
-      await queryRunner.release();
+      // await queryRunner.release();
     }
 
     return { message: 'Produto resgatado com sucesso.' };
