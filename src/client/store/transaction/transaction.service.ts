@@ -45,7 +45,10 @@ export class TransactionService {
       throw new UnauthorizedException('Produto não encontrado.');
     }
 
-    if (!TransactionService.transactionUser.includes(user_id)) {
+    if (
+      !TransactionService.transactionUser.includes(user_id) &&
+      TransactionService.transactionLimit > 0
+    ) {
       TransactionService.transactionUser.push(user_id);
     } else {
       throw new UnauthorizedException('Você já está realizando um resgate.');
