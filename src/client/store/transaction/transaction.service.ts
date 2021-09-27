@@ -56,6 +56,10 @@ export class TransactionService {
         where: { code_product: code },
       });
 
+      if (product && product.quantity <= product.quantities_purchased) {
+        throw new UnauthorizedException('Produto indisponível.');
+      }
+
       await this.validateBuy(product, user, queryRunner);
 
       const statement = await queryRunner.manager.findOne(Statement, {
@@ -102,6 +106,10 @@ export class TransactionService {
         where: { code_product: code },
       });
 
+      if (product && product.quantity < product.quantities_purchased) {
+        throw new UnauthorizedException('Produto indisponível.');
+      }
+
       await this.validateBuy(product, user, queryRunner);
       await queryRunner.commitTransaction();
       this.sendMailProducer.sendOrderEmail(user, product, address);
@@ -139,10 +147,6 @@ export class TransactionService {
   }
 
   async validateBuy(product, user, queryRunner) {
-    if (product && product.quantity <= product.quantities_purchased) {
-      throw new UnauthorizedException('Produto indisponível.');
-    }
-
     const withdrawals = await queryRunner.manager.find(Withdrawal, {
       where: {
         user: user,
