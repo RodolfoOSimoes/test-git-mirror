@@ -45,21 +45,18 @@ export class TransactionService {
       throw new UnauthorizedException('Produto não encontrado.');
     }
 
-    if (
-      !TransactionService.transactionUser.includes(user_id) &&
-      TransactionService.transactionLimit > 0
-    ) {
-      TransactionService.transactionUser.push(user_id);
-    } else {
-      throw new UnauthorizedException('Você já está realizando um resgate.');
-    }
-
     if (product.quantity <= product.quantities_purchased) {
       throw new UnauthorizedException('Produto indisponível.');
     }
 
     if (TransactionService.transactionLimit <= 0) {
       throw new UnauthorizedException('Tente novamente em alguns instantes.');
+    }
+
+    if (!TransactionService.transactionUser.includes(user_id)) {
+      TransactionService.transactionUser.push(user_id);
+    } else {
+      throw new UnauthorizedException('Você já está realizando um resgate.');
     }
 
     TransactionService.transactionLimit--;
