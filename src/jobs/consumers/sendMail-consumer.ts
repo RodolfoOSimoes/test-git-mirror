@@ -114,7 +114,7 @@ export class SendMailConsumer {
         html: 'Seu download está pronto.',
         attachments: [
           {
-            filename: 'users.xlsx',
+            filename: `users_${moment(new Date()).format('YYYY-MM-DD')}.xlsx`,
             content: Buffer.from(data.buffer),
             contentType:
               'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
