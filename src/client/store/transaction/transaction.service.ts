@@ -81,6 +81,7 @@ export class TransactionService {
         delete: false,
         created_at: new Date(),
         updated_at: new Date(),
+        campaign: campaign,
       });
 
       const order = await queryRunner.manager.save(Order, {
@@ -109,8 +110,6 @@ export class TransactionService {
       if (product && product.quantity < product.quantities_purchased) {
         throw new UnauthorizedException('Produto indisponível.');
       }
-
-      await this.validateBuy(product, user, queryRunner);
       await queryRunner.commitTransaction();
       this.sendMailProducer.sendOrderEmail(user, product, address);
     } catch (error) {
