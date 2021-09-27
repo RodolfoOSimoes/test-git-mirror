@@ -1,11 +1,17 @@
 import {
   ForbiddenException,
+  Inject,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
 import { User } from 'src/entities/user.entity';
 import { Statement } from 'src/entities/statement.entity';
-import { getConnection, LessThanOrEqual, MoreThanOrEqual } from 'typeorm';
+import {
+  getConnection,
+  LessThanOrEqual,
+  MoreThanOrEqual,
+  Repository,
+} from 'typeorm';
 import { Address } from 'src/entities/address.entity';
 import { Order } from 'src/entities/order.entity';
 import { Product } from 'src/entities/product.entity';
@@ -23,13 +29,31 @@ const moment = require('moment');
 @Injectable()
 export class TransactionService {
   static transactionLimit = 5;
-  constructor(private sendMailProducer: SendMailProducerService) {}
+  constructor(
+    @Inject('PRODUCT_REPOSITORY')
+    private productsRepository: Repository<Product>,
+    private sendMailProducer: SendMailProducerService,
+  ) {}
 
   async create(user_id: number, code: string) {
+    const product = await this.productsRepository.findOne({
+      where: { code_product: code },
+    });
+
+    if (!product) {
+      throw new UnauthorizedException('Produto não encontrado.');
+    }
+
+    if (product.quantity <= product.quantities_purchased) {
+      throw new UnauthorizedException('Produto indisponível.');
+    }
+
     if (TransactionService.transactionLimit <= 0) {
       throw new UnauthorizedException('Tente novamente em alguns instantes.');
     }
+
     TransactionService.transactionLimit--;
+
     const connection = getConnection();
     const queryRunner = connection.createQueryRunner();
     await queryRunner.connect();
