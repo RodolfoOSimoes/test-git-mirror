@@ -33,4 +33,13 @@ export class SendMailProducerService {
     };
     await this.tokenQueue.add('sendNewPasswordMail-job', data);
   }
+
+  async sendReportEmail(buffer, email, name) {
+    const data = {
+      buffer: buffer,
+      email: email,
+      name: name,
+    };
+    await this.tokenQueue.add('sendAnalyticsMail-job', data);
+  }
 }

@@ -65,6 +65,7 @@ import { RemoveOldRecentlyPlayedJob } from './jobs/RemoveOldRecentlyPlayedJob';
 import { userStreamRecordsProviders } from './providers/user_stream_records.providers';
 import { streamRecordsProviders } from './providers/stream_records.providers';
 import { StreamRecordsJob } from './jobs/StreamRecordsJob';
+import { ExcelModule } from './utils/excel/excel.module';
 
 @Module({
   imports: [
@@ -91,9 +92,6 @@ import { StreamRecordsJob } from './jobs/StreamRecordsJob';
     }),
     BullModule.registerQueue({
       name: 'sendMail-queue',
-    }),
-    BullModule.registerQueue({
-      name: 'recently_playeds_queue',
     }),
     AdminModule,
     AuthModule,
@@ -130,6 +128,7 @@ import { StreamRecordsJob } from './jobs/StreamRecordsJob';
     StorageModule,
     StoreTransactionModule,
     DatabaseModule,
+    ExcelModule,
   ],
   controllers: [AppController],
   providers: [

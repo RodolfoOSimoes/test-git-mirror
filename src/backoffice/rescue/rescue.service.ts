@@ -6,6 +6,8 @@ import { CreateRescueDto } from './dto/create-rescue.dto';
 import { UpdateRescueDto } from './dto/update-rescue.dto';
 import { Rescue } from '../../entities/rescue.entity';
 import { SpotifyService } from 'src/apis/spotify/spotify.service';
+import { SendMailProducerService } from 'src/jobs/producers/sendMail-producer-service';
+import { ExcelService } from 'src/utils/excel/excel.service';
 
 @Injectable()
 export class RescueService {
@@ -15,6 +17,7 @@ export class RescueService {
     private adminService: AdminService,
     private paginationService: PaginationService,
     private spotifyService: SpotifyService,
+    private excelService: ExcelService,
   ) {}
 
   async create(admin_id: number, dto: CreateRescueDto) {
@@ -138,6 +141,20 @@ export class RescueService {
         count,
       ),
     };
+  }
+
+  async exportUsers(admin_id: number, rescue_id: number) {
+    const users = await this.rescueRepository.query(
+      `SELECT u.id, u.name, u.email, u.deleted, count(*) AS total_streams FROM cash_backs cb INNER JOIN users u ON cb.user_id = u.id
+    WHERE rescue_id = ? GROUP BY user_id ORDER BY total_streams DESC`,
+      [rescue_id],
+    );
+
+    const rescue = await this.rescueRepository.findOne(rescue_id);
+
+    const admin = await this.adminService.findById(admin_id);
+
+    this.excelService.generateRescueAnalytics(users, admin.email, rescue.name);
   }
 
   async findCashBacksByDay(id: number, page = 1, limit = 25) {

@@ -103,6 +103,29 @@ export class SendMailConsumer {
     }
   }
 
+  @Process('sendAnalyticsMail-job')
+  async sendReportEmail(job: Job) {
+    const { data } = job;
+    try {
+      await this.mailService.sendMail({
+        from: `"Filtrgame" <filtrgame@sonymusic.com>`,
+        to: 'joilson.leal@druid.com.br',
+        subject: `[Hits do momento]: ${data.name} analytics`,
+        html: 'Seu download está pronto.',
+        attachments: [
+          {
+            filename: 'users.xlsx',
+            content: Buffer.from(data.buffer),
+            contentType:
+              'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          },
+        ],
+      });
+    } catch (error) {
+      throw Error(error.message);
+    }
+  }
+
   async processWithdraw(user: User, product: Product) {
     try {
       const withdrawal = await this.withdrawRepository.findOne({

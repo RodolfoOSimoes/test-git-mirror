@@ -42,8 +42,7 @@ export class RecentlyPlayedJob {
     private questRepository: Repository<Quest>,
     @Inject('USER_QUEST_SPOTIFY_PLAYLISTS_REPOSITORY')
     private userQuestSpotifyRepository: Repository<UserQuestSpotifyPlaylist>,
-    private spotifyService: SpotifyService,
-    @InjectQueue('recently_playeds_queue') private recentlyQueue: Queue,
+    private spotifyService: SpotifyService, // @InjectQueue('recently_playeds_queue') private recentlyQueue: Queue,
   ) {}
 
   // @Cron('60 * * * * *')
