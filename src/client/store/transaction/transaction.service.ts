@@ -37,6 +37,8 @@ export class TransactionService {
   ) {}
 
   async create(user_id: number, code: string) {
+    throw new UnauthorizedException('Tente novamente em alguns instantes.');
+
     const product = await this.productsRepository.findOne({
       where: { code_product: code },
     });
