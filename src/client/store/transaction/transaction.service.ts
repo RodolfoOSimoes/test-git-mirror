@@ -28,7 +28,7 @@ const moment = require('moment');
 
 @Injectable()
 export class TransactionService {
-  static transactionLimit = 10;
+  static transactionLimit = 100;
   static transactionUser = [];
   constructor(
     @Inject('PRODUCT_REPOSITORY')
@@ -65,7 +65,7 @@ export class TransactionService {
     const queryRunner = connection.createQueryRunner();
     await queryRunner.connect();
     try {
-      await queryRunner.startTransaction(IsolationLevel.SERIALIZABLE);
+      await queryRunner.startTransaction(IsolationLevel.READ_COMMITTED);
 
       const user = await queryRunner.manager.findOne(User, {
         where: { id: user_id },
