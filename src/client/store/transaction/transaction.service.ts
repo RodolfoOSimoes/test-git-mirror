@@ -65,7 +65,7 @@ export class TransactionService {
     const queryRunner = connection.createQueryRunner();
     await queryRunner.connect();
     try {
-      await queryRunner.startTransaction(IsolationLevel.READ_COMMITTED);
+      await queryRunner.startTransaction(IsolationLevel.SERIALIZABLE);
 
       const user = await queryRunner.manager.findOne(User, {
         where: { id: user_id },
