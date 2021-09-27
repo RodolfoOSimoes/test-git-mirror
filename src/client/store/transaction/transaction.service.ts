@@ -45,10 +45,6 @@ export class TransactionService {
       throw new UnauthorizedException('Produto não encontrado.');
     }
 
-    if (product.quantity <= product.quantities_purchased) {
-      throw new UnauthorizedException('Produto indisponível.');
-    }
-
     if (TransactionService.transactionLimit <= 0) {
       throw new UnauthorizedException('Tente novamente em alguns instantes.');
     }
@@ -60,6 +56,14 @@ export class TransactionService {
     }
 
     TransactionService.transactionLimit--;
+
+    await this.productsRepository.update(product.id, {
+      quantities_purchased: product.quantities_purchased + 1,
+    });
+
+    if (product.quantity < product.quantities_purchased) {
+      throw new UnauthorizedException('Produto indisponível.');
+    }
 
     const connection = getConnection();
     const queryRunner = connection.createQueryRunner();
@@ -124,10 +128,6 @@ export class TransactionService {
         confirmation_email: true,
         code_secret: generateCode(50),
         price_of_product: product.value,
-      });
-
-      await queryRunner.manager.update(Product, product.id, {
-        quantities_purchased: product.quantities_purchased + 1,
       });
 
       await queryRunner.manager.update(Address, address.id, {
