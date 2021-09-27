@@ -29,6 +29,7 @@ const moment = require('moment');
 @Injectable()
 export class TransactionService {
   static transactionLimit = 5;
+  static transactionUser = [];
   constructor(
     @Inject('PRODUCT_REPOSITORY')
     private productsRepository: Repository<Product>,
@@ -42,6 +43,12 @@ export class TransactionService {
 
     if (!product) {
       throw new UnauthorizedException('Produto não encontrado.');
+    }
+
+    if (!TransactionService.transactionUser.includes(user_id)) {
+      TransactionService.transactionUser.push(user_id);
+    } else {
+      throw new UnauthorizedException('Você já está realizando um resgate.');
     }
 
     if (product.quantity <= product.quantities_purchased) {
@@ -141,6 +148,11 @@ export class TransactionService {
       throw new ForbiddenException({ message: error.message });
     } finally {
       await queryRunner.release();
+      const userIndex = TransactionService.transactionUser.findIndex(
+        (id) => id == user_id,
+      );
+      if (userIndex != -1)
+        TransactionService.transactionUser.splice(userIndex, 1);
       TransactionService.transactionLimit++;
     }
     return { message: 'Produto resgatado com sucesso.' };
