@@ -15,13 +15,14 @@ import { Withdrawal } from 'src/entities/withdrawals.entity';
 import { Campaign } from 'src/entities/campaign.entity';
 import { formatDate, prepareDate } from 'src/utils/date.utils';
 import { generateBalance } from 'src/utils/balance.utils';
+import { IsolationLevel } from 'typeorm-transactional-cls-hooked';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const moment = require('moment');
 
 @Injectable()
 export class TransactionService {
-  static transactionLimit = 10;
+  static transactionLimit = 5;
   constructor(private sendMailProducer: SendMailProducerService) {}
 
   async create(user_id: number, code: string) {
@@ -33,7 +34,7 @@ export class TransactionService {
     const queryRunner = connection.createQueryRunner();
     await queryRunner.connect();
     try {
-      await queryRunner.startTransaction();
+      await queryRunner.startTransaction(IsolationLevel.READ_COMMITTED);
 
       const user = await queryRunner.manager.findOne(User, {
         where: { id: user_id },
@@ -93,6 +94,8 @@ export class TransactionService {
         where: { code_product: code },
       });
 
+      await this.validateBuy(product, user, queryRunner);
+
       await queryRunner.manager.update(Product, product.id, {
         quantities_purchased: product.quantities_purchased + 1,
       });
@@ -100,8 +103,6 @@ export class TransactionService {
       await queryRunner.manager.update(Address, address.id, {
         order: order,
       });
-
-      await this.validateBuy(product, user, queryRunner);
 
       await queryRunner.commitTransaction();
       this.sendMailProducer.sendOrderEmail(user, product, address);
@@ -128,7 +129,9 @@ export class TransactionService {
   isntAllowToBuy(statement: Statement): boolean {
     if (!statement) return false;
     try {
-      const buyDate = moment(statement.created_at).format('YYYY-MM-DD');
+      const buyDate = moment(statement.created_at)
+        .utcOffset('-0300')
+        .format('YYYY-MM-DD');
       const today = moment(new Date()).format('YYYY-MM-DD');
       return buyDate == today;
     } catch (error) {
