@@ -28,7 +28,7 @@ const moment = require('moment');
 
 @Injectable()
 export class TransactionService {
-  static transactionLimit = 100;
+  static transactionLimit = 50;
   static transactionUser = [];
   constructor(
     @Inject('PRODUCT_REPOSITORY')
