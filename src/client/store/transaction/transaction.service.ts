@@ -90,12 +90,6 @@ export class TransactionService {
         price_of_product: product.value,
       });
 
-      product = await queryRunner.manager.findOne(Product, {
-        where: { code_product: code },
-      });
-
-      await this.validateBuy(product, user, queryRunner);
-
       await queryRunner.manager.update(Product, product.id, {
         quantities_purchased: product.quantities_purchased + 1,
       });
@@ -104,6 +98,11 @@ export class TransactionService {
         order: order,
       });
 
+      product = await queryRunner.manager.findOne(Product, {
+        where: { code_product: code },
+      });
+
+      await this.validateBuy(product, user, queryRunner);
       await queryRunner.commitTransaction();
       this.sendMailProducer.sendOrderEmail(user, product, address);
     } catch (error) {
