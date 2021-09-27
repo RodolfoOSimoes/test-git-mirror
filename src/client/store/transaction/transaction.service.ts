@@ -28,7 +28,7 @@ const moment = require('moment');
 
 @Injectable()
 export class TransactionService {
-  static transactionLimit = 10;
+  static transactionLimit = 5;
   static transactionUser = [];
   constructor(
     @Inject('PRODUCT_REPOSITORY')
@@ -37,8 +37,6 @@ export class TransactionService {
   ) {}
 
   async create(user_id: number, code: string) {
-    throw new UnauthorizedException('Tente novamente em alguns instantes.');
-
     const product = await this.productsRepository.findOne({
       where: { code_product: code },
     });

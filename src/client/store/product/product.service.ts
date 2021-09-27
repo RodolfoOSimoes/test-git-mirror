@@ -44,7 +44,10 @@ export class ProductService {
         kind: product.kind == 0 ? 'delivery' : 'coupon',
         name: product.name,
         value: product.value,
-        product_activity: 'finished',
+        product_activity:
+          product.quantities_purchased < product.quantity
+            ? 'online'
+            : 'finished',
         status: product.status,
       };
     });
