@@ -365,18 +365,18 @@ async function prepareCashbacks(
   // });
 
   try {
-    await Promise.all([
-      saveCashBacksAndStatements(
-        statementCashbacks,
-        user,
-        campaign,
-        connection,
-      ),
-      // saveStatements(statements, connection),
-      // saveCashBacks(cashbacks, connection),
-      saveUserQuestSpotify(userQuestSpotifySave, connection),
-      saveRescueCampaign(rescuesCampaign, connection),
-    ]);
+    await saveCashBacksAndStatements(
+      statementCashbacks,
+      user,
+      campaign,
+      connection,
+    ),
+      await Promise.all([
+        // saveStatements(statements, connection),
+        // saveCashBacks(cashbacks, connection),
+        saveUserQuestSpotify(userQuestSpotifySave, connection),
+        saveRescueCampaign(rescuesCampaign, connection),
+      ]);
     await updateUserQuestSpotify(userQuestSpotifyUpdate, connection);
   } catch (error) {
     console.log(error.message);
