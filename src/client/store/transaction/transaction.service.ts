@@ -37,7 +37,7 @@ export class TransactionService {
   ) {}
 
   async create(user_id: number, code: string) {
-    const product = await this.productsRepository.findOne({
+    let product = await this.productsRepository.findOne({
       where: { code_product: code },
     });
 
@@ -61,7 +61,17 @@ export class TransactionService {
       quantities_purchased: product.quantities_purchased + 1,
     });
 
+    product = await this.productsRepository.findOne({
+      where: { code_product: code },
+    });
+
     if (product.quantity < product.quantities_purchased) {
+      const userIndex = TransactionService.transactionUser.findIndex(
+        (id) => id == user_id,
+      );
+      if (userIndex != -1)
+        TransactionService.transactionUser.splice(userIndex, 1);
+      TransactionService.transactionLimit++;
       throw new UnauthorizedException('Produto indisponível.');
     }
 
@@ -90,10 +100,6 @@ export class TransactionService {
       const product = await queryRunner.manager.findOne(Product, {
         where: { code_product: code },
       });
-
-      if (product && product.quantity <= product.quantities_purchased) {
-        throw new UnauthorizedException('Produto indisponível.');
-      }
 
       await this.purchaseValidation(product, user, queryRunner);
 
