@@ -359,24 +359,23 @@ async function prepareCashbacks(
   const statements = [];
   const cashbacks = [];
 
-  // statementCashbacks.forEach((cashback) => {
-  //   cashbacks.push(buildCashBack(cashback, user));
-  //   statements.push(buildStatement(cashback, user, campaign));
-  // });
-
+  statementCashbacks.forEach((cashback) => {
+    cashbacks.push(buildCashBack(cashback, user));
+    statements.push(buildStatement(cashback, user, campaign));
+  });
+  // await saveCashBacksAndStatements(
+  //   statementCashbacks,
+  //   user,
+  //   campaign,
+  //   connection,
+  // ),
   try {
-    await saveCashBacksAndStatements(
-      statementCashbacks,
-      user,
-      campaign,
-      connection,
-    ),
-      await Promise.all([
-        // saveStatements(statements, connection),
-        // saveCashBacks(cashbacks, connection),
-        saveUserQuestSpotify(userQuestSpotifySave, connection),
-        saveRescueCampaign(rescuesCampaign, connection),
-      ]);
+    await Promise.all([
+      saveStatements(statements, connection),
+      saveCashBacks(cashbacks, connection),
+      saveUserQuestSpotify(userQuestSpotifySave, connection),
+      saveRescueCampaign(rescuesCampaign, connection),
+    ]);
     await updateUserQuestSpotify(userQuestSpotifyUpdate, connection);
   } catch (error) {
     console.log(error.message);
@@ -390,71 +389,70 @@ async function saveCashBacksAndStatements(
   campaign,
   connection,
 ) {
-  for (const item of statementCashbacks) {
-    try {
-      const cashBack = buildCashBack(item, user);
-      const insertedCashback = await connection.query(
-        `INSERT INTO cash_backs (
-        user_id,
-        track_id,
-        played_at,
-        name,
-        rescue_id,
-        deleted,
-        created_at,
-        updated_at
-      ) VALUES (
-        ?,?,?,?,?,?,?,?
-      )`,
-        [
-          cashBack.user?.id,
-          cashBack.track_id,
-          cashBack.played_at,
-          cashBack.name,
-          cashBack.rescue?.id,
-          cashBack.deleted,
-          cashBack.created_at,
-          cashBack.updated_at,
-        ],
-      );
-
-      const cashbackId = insertedCashback.insertId || cashBack.rescue?.id;
-      const statement = buildStatement(item, user, campaign, cashbackId);
-      await connection.query(
-        `INSERT INTO statements (
-        user_id, 
-        campaign_id, 
-        amount, 
-        kind, 
-        balance, 
-        statementable_type, 
-        statementable_id, 
-        deleted, 
-        created_at, 
-        updated_at, 
-        code_doc, 
-        statementable_type_action, 
-        expiration_date) VALUES (
-          ?,?,?,?,?,?,?,?,?,?,?,?,?
-        )`,
-        [
-          statement.user?.id,
-          statement.campaign?.id,
-          statement.amount,
-          statement.kind,
-          statement.balance,
-          statement.statementable_type,
-          statement.statementable_id,
-          statement.deleted,
-          statement.created_at,
-          statement.updated_at,
-          statement.code_doc,
-          statement.statementable_type_action,
-          statement.expiration_date,
-        ],
-      );
-    } catch (error) {}
-  }
+  // for (const item of statementCashbacks) {
+  //   try {
+  //     const cashBack = buildCashBack(item, user);
+  //     const insertedCashback = await connection.query(
+  //       `INSERT INTO cash_backs (
+  //       user_id,
+  //       track_id,
+  //       played_at,
+  //       name,
+  //       rescue_id,
+  //       deleted,
+  //       created_at,
+  //       updated_at
+  //     ) VALUES (
+  //       ?,?,?,?,?,?,?,?
+  //     )`,
+  //       [
+  //         cashBack.user?.id,
+  //         cashBack.track_id,
+  //         cashBack.played_at,
+  //         cashBack.name,
+  //         cashBack.rescue?.id,
+  //         cashBack.deleted,
+  //         cashBack.created_at,
+  //         cashBack.updated_at,
+  //       ],
+  //     );
+  //     const cashbackId = insertedCashback.insertId || cashBack.rescue?.id;
+  //     const statement = buildStatement(item, user, campaign, cashbackId);
+  //     await connection.query(
+  //       `INSERT INTO statements (
+  //       user_id,
+  //       campaign_id,
+  //       amount,
+  //       kind,
+  //       balance,
+  //       statementable_type,
+  //       statementable_id,
+  //       deleted,
+  //       created_at,
+  //       updated_at,
+  //       code_doc,
+  //       statementable_type_action,
+  //       expiration_date) VALUES (
+  //         ?,?,?,?,?,?,?,?,?,?,?,?,?
+  //       )`,
+  //       [
+  //         statement.user?.id,
+  //         statement.campaign?.id,
+  //         statement.amount,
+  //         statement.kind,
+  //         statement.balance,
+  //         statement.statementable_type,
+  //         statement.statementable_id,
+  //         statement.deleted,
+  //         statement.created_at,
+  //         statement.updated_at,
+  //         statement.code_doc,
+  //         statement.statementable_type_action,
+  //         statement.expiration_date,
+  //       ],
+  //     );
+  //   } catch (error) {}
+  // }
 }
 
 async function saveRescueCampaign(rescuesCampaign, connection) {
@@ -598,7 +596,7 @@ function buildCashBack(cb: any, user) {
   };
 }
 
-function buildStatement(cb: any, user, campaign, cashbackId) {
+function buildStatement(cb: any, user, campaign) {
   return {
     user: user,
     campaign: campaign,
@@ -606,7 +604,7 @@ function buildStatement(cb: any, user, campaign, cashbackId) {
     kind: 1,
     statementable_type: 'CashBack',
     balance: 0,
-    statementable_id: cashbackId,
+    statementable_id: cb.rescue_id.id,
     deleted: false,
     code_doc: null,
     statementable_type_action: null,
