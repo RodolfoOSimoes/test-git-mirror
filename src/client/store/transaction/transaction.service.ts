@@ -45,6 +45,10 @@ export class TransactionService {
       throw new UnauthorizedException('Produto não encontrado.');
     }
 
+    if (product.quantity <= product.quantities_purchased) {
+      throw new UnauthorizedException('Produto indisponível.');
+    }
+
     if (TransactionService.transactionLimit <= 0) {
       throw new UnauthorizedException('Tente novamente em alguns instantes.');
     }
