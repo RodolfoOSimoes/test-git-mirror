@@ -27,6 +27,13 @@ export class UserController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Get('me/store')
+  store(@Request() req) {
+    if (req.user.roles == 'spotify') return this.userService.store(req.user.id);
+    throw new UnauthorizedException();
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Put('me')
   updateUser(@Request() req, @Body() updateUserDto: UpdateUserDto) {
     if (req.user.roles == 'spotify')

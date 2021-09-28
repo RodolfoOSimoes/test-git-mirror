@@ -271,6 +271,39 @@ export class UserService {
     return { message: 'Usuário atualizado com sucesso' };
   }
 
+  async store(id: number) {
+    const user = await this.userRepository.findOne(id, {
+      relations: ['city', 'city.state', 'addresses', 'invitations'],
+    });
+
+    user.orders = await this.orderRepository.find({
+      where: { user: user },
+    });
+
+    const data = {
+      id: user.id,
+      type: 'users',
+      situation: 'active',
+      phone: user.phone,
+      name: user.name,
+      email: user.email,
+      daily_order: this.hasDailyOrder(user.orders),
+      birthdate: user.birthdate,
+      address: { completed: user.addresses?.[0]?.completed || false },
+      city: {
+        id: user.city?.id,
+        name: user.city?.name,
+        state: {
+          id: user.city?.state?.id,
+          name: user.city?.state?.name,
+          acronym: user.city?.state?.acronym,
+        },
+      },
+    };
+
+    return data;
+  }
+
   async remove(id: number) {
     await this.userRepository.update(id, {
       deleted: true,

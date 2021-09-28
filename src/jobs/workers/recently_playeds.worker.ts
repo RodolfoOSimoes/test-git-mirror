@@ -19,7 +19,7 @@ async function getConnection() {
     synchronize: false,
     logging: ['error'],
     extra: {
-      connectionLimit: 40,
+      connectionLimit: 20,
     },
   });
 }
@@ -34,7 +34,7 @@ async function runWorker() {
   let iteration = 0;
   console.log('Starting worker');
 
-  const limit = 40;
+  const limit = 20;
   while (true) {
     try {
       const usersData = await connection.query(
