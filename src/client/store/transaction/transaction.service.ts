@@ -54,7 +54,9 @@ export class TransactionService {
     if (!TransactionService.transactionUser.includes(user_id)) {
       TransactionService.transactionUser.push(user_id);
     } else {
-      throw new UnauthorizedException('Você já está realizando um resgate.');
+      throw new UnauthorizedException(
+        'Você já fez uma solicitação para resgate desse produto em outra sessão.',
+      );
     }
 
     TransactionService.transactionLimit--;
