@@ -34,7 +34,7 @@ async function runWorker() {
   let iteration = 0;
   console.log('Starting worker');
 
-  const limit = 20;
+  const limit = 40;
   while (true) {
     try {
       const usersData = await connection.query(
@@ -56,8 +56,8 @@ async function runWorker() {
 
 async function prepareJob(users, connection, spotifyService, rescueList) {
   await Promise.all([
-    runJob(users.splice(0, 10), connection, spotifyService, rescueList),
-    runJob(users.splice(0, 10), connection, spotifyService, rescueList),
+    runJob(users.splice(0, 20), connection, spotifyService, rescueList),
+    runJob(users.splice(0, 20), connection, spotifyService, rescueList),
   ]);
 }
 
