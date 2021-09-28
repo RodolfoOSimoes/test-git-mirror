@@ -7,6 +7,7 @@ import {
 import { User } from 'src/entities/user.entity';
 import { Statement } from 'src/entities/statement.entity';
 import {
+  EntityManager,
   getConnection,
   LessThanOrEqual,
   MoreThanOrEqual,
@@ -28,7 +29,8 @@ const moment = require('moment');
 
 @Injectable()
 export class TransactionService {
-  static transactionLimit = 5;
+  static productLimit = 5;
+  static transactionLimit = 10;
   static transactionUser = [];
   constructor(
     @Inject('PRODUCT_REPOSITORY')
@@ -37,16 +39,12 @@ export class TransactionService {
   ) {}
 
   async create(user_id: number, code: string) {
-    let product = await this.productsRepository.findOne({
+    const product = await this.productsRepository.findOne({
       where: { code_product: code },
     });
 
-    if (!product) {
-      throw new UnauthorizedException('Produto não encontrado.');
-    }
-
-    if (product.quantity <= product.quantities_purchased) {
-      throw new UnauthorizedException('Produto indisponível.');
+    if (product.quantities_purchased >= product.quantity) {
+      throw new UnauthorizedException('Produto esgotado.');
     }
 
     if (TransactionService.transactionLimit <= 0) {
@@ -61,62 +59,208 @@ export class TransactionService {
 
     TransactionService.transactionLimit--;
 
-    await this.productsRepository.update(product.id, {
-      quantities_purchased: product.quantities_purchased + 1,
-    });
+    try {
+      const user = await this.productsRepository.manager.findOne(User, {
+        where: { id: user_id },
+      });
 
-    product = await this.productsRepository.findOne({
-      where: { code_product: code },
-    });
+      if (!user) {
+        throw new UnauthorizedException('Usuário não encontrado.');
+      }
 
-    if (product.quantity < product.quantities_purchased) {
+      if (!user.email) {
+        throw new UnauthorizedException('Necessário cadastrar email.');
+      }
+
+      const statement = await this.productsRepository.manager.findOne(
+        Statement,
+        {
+          where: { user: user, statementable_type: 'Product' },
+          order: { id: 'DESC' },
+        },
+      );
+
+      if (this.isntAllowToBuy(statement)) {
+        throw new UnauthorizedException('Só pode comprar 1 produto por dia.');
+      }
+
+      await this.purchaseValidation(product, user);
+
+      await this.incrementProduct(code);
+
+      await this.buyProduct(code, user, product);
+    } catch (err) {
+      throw new UnauthorizedException(err.message);
+    } finally {
       const userIndex = TransactionService.transactionUser.findIndex(
         (id) => id == user_id,
       );
       if (userIndex != -1)
         TransactionService.transactionUser.splice(userIndex, 1);
       TransactionService.transactionLimit++;
-      throw new UnauthorizedException('Produto indisponível.');
     }
 
-    const connection = getConnection();
-    const queryRunner = connection.createQueryRunner();
-    await queryRunner.connect();
+    return { message: 'Produto resgatado com sucesso.' };
+    // if (!product) {
+    //   throw new UnauthorizedException('Produto não encontrado.');
+    // }
+
+    // if (product.quantity <= product.quantities_purchased) {
+    //   throw new UnauthorizedException('Produto indisponível.');
+    // }
+
+    // if (TransactionService.transactionLimit <= 0) {
+    //   throw new UnauthorizedException('Tente novamente em alguns instantes.');
+    // }
+
+    // if (!TransactionService.transactionUser.includes(user_id)) {
+    //   TransactionService.transactionUser.push(user_id);
+    // } else {
+    //   throw new UnauthorizedException('Você já está realizando um resgate.');
+    // }
+
+    // TransactionService.transactionLimit--;
+
+    // await this.productsRepository.update(product.id, {
+    //   quantities_purchased: product.quantities_purchased + 1,
+    // });
+
+    // product = await this.productsRepository.findOne({
+    //   where: { code_product: code },
+    // });
+
+    // if (product.quantity < product.quantities_purchased) {
+    //   const userIndex = TransactionService.transactionUser.findIndex(
+    //     (id) => id == user_id,
+    //   );
+    //   if (userIndex != -1)
+    //     TransactionService.transactionUser.splice(userIndex, 1);
+    //   TransactionService.transactionLimit++;
+    //   throw new UnauthorizedException('Produto indisponível.');
+    // }
+
+    // const connection = getConnection();
+    // const queryRunner = connection.createQueryRunner();
+    // await queryRunner.connect();
+    // try {
+    //   await queryRunner.startTransaction(IsolationLevel.READ_COMMITTED);
+
+    //   const user = await queryRunner.manager.findOne(User, {
+    //     where: { id: user_id },
+    //   });
+
+    //   const address = await queryRunner.manager.findOne(Address, {
+    //     where: { user: user },
+    //     order: { id: 'DESC' },
+    //     relations: ['city', 'city.state'],
+    //   });
+
+    //   const campaign = await queryRunner.manager.findOne(Campaign, {
+    //     status: true,
+    //     date_start: LessThanOrEqual(formatDate(new Date())),
+    //     date_finish: MoreThanOrEqual(formatDate(new Date())),
+    //   });
+
+    //   const product = await queryRunner.manager.findOne(Product, {
+    //     where: { code_product: code },
+    //   });
+
+    //   await this.purchaseValidation(product, user, queryRunner);
+
+    //   const statement = await queryRunner.manager.findOne(Statement, {
+    //     where: { user: user, statementable_type: 'Product' },
+    //     order: { id: 'DESC' },
+    //   });
+
+    //   if (this.isntAllowToBuy(statement)) {
+    //     throw new UnauthorizedException('Só pode comprar 1 produto por dia.');
+    //   }
+
+    //   await queryRunner.manager.save(Statement, {
+    //     user: user,
+    //     amount: product.value,
+    //     kind: 0,
+    //     balance: 0,
+    //     statementable_type: 'Product',
+    //     statementable_id: product.id,
+    //     delete: false,
+    //     created_at: new Date(),
+    //     updated_at: new Date(),
+    //     campaign: campaign,
+    //   });
+
+    //   const order = await queryRunner.manager.save(Order, {
+    //     user: user,
+    //     product: product,
+    //     created_at: new Date(),
+    //     updated_at: new Date(),
+    //     sent: false,
+    //     confirmation_email: true,
+    //     code_secret: generateCode(50),
+    //     price_of_product: product.value,
+    //   });
+
+    //   await queryRunner.manager.update(Address, address.id, {
+    //     order: order,
+    //   });
+
+    //   await queryRunner.commitTransaction();
+    //   this.sendMailProducer.sendOrderEmail(user, product, address);
+    // } catch (error) {
+    //   await queryRunner.rollbackTransaction();
+    //   throw new ForbiddenException({ message: error.message });
+    // } finally {
+    //   await queryRunner.release();
+    //   const userIndex = TransactionService.transactionUser.findIndex(
+    //     (id) => id == user_id,
+    //   );
+    //   if (userIndex != -1)
+    //     TransactionService.transactionUser.splice(userIndex, 1);
+    //   TransactionService.transactionLimit++;
+    // }
+    // return { message: 'Produto resgatado com sucesso.' };
+  }
+
+  async incrementProduct(code) {
+    await this.productsRepository.manager.transaction(
+      'REPEATABLE READ',
+      async (manager) => {
+        const product = await manager.findOne(Product, {
+          where: { code_product: code },
+        });
+        if (product.quantities_purchased < product.quantity) {
+          await manager.update(Product, product.id, {
+            quantities_purchased: product.quantities_purchased + 1,
+          });
+        } else {
+          throw new UnauthorizedException('Produto esgotado.');
+        }
+      },
+    );
+  }
+
+  async buyProduct(code, user, product) {
+    if (code == 'JEn61BlkmW7') {
+      TransactionService.productLimit--;
+      if (TransactionService.productLimit <= 0) {
+        console.log('limited');
+        throw new UnauthorizedException('Produto esgotado.');
+      }
+    }
     try {
-      await queryRunner.startTransaction(IsolationLevel.READ_COMMITTED);
-
-      const user = await queryRunner.manager.findOne(User, {
-        where: { id: user_id },
-      });
-
-      const address = await queryRunner.manager.findOne(Address, {
+      const address = await this.productsRepository.manager.findOne(Address, {
         where: { user: user },
         order: { id: 'DESC' },
         relations: ['city', 'city.state'],
       });
 
-      const campaign = await queryRunner.manager.findOne(Campaign, {
+      const campaign = await this.productsRepository.manager.findOne(Campaign, {
         status: true,
         date_start: LessThanOrEqual(formatDate(new Date())),
         date_finish: MoreThanOrEqual(formatDate(new Date())),
       });
 
-      const product = await queryRunner.manager.findOne(Product, {
-        where: { code_product: code },
-      });
-
-      await this.purchaseValidation(product, user, queryRunner);
-
-      const statement = await queryRunner.manager.findOne(Statement, {
-        where: { user: user, statementable_type: 'Product' },
-        order: { id: 'DESC' },
-      });
-
-      if (this.isntAllowToBuy(statement)) {
-        throw new UnauthorizedException('Só pode comprar 1 produto por dia.');
-      }
-
-      await queryRunner.manager.save(Statement, {
+      await this.productsRepository.manager.save(Statement, {
         user: user,
         amount: product.value,
         kind: 0,
@@ -129,7 +273,7 @@ export class TransactionService {
         campaign: campaign,
       });
 
-      const order = await queryRunner.manager.save(Order, {
+      const order = await this.productsRepository.manager.save(Order, {
         user: user,
         product: product,
         created_at: new Date(),
@@ -140,25 +284,17 @@ export class TransactionService {
         price_of_product: product.value,
       });
 
-      await queryRunner.manager.update(Address, address.id, {
+      await this.productsRepository.manager.update(Address, address.id, {
         order: order,
       });
 
-      await queryRunner.commitTransaction();
       this.sendMailProducer.sendOrderEmail(user, product, address);
-    } catch (error) {
-      await queryRunner.rollbackTransaction();
-      throw new ForbiddenException({ message: error.message });
-    } finally {
-      await queryRunner.release();
-      const userIndex = TransactionService.transactionUser.findIndex(
-        (id) => id == user_id,
-      );
-      if (userIndex != -1)
-        TransactionService.transactionUser.splice(userIndex, 1);
-      TransactionService.transactionLimit++;
-    }
-    return { message: 'Produto resgatado com sucesso.' };
+    } catch (error) {}
+  }
+
+  shouldRetryTransaction(err: unknown) {
+    const code = typeof err === 'object' ? String((err as any).code) : null;
+    return code === '40001' || code === '40P01';
   }
 
   getToday() {
@@ -184,15 +320,15 @@ export class TransactionService {
     }
   }
 
-  async purchaseValidation(product, user, queryRunner) {
-    const withdrawals = await queryRunner.manager.find(Withdrawal, {
+  async purchaseValidation(product, user) {
+    const withdrawals = await this.productsRepository.manager.find(Withdrawal, {
       where: {
         user: user,
         date_spent: MoreThanOrEqual(moment(new Date()).format('YYYY-MM-DD')),
       },
     });
 
-    const statements = await queryRunner.manager.find(Statement, {
+    const statements = await this.productsRepository.manager.find(Statement, {
       where: {
         user: user,
         kind: 1,
