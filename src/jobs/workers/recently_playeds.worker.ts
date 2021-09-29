@@ -31,7 +31,7 @@ async function runWorker() {
   let connection = null;
   connection = await getConnection();
   const spotifyService = new SpotifyService();
-  let iteration = 39000;
+  let iteration = 0;
   console.log('Starting worker');
 
   const limit = 40;
