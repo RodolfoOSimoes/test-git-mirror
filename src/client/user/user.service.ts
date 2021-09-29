@@ -273,11 +273,7 @@ export class UserService {
 
   async store(id: number) {
     const user = await this.userRepository.findOne(id, {
-      relations: ['city', 'city.state', 'addresses', 'invitations'],
-    });
-
-    user.orders = await this.orderRepository.find({
-      where: { user: user },
+      relations: ['addresses'],
     });
 
     const data = {
@@ -287,18 +283,8 @@ export class UserService {
       phone: user.phone,
       name: user.name,
       email: user.email,
-      daily_order: this.hasDailyOrder(user.orders),
       birthdate: user.birthdate,
       address: { completed: user.addresses?.[0]?.completed || false },
-      city: {
-        id: user.city?.id,
-        name: user.city?.name,
-        state: {
-          id: user.city?.state?.id,
-          name: user.city?.state?.name,
-          acronym: user.city?.state?.acronym,
-        },
-      },
     };
 
     return data;
