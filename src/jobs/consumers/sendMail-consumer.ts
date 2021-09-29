@@ -41,7 +41,6 @@ export class SendMailConsumer {
   @Process('sendNewPasswordMail-job')
   async sendNewPasswordMail(job: Job) {
     const { data } = job;
-
     try {
       await this.mailService.sendMail({
         from: `"Filtrgame" <filtrgame@sonymusic.com>`,

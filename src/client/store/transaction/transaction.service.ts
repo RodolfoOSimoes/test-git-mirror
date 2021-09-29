@@ -29,7 +29,7 @@ const moment = require('moment');
 
 @Injectable()
 export class TransactionService {
-  static productLimit = 5;
+  static productLimit = 6;
   static transactionLimit = 10;
   static transactionUser = [];
   constructor(
@@ -242,7 +242,7 @@ export class TransactionService {
   }
 
   async buyProduct(code, user, product) {
-    if (code == 'JEn61BlkmW7') {
+    if (code == 'BheSrveEqyW') {
       TransactionService.productLimit--;
       if (TransactionService.productLimit <= 0) {
         console.log('limited');

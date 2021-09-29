@@ -2,6 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { CashBack } from 'src/entities/cash-backs.entity';
 import { Product } from 'src/entities/product.entity';
 import { Quest } from 'src/entities/quest.entity';
+import { Rescue } from 'src/entities/rescue.entity';
 import { User } from 'src/entities/user.entity';
 import { QuestMissionType } from 'src/enums/QuestTypes';
 import { PaginationService } from 'src/utils/pagination/pagination.service';
@@ -80,14 +81,21 @@ export class StatementService {
       case 'UserGratification':
         return '-';
       case 'CashBack': {
-        const cashback = await this.cashBackRepository.findOne(
-          statement.statementable_id,
-          {
-            relations: ['rescue'],
-          },
-        );
-        const { name, artists } = cashback.rescue;
-        return `${name} - ${artists}`;
+        if (statement.statementable_id < 10000) {
+          const rescue = await this.userRepository.manager.findOne(Rescue, {
+            where: { id: statement.statementable_id },
+          });
+          return `${rescue.name} - ${rescue.artists}`;
+        } else {
+          const cashback = await this.cashBackRepository.findOne(
+            statement.statementable_id,
+            {
+              relations: ['rescue'],
+            },
+          );
+          const { name, artists } = cashback.rescue;
+          return `${name} - ${artists}`;
+        }
       }
       case 'Product': {
         const product = await this.productRepository.findOne(
