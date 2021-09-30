@@ -32,9 +32,19 @@ async function runWorker() {
   connection = await getConnection();
   const spotifyService = new SpotifyService();
   let iteration = 0;
-  console.log('Starting worker');
-
   const limit = 40;
+
+  try {
+    const [lastRecentlyPlayed] = await this.recentlyRepository.query(
+      'SELECT user_id FROM recently_playeds ORDER BY id DESC LIMIT 1',
+    );
+
+    if (lastRecentlyPlayed && lastRecentlyPlayed.user_id) {
+      iteration = lastRecentlyPlayed.user_id - limit;
+    }
+  } catch (error) {}
+
+  console.log('Starting worker');
   while (true) {
     try {
       const usersData = await connection.query(

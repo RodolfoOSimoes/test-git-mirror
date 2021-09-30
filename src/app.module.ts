@@ -43,7 +43,6 @@ import { BullModule } from '@nestjs/bull';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { SendMailProducerService } from './jobs/producers/sendMail-producer-service';
 import { ScheduleModule } from '@nestjs/schedule';
-import { RecentlyPlayedJob } from 'src/jobs/RecentlyPlayedJob';
 import { AuthenticationModule } from './utils/authentication/authentication.module';
 import { StorageModule } from './utils/storage/storage.module';
 import { TransactionModule as StoreTransactionModule } from './client/store/transaction/transaction.module';
@@ -140,7 +139,6 @@ import { ExcelModule } from './utils/excel/excel.module';
     SpotifyService,
     YoutubeService,
     SendMailProducerService,
-    RecentlyPlayedJob,
     ExtractJob,
     StreamRecordsJob,
     SpotifyProductJob,
