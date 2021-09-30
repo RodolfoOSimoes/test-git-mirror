@@ -35,7 +35,7 @@ async function runWorker() {
   const limit = 40;
 
   try {
-    const [lastRecentlyPlayed] = await this.recentlyRepository.query(
+    const [lastRecentlyPlayed] = await connection.query(
       'SELECT user_id FROM recently_playeds ORDER BY id DESC LIMIT 1',
     );
 
