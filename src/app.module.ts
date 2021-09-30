@@ -65,6 +65,7 @@ import { userStreamRecordsProviders } from './providers/user_stream_records.prov
 import { streamRecordsProviders } from './providers/stream_records.providers';
 import { StreamRecordsJob } from './jobs/StreamRecordsJob';
 import { ExcelModule } from './utils/excel/excel.module';
+import { PreSaveJob } from './jobs/PreSaveJob';
 
 @Module({
   imports: [
@@ -141,6 +142,7 @@ import { ExcelModule } from './utils/excel/excel.module';
     SendMailProducerService,
     ExtractJob,
     StreamRecordsJob,
+    PreSaveJob,
     SpotifyProductJob,
     RemoveOldRecentlyPlayedJob,
     ...userProviders,

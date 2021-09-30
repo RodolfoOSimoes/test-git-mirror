@@ -291,8 +291,12 @@ export class UserService {
   }
 
   async remove(id: number) {
+    const user = await this.userRepository.findOne(id);
+
     await this.userRepository.update(id, {
       deleted: true,
+      uid: `${user.uid}_id_${id}`,
+      updated_at: new Date(),
     });
 
     return { message: 'Usuário deletado com sucesso' };
