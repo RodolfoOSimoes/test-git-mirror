@@ -242,13 +242,13 @@ export class TransactionService {
   }
 
   async buyProduct(code, user, product) {
-    if (code == 'BheSrveEqyW') {
-      TransactionService.productLimit--;
-      if (TransactionService.productLimit <= 0) {
-        console.log('limited');
-        throw new UnauthorizedException('Produto esgotado.');
-      }
-    }
+    // if (code == 'BheSrveEqyW') {
+    //   TransactionService.productLimit--;
+    //   if (TransactionService.productLimit <= 0) {
+    //     console.log('limited');
+    //     throw new UnauthorizedException('Produto esgotado.');
+    //   }
+    // }
     try {
       const address = await this.productsRepository.manager.findOne(Address, {
         where: { user: user },

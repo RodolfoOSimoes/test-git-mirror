@@ -13,35 +13,33 @@ export class PreSaveJob {
   ) {}
 
   // @Cron('30 * * * * *')
-  @Cron(CronExpression.EVERY_12_HOURS)
+  @Cron(CronExpression.EVERY_10_SECONDS)
   async handleCron() {
-    // console.log('presave');
-    // let iteration = 0;
-    // while (true) {
-    //   const users = await this.loadUsers(iteration);
-    //   if (!users.length) {
-    //     break;
-    //   } else {
-    //     iteration = users[users.length - 1].id;
-    //   }
-    //   for (const user of users) {
-    //     try {
-    //       const result = await this.spotifyService.getuser(
-    //         user.credentials['refresh_token'],
-    //       );
-    //       if (result && result.product) {
-    //         await this.userRepository.update(user.id, {
-    //           product: result.product,
-    //           updated_at: new Date(),
-    //           last_time_checked_product: new Date(),
-    //         });
-    //       }
-    //     } catch (error) {
-    //       console.log(`user_id: ${user.id} - error:: ${error.message}`);
-    //     }
+    // const stream_records = await this.userRepository.query(
+    //   `
+    //   SELECT * FROM stream_records WHERE date = ? ORDER BY date DESC, track_uri, stream_quantity DESC
+    // `,
+    //   ['2021-09-24'],
+    // );
+    // const groupByTrackUri = this.groupBy('track_uri');
+    // const groups = groupByTrackUri(stream_records);
+    // const streamRecords = [];
+    // for (const track in groups) {
+    //   streamRecords.push({
+    //     a: groups[track][0],
+    //   });
+    //   for (let i = 0; i < groups[track].length; i++) {
+    //     console.log('    ' + groups[track][i].color);
     //   }
     // }
   }
+
+  groupBy = (key) => (array) =>
+    array.reduce((objectsByKeyValue, obj) => {
+      const value = obj[key];
+      objectsByKeyValue[value] = (objectsByKeyValue[value] || []).concat(obj);
+      return objectsByKeyValue;
+    }, {});
 
   async loadUsers(id: number) {
     return await this.userRepository.find({
