@@ -31,37 +31,37 @@ async function runWorker() {
   let connection = null;
   connection = await getConnection();
   const spotifyService = new SpotifyService();
-  let iteration = 0;
+  const iteration = 0;
   const limit = 40;
 
-  try {
-    const [lastRecentlyPlayed] = await connection.query(
-      'SELECT user_id FROM recently_playeds ORDER BY id DESC LIMIT 1',
-    );
+  // try {
+  //   const [lastRecentlyPlayed] = await connection.query(
+  //     'SELECT user_id FROM recently_playeds ORDER BY id DESC LIMIT 1',
+  //   );
 
-    if (lastRecentlyPlayed && lastRecentlyPlayed.user_id) {
-      iteration = lastRecentlyPlayed.user_id - limit;
-    }
-  } catch (error) {}
+  //   if (lastRecentlyPlayed && lastRecentlyPlayed.user_id) {
+  //     iteration = lastRecentlyPlayed.user_id - limit;
+  //   }
+  // } catch (error) {}
 
   console.log('Starting worker');
-  while (true) {
-    try {
-      const usersData = await connection.query(
-        `SELECT id, credentials, last_heard FROM users WHERE have_accepted = ? AND deleted = ? AND situation = ? AND last_time_verified < ? AND id > ? LIMIT ${limit}`,
-        [true, false, false, new Date().getTime(), iteration],
-      );
-      if (!usersData.length) {
-        iteration = 0;
-      } else {
-        iteration = usersData[usersData.length - 1].id;
-      }
-      const users = await getUsers(usersData, connection);
-      await prepareJob(users, connection, spotifyService, rescueList);
-    } catch (error) {
-      console.log(error);
-    }
+  // while (true) {
+  try {
+    const usersData = await connection.query(
+      `SELECT id, credentials, last_heard FROM users WHERE have_accepted = ? AND deleted = ? AND situation = ? AND last_time_verified < ? AND id = ? `,
+      [true, false, false, new Date().getTime(), 607],
+    );
+    // if (!usersData.length) {
+    //   iteration = 0;
+    // } else {
+    //   iteration = usersData[usersData.length - 1].id;
+    // }
+    const users = await getUsers(usersData, connection);
+    await prepareJob(users, connection, spotifyService, rescueList);
+  } catch (error) {
+    console.log(error);
   }
+  // }
 }
 
 async function prepareJob(users, connection, spotifyService, rescueList) {
@@ -227,26 +227,26 @@ function getLimits(cashbacks, rescues) {
 
 async function loadUserQuestSpotifyPlaylists(
   user,
-  questSpotifyPlaylist,
+  questSpotifyPlaylist = [],
   connection,
 ) {
-  // try {
-  //   const questIds = questSpotifyPlaylist.map((qsp) => qsp.id);
-  //   if (questIds) {
-  //     const userQuest = await connection.query(
-  //       `SELECT uqsp.id AS id, uqsp.isrcs AS isrcs, qsp.id AS qsp_id
-  //   FROM user_quest_spotify_playlists uqsp
-  //   INNER JOIN quest_spotify_playlists qsp ON uqsp.quest_spotify_playlist_id = qsp.id
-  //   WHERE qsp.id IN (?) AND uqsp.user_id = ?`,
-  //       [questIds || null, user.id],
-  //     );
-  //     return userQuest;
-  //   } else {
-  //     return [];
-  //   }
-  // } catch (error) {
-  return [];
-  // }
+  try {
+    const questIds = questSpotifyPlaylist.map((qsp) => qsp.id);
+    if (questIds) {
+      const userQuest = await connection.query(
+        `SELECT uqsp.id AS id, uqsp.isrcs AS isrcs, qsp.id AS qsp_id
+    FROM user_quest_spotify_playlists uqsp
+    INNER JOIN quest_spotify_playlists qsp ON uqsp.quest_spotify_playlist_id = qsp.id
+    WHERE qsp.id IN (?) AND uqsp.user_id = ?`,
+        [questIds || null, user.id],
+      );
+      return userQuest;
+    } else {
+      return [];
+    }
+  } catch (error) {
+    return [];
+  }
 }
 
 async function prepareCashbacks(
