@@ -46,21 +46,23 @@ async function runWorker() {
 
   console.log('Starting worker');
   // while (true) {
-  try {
-    const usersData = await connection.query(
-      `SELECT id, credentials, last_heard FROM users WHERE have_accepted = ? AND deleted = ? AND situation = ? AND last_time_verified < ? AND id = ? `,
-      [true, false, false, new Date().getTime(), 607],
-    );
-    // if (!usersData.length) {
-    //   iteration = 0;
-    // } else {
-    //   iteration = usersData[usersData.length - 1].id;
-    // }
-    const users = await getUsers(usersData, connection);
-    await prepareJob(users, connection, spotifyService, rescueList);
-  } catch (error) {
-    console.log(error);
-  }
+  setinterval(async () => {
+    try {
+      const usersData = await connection.query(
+        `SELECT id, credentials, last_heard FROM users WHERE have_accepted = ? AND deleted = ? AND situation = ? AND last_time_verified < ? AND id = ? `,
+        [true, false, false, new Date().getTime(), 607],
+      );
+      // if (!usersData.length) {
+      //   iteration = 0;
+      // } else {
+      //   iteration = usersData[usersData.length - 1].id;
+      // }
+      const users = await getUsers(usersData, connection);
+      await prepareJob(users, connection, spotifyService, rescueList);
+    } catch (error) {
+      console.log(error);
+    }
+  }, 120000);
   // }
 }
 
