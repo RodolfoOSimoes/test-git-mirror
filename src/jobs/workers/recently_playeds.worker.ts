@@ -31,39 +31,37 @@ async function runWorker() {
   let connection = null;
   connection = await getConnection();
   const spotifyService = new SpotifyService();
-  const iteration = 607;
+  let iteration = 0;
   const limit = 40;
 
-  // try {
-  //   const [lastRecentlyPlayed] = await connection.query(
-  //     'SELECT user_id FROM recently_playeds ORDER BY id DESC LIMIT 1',
-  //   );
+  try {
+    const [lastRecentlyPlayed] = await connection.query(
+      'SELECT user_id FROM recently_playeds ORDER BY id DESC LIMIT 1',
+    );
 
-  //   if (lastRecentlyPlayed && lastRecentlyPlayed.user_id) {
-  //     iteration = lastRecentlyPlayed.user_id - limit;
-  //   }
-  // } catch (error) {}
+    if (lastRecentlyPlayed && lastRecentlyPlayed.user_id) {
+      iteration = lastRecentlyPlayed.user_id - limit;
+    }
+  } catch (error) {}
 
   console.log('Starting worker');
-  // while (true) {
-  setInterval(async () => {
+  while (true) {
     try {
       const usersData = await connection.query(
-        `SELECT id, credentials, last_heard FROM users WHERE have_accepted = ? AND deleted = ? AND situation = ? AND last_time_verified < ? AND id = ? `,
+        `SELECT id, credentials, last_heard FROM users WHERE have_accepted = ? AND deleted = ? AND situation = ? AND last_time_verified < ? AND id > ? LIMIT ${limit}`,
         [true, false, false, new Date().getTime(), iteration],
       );
-      // if (!usersData.length) {
-      //   iteration = 0;
-      // } else {
-      //   iteration = usersData[usersData.length - 1].id;
-      // }
+      if (!usersData.length) {
+        iteration = 0;
+      } else {
+        iteration = usersData[usersData.length - 1].id;
+      }
       const users = await getUsers(usersData, connection);
       await prepareJob(users, connection, spotifyService, rescueList);
     } catch (error) {
       console.log(error);
     }
-    // }
-  }, 120000);
+  }
 }
 
 async function prepareJob(users, connection, spotifyService, rescueList) {
@@ -375,12 +373,7 @@ async function prepareCashbacks(
     cashbacks.push(buildCashBack(cashback, user));
     statements.push(buildStatement(cashback, user, campaign));
   });
-  // await saveCashBacksAndStatements(
-  //   statementCashbacks,
-  //   user,
-  //   campaign,
-  //   connection,
-  // ),
+
   try {
     await Promise.all([
       saveStatements(statements, connection),
@@ -393,78 +386,6 @@ async function prepareCashbacks(
     console.log(error.message);
   }
   // console.log('finishing worker');
-}
-
-async function saveCashBacksAndStatements(
-  statementCashbacks,
-  user,
-  campaign,
-  connection,
-) {
-  // for (const item of statementCashbacks) {
-  //   try {
-  //     const cashBack = buildCashBack(item, user);
-  //     const insertedCashback = await connection.query(
-  //       `INSERT INTO cash_backs (
-  //       user_id,
-  //       track_id,
-  //       played_at,
-  //       name,
-  //       rescue_id,
-  //       deleted,
-  //       created_at,
-  //       updated_at
-  //     ) VALUES (
-  //       ?,?,?,?,?,?,?,?
-  //     )`,
-  //       [
-  //         cashBack.user?.id,
-  //         cashBack.track_id,
-  //         cashBack.played_at,
-  //         cashBack.name,
-  //         cashBack.rescue?.id,
-  //         cashBack.deleted,
-  //         cashBack.created_at,
-  //         cashBack.updated_at,
-  //       ],
-  //     );
-  //     const cashbackId = insertedCashback.insertId || cashBack.rescue?.id;
-  //     const statement = buildStatement(item, user, campaign, cashbackId);
-  //     await connection.query(
-  //       `INSERT INTO statements (
-  //       user_id,
-  //       campaign_id,
-  //       amount,
-  //       kind,
-  //       balance,
-  //       statementable_type,
-  //       statementable_id,
-  //       deleted,
-  //       created_at,
-  //       updated_at,
-  //       code_doc,
-  //       statementable_type_action,
-  //       expiration_date) VALUES (
-  //         ?,?,?,?,?,?,?,?,?,?,?,?,?
-  //       )`,
-  //       [
-  //         statement.user?.id,
-  //         statement.campaign?.id,
-  //         statement.amount,
-  //         statement.kind,
-  //         statement.balance,
-  //         statement.statementable_type,
-  //         statement.statementable_id,
-  //         statement.deleted,
-  //         statement.created_at,
-  //         statement.updated_at,
-  //         statement.code_doc,
-  //         statement.statementable_type_action,
-  //         statement.expiration_date,
-  //       ],
-  //     );
-  //   } catch (error) {}
-  // }
 }
 
 async function saveRescueCampaign(rescuesCampaign, connection) {

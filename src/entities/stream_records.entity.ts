@@ -24,9 +24,6 @@ export class StreamRecords {
   artists_name: string;
 
   @Column({ length: 255, nullable: true })
-  playlist_name: string;
-
-  @Column({ length: 255, nullable: true })
   playlist_uri: string;
 
   @Column({ type: 'int', nullable: true })
