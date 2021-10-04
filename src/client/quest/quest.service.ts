@@ -433,6 +433,23 @@ export class QuestService {
       }
 
       if (!userQuestSpotify.question_answered) {
+        await this.statementRepository.save({
+          user: user,
+          campaign: campaign,
+          amount:
+            quest.quest_spotify_playlists.points_for_track *
+            quest.quest_spotify_playlists.tracks_count,
+          kind: 1,
+          statementable_type: 'QuestSpotifyPlaylist',
+          balance: 0,
+          statementable_id: quest.id,
+          expiration_date: new Date(
+            new Date().setDate(new Date().getDate() + 90),
+          ),
+          created_at: new Date(),
+          updated_at: new Date(),
+        });
+
         if (!userQuestSpotify.quest_spotify_playlists.question_2) {
           const accomplishedPromise = this.accomplishedQuestsRepository.save({
             quest: quest,

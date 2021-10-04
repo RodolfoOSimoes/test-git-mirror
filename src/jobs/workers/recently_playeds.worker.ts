@@ -33,7 +33,6 @@ async function runWorker() {
   const spotifyService = new SpotifyService();
   let iteration = 0;
   const limit = 40;
-
   try {
     const [lastRecentlyPlayed] = await connection.query(
       'SELECT user_id FROM recently_playeds ORDER BY id DESC LIMIT 1',
@@ -62,6 +61,18 @@ async function runWorker() {
       console.log(error);
     }
   }
+}
+
+async function testWorker(connection, spotifyService, rescueList, userId) {
+  console.log('start worker');
+  setInterval(async () => {
+    const usersData = await connection.query(
+      `SELECT id, credentials, last_heard FROM users WHERE have_accepted = ? AND deleted = ? AND situation = ? AND last_time_verified < ? AND id = ?`,
+      [true, false, false, new Date().getTime(), userId],
+    );
+    const users = await getUsers(usersData, connection);
+    await prepareJob(users, connection, spotifyService, rescueList);
+  }, 10000);
 }
 
 async function prepareJob(users, connection, spotifyService, rescueList) {
@@ -181,11 +192,6 @@ async function loadRescues(connection) {
   return rescues;
 }
 
-function getYesterday() {
-  const date = new Date();
-  return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate() - 1}`;
-}
-
 function getToday() {
   return moment(new Date()).format('YYYY-MM-DD');
 }
@@ -227,26 +233,26 @@ function getLimits(cashbacks, rescues) {
 
 async function loadUserQuestSpotifyPlaylists(
   user,
-  questSpotifyPlaylist = [],
+  questSpotifyPlaylist,
   connection,
 ) {
-  // try {
-  //   const questIds = questSpotifyPlaylist.map((qsp) => qsp.id);
-  //   if (questIds) {
-  //     const userQuest = await connection.query(
-  //       `SELECT uqsp.id AS id, uqsp.isrcs AS isrcs, qsp.id AS qsp_id
-  //   FROM user_quest_spotify_playlists uqsp
-  //   INNER JOIN quest_spotify_playlists qsp ON uqsp.quest_spotify_playlist_id = qsp.id
-  //   WHERE qsp.id IN (?) AND uqsp.user_id = ?`,
-  //       [questIds || null, user.id],
-  //     );
-  //     return userQuest;
-  //   } else {
-  //     return [];
-  //   }
-  // } catch (error) {
-  return [];
-  // }
+  try {
+    if (!questSpotifyPlaylist || !questSpotifyPlaylist.length) {
+      return [];
+    }
+
+    const questIds = questSpotifyPlaylist.map((qsp) => qsp.id);
+    const userQuest = await connection.query(
+      `SELECT uqsp.id AS id, uqsp.isrcs AS isrcs, qsp.id AS qsp_id
+    FROM user_quest_spotify_playlists uqsp
+    INNER JOIN quest_spotify_playlists qsp ON uqsp.quest_spotify_playlist_id = qsp.id
+    WHERE qsp.id IN (?) AND uqsp.user_id = ?`,
+      [questIds, user.id],
+    );
+    return userQuest;
+  } catch (error) {
+    return [];
+  }
 }
 
 async function prepareCashbacks(
@@ -480,6 +486,7 @@ async function saveCashBacks(cashbacks, connection) {
     );
   }
 }
+
 async function saveUserQuestSpotify(userQuestSpotifies, connection) {
   for (const uqs of userQuestSpotifies) {
     await connection.query(
