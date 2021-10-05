@@ -29,9 +29,11 @@ export class StreamRecordsJob {
       [yesterday.start, yesterday.end],
     );
     console.log('start StreamRecordsJob');
+
     const userStream = await this.userStreamRepository.findOne({
       where: { date: yesterday.date },
     });
+
     if (
       !userStream &&
       recently &&
@@ -45,16 +47,20 @@ export class StreamRecordsJob {
         updated_at: new Date(),
       });
     }
+
     const rescues = await this.rescueRepository.find({
       order: { priority: 'ASC', id: 'DESC' },
       where: { deleted: false, status: true },
     });
+
     let iteration = 0;
+
     while (true) {
       try {
         const streamRecords = await this.streamRepository.find({
           where: { date: yesterday.date },
         });
+
         const recentlyPlayeds = await this.recentlyPlayedRepository.find({
           take: 50,
           where: {
@@ -62,17 +68,20 @@ export class StreamRecordsJob {
             id: MoreThan(iteration),
           },
         });
+
         if (!recentlyPlayeds.length) {
           break;
         } else {
           iteration = recentlyPlayeds[recentlyPlayeds.length - 1].id;
         }
+
         for (const recently of recentlyPlayeds) {
           const items = recently['content']['items'];
           for (const item of items) {
             const rescue = rescues.find(
               (rescue) => rescue.uri == item.track.uri,
             );
+
             if (rescue) {
               const date_played = item.played_at.split('T')[0];
               if (date_played == yesterday.date) {
@@ -156,7 +165,97 @@ export class StreamRecordsJob {
         console.log(`StreamRecordsJob:: ${error.message}`);
       }
     }
+
+    await this.summarizeRecords();
     console.log('finish StreamRecordsJob');
+  }
+
+  async summarizeRecords() {
+    console.log('Start summary');
+
+    const date = moment(new Date())
+      .utcOffset('-0300')
+      .subtract(2, 'day')
+      .format('YYYY-MM-DD');
+    console.log(date);
+
+    const distinctTracks = await this.getDistinctTracks(date);
+
+    for (const track of distinctTracks) {
+      const [result] = await this.getTopOffset(date, track.uri);
+      const offset = result.count >= 10 ? 10 : Number(result.count) || 0;
+      await this.summarizeOthers(date, track.uri, offset);
+    }
+
+    console.log('Finish summary');
+  }
+
+  async getDistinctTracks(date: string) {
+    return await this.streamRepository.query(
+      `
+      SELECT DISTINCT(track_uri) as uri FROM stream_records WHERE date = ?
+    `,
+      [date],
+    );
+  }
+
+  async getTopOffset(date: string, track_uri: string) {
+    return await this.streamRepository.query(
+      `
+      SELECT count(*) AS count FROM stream_records sr WHERE date = ? AND 
+      track_uri = ? AND 
+      stream_quantity >= 10 ORDER BY stream_quantity DESC 
+    `,
+      [date, track_uri],
+    );
+  }
+
+  async summarizeOthers(date: string, track_uri: string, offset: number) {
+    const records = await this.streamRepository.query(
+      `
+      SELECT * FROM stream_records WHERE date = ? AND 
+      track_uri = ? 
+      ORDER BY stream_quantity DESC 
+      LIMIT 1000 offset ?
+    `,
+      [date, track_uri, offset],
+    );
+
+    const quantity = records.reduce(
+      (acc, record) => acc + record.stream_quantity,
+      0,
+    );
+
+    const ids = records.map((record) => record.id);
+    if (ids && ids.length) {
+      await this.removeRecords(ids);
+      await this.saveOther(date, track_uri, quantity, records[0]);
+    }
+
+    return quantity;
+  }
+
+  async removeRecords(ids) {
+    return await this.streamRepository.query(
+      `
+      DELETE FROM stream_records WHERE id IN (?)
+    `,
+      [ids],
+    );
+  }
+
+  async saveOther(date, track_uri, quantity, record) {
+    if (!record) return;
+    return await this.streamRepository.save({
+      artists_name: record.artists_name,
+      date: date,
+      track_name: record.track_name,
+      playlist_uri: 'others',
+      stream_quantity: quantity,
+      track_uri: track_uri,
+      created_at: new Date(),
+      updated_at: new Date(),
+    });
   }
 
   getYesterday() {
