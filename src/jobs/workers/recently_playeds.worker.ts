@@ -96,7 +96,7 @@ async function testWorker(connection, spotifyService, rescueList, userId) {
     );
     const users = await getUsers(usersData, connection);
     await prepareJob(users, connection, spotifyService, rescueList);
-  }, 10000);
+  }, 20000);
 }
 
 async function prepareJob(users, connection, spotifyService, rescueList) {
@@ -255,6 +255,70 @@ function getLimits(cashbacks, rescues) {
   return allowedCashbackLimit;
 }
 
+async function getBonusForCashback(connection, cashbackLimits, user) {
+  const allowedCashBack = cashbackLimits.filter(
+    (cashback) => cashback.limit > 0,
+  );
+  if (allowedCashBack.length == 0) {
+    try {
+      const [result] = await connection.query(
+        'SELECT limited_gratification_score AS gratification FROM settings LIMIT 1',
+      );
+
+      const expirationDate = new Date(
+        new Date().setDate(new Date().getDate() + 90),
+      );
+
+      const today = moment(new Date()).utcOffset('-0300').format('YYYY-MM-DD');
+
+      const statement = await connection.query(
+        `SELECT * FROM statements WHERE user_id = ? AND 
+         DATE(CONVERT_TZ(created_at, 'UTC', 'America/Sao_Paulo')) = ? AND 
+         statementable_type = 'UserGratification' LIMIT 1`,
+        [user.id, today],
+      );
+
+      if (statement?.length == 0) {
+        await connection.query(
+          `INSERT INTO statements (
+        user_id, 
+        campaign_id, 
+        amount, 
+        kind, 
+        balance, 
+        statementable_type, 
+        statementable_id, 
+        deleted, 
+        created_at, 
+        updated_at, 
+        code_doc, 
+        statementable_type_action, 
+        expiration_date) VALUES (
+          ?,?,?,?,?,?,?,?,?,?,?,?,?
+        )`,
+          [
+            user.id,
+            null,
+            result.gratification,
+            1,
+            0,
+            'UserGratification',
+            user.id,
+            0,
+            new Date(),
+            new Date(),
+            null,
+            null,
+            expirationDate,
+          ],
+        );
+      }
+    } catch (error) {
+      console.error('Erro ao salvar Gratificação: ', error.message);
+    }
+  }
+}
+
 async function loadUserQuestSpotifyPlaylists(
   user,
   questSpotifyPlaylist,
@@ -294,6 +358,9 @@ async function prepareCashbacks(
   );
 
   const cashbacksLimit = getLimits(todayCashBacks, rescues);
+
+  await getBonusForCashback(connection, cashbacksLimit, user);
+
   const userQuestSpotify = await loadUserQuestSpotifyPlaylists(
     user,
     questPlaylistSpotify,
