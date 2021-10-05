@@ -32,7 +32,8 @@ async function runWorker() {
   connection = await getConnection();
   const spotifyService = new SpotifyService();
   let iteration = 0;
-  const limit = 40;
+  let limit = 40;
+
   try {
     const [lastRecentlyPlayed] = await connection.query(
       'SELECT user_id FROM recently_playeds ORDER BY id DESC LIMIT 1',
@@ -44,8 +45,10 @@ async function runWorker() {
   } catch (error) {}
 
   console.log('Starting worker');
+
   while (true) {
     try {
+      limit = await getLimit(connection);
       const usersData = await connection.query(
         `SELECT id, credentials, last_heard FROM users WHERE have_accepted = ? AND deleted = ? AND situation = ? AND last_time_verified < ? AND id > ? LIMIT ${limit}`,
         [true, false, false, new Date().getTime(), iteration],
@@ -61,6 +64,27 @@ async function runWorker() {
       console.log(error);
     }
   }
+}
+
+async function getLimit(connection) {
+  let limit = 40;
+
+  const date = new Date();
+  const hour = date.getHours();
+
+  const preSaveQuest = await connection.query(`
+    SELECT psu.* FROM pre_save_users psu INNER JOIN quest_pre_saves qps 
+    ON psu.quest_pre_save_id = qps.id 
+    WHERE qps.launch_in >= '2021-10-01' AND psu.saved = 0
+  `);
+
+  // if exists any pre_save_users and is the same hour that preSaveJob runs
+  // return 20 as limit for spotify API not to throw the 429 error
+  if (preSaveQuest && preSaveQuest.length && hour == 2) {
+    limit = 20;
+  }
+
+  return limit;
 }
 
 async function testWorker(connection, spotifyService, rescueList, userId) {

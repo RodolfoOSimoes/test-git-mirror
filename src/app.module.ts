@@ -66,6 +66,8 @@ import { streamRecordsProviders } from './providers/stream_records.providers';
 import { StreamRecordsJob } from './jobs/StreamRecordsJob';
 import { ExcelModule } from './utils/excel/excel.module';
 import { PreSaveJob } from './jobs/PreSaveJob';
+import { questPreSavesProviders } from './providers/quest-pre-saves.providers ';
+import { preSaveUsersProviders } from './providers/pre-save-user.providers';
 
 @Module({
   imports: [
@@ -158,6 +160,8 @@ import { PreSaveJob } from './jobs/PreSaveJob';
     ...withdrawalProviders,
     ...userStreamRecordsProviders,
     ...streamRecordsProviders,
+    ...questPreSavesProviders,
+    ...preSaveUsersProviders,
   ],
 })
 export class AppModule {}
