@@ -181,6 +181,7 @@ export class QuestSpotifyPlaylistsFactory implements QuestFactory {
     questType.isrcs =
       '---\r\n- ' +
       playlist.tracks.items
+        .filter((track) => track.track?.external_ids?.isrc)
         .map((track) => track.track.external_ids.isrc)
         .join('\r\n- ');
 
