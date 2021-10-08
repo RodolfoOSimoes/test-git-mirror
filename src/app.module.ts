@@ -68,6 +68,8 @@ import { ExcelModule } from './utils/excel/excel.module';
 import { PreSaveJob } from './jobs/PreSaveJob';
 import { questPreSavesProviders } from './providers/quest-pre-saves.providers ';
 import { preSaveUsersProviders } from './providers/pre-save-user.providers';
+import { CashBackBalanceJob } from './jobs/CashBackBalanceJob';
+import { cashBackBalanceProviders } from './providers/cash-backs-balance.providers';
 
 @Module({
   imports: [
@@ -144,6 +146,7 @@ import { preSaveUsersProviders } from './providers/pre-save-user.providers';
     SendMailProducerService,
     ExtractJob,
     StreamRecordsJob,
+    CashBackBalanceJob,
     PreSaveJob,
     SpotifyProductJob,
     RemoveOldRecentlyPlayedJob,
@@ -162,6 +165,7 @@ import { preSaveUsersProviders } from './providers/pre-save-user.providers';
     ...streamRecordsProviders,
     ...questPreSavesProviders,
     ...preSaveUsersProviders,
+    ...cashBackBalanceProviders,
   ],
 })
 export class AppModule {}
