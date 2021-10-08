@@ -13,8 +13,7 @@ export class YoutubeService {
       });
 
       const { items } = info.data;
-      console.log(id);
-      console.log(items);
+
       const { snippet } = items.find((item) => (item.id.videoId = id));
       return {
         title: snippet.title,
