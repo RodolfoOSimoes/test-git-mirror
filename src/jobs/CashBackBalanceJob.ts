@@ -24,7 +24,7 @@ export class CashBackBalanceJob {
     private cashBackBalanceRepository: Repository<CashBackBalance>,
   ) {}
 
-  @Cron('42 20 * * *')
+  @Cron('50 20 * * *')
   // @Cron(CronExpression.EVERY_MINUTE)
   async handleCron() {
     console.log('start');
@@ -43,7 +43,7 @@ export class CashBackBalanceJob {
       INNER JOIN cash_backs cb ON cb.id = s.statementable_id 
       WHERE s.user_id = ? AND s.statementable_type = 'CashBack'
       `,
-        [607],
+        [user.id],
       );
 
       const cashBackBalances: CashBackBalance[] = [];
