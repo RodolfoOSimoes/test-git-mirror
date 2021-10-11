@@ -24,57 +24,67 @@ export class CashBackBalanceJob {
     private cashBackBalanceRepository: Repository<CashBackBalance>,
   ) {}
 
-  @Cron('56 15 * * *')
-  // @Cron(CronExpression.EVERY_10_SECONDS)
+  @Cron('42 20 * * *')
+  // @Cron(CronExpression.EVERY_MINUTE)
   async handleCron() {
     console.log('start');
     console.time('cashback balance');
     const users = await this.userRepository.find({
       where: {
-        id: In([7846, 2871, 815, 3340, 1804, 545, 1975, 9801, 2766, 9557]),
+        id: In([7846, 2871]),
+        // id: 607,
       },
     });
 
     for (const user of users) {
-      const statements = await this.statementRepository.find({
-        where: {
-          user: user,
-          statementable_type: 'CashBack',
-        },
-        select: ['id', 'amount', 'statementable_id', 'created_at'],
-      });
+      const statements = await this.statementRepository.query(
+        `
+      SELECT s.id, s.amount, s.statementable_id, s.created_at, cb.rescue_id, cb.user_id FROM statements s 
+      INNER JOIN cash_backs cb ON cb.id = s.statementable_id 
+      WHERE s.user_id = ? AND s.statementable_type = 'CashBack'
+      `,
+        [607],
+      );
+
+      const cashBackBalances: CashBackBalance[] = [];
 
       for (const statement of statements) {
         try {
+          let id = statement.statementable_id;
           if (
-            statement.statementable_id < 1400 &&
-            this.isAfter(statement.created_at)
+            (statement.statementable_id > 1400 &&
+              !this.isAfter(statement.created_at)) ||
+            user.id == statement.user_id
           ) {
-            await this.saveOrUpdateCashBackBalance(
-              user.id,
-              statement.statementable_id,
-              statement.amount,
-            );
-          } else {
-            const cashBack = await this.cashBackRepository.findOne({
-              where: { user: user, id: statement.statementable_id },
-            });
+            id = statement.rescue_id;
+          }
 
-            const id = cashBack
-              ? cashBack.rescue_id
-              : statement.statementable_id;
-            if (id)
-              await this.saveOrUpdateCashBackBalance(
-                user.id,
-                id,
-                statement.amount,
-              );
+          const cashbackBalance = cashBackBalances.find(
+            (cashbackBalance) =>
+              cashbackBalance.rescue_id == id &&
+              cashbackBalance.user_id == user.id,
+          );
+
+          if (cashbackBalance) {
+            cashbackBalance.balance += Number(statement.amount);
+            cashbackBalance.updated_at = new Date();
+          } else {
+            const newCashbackBalance = new CashBackBalance();
+            newCashbackBalance.balance = Number(statement.amount);
+            newCashbackBalance.rescue_id = id;
+            newCashbackBalance.user_id = user.id;
+            newCashbackBalance.created_at = new Date();
+            newCashbackBalance.updated_at = new Date();
+            cashBackBalances.push(newCashbackBalance);
           }
         } catch (error) {
           console.log(statement);
           console.log(error.message);
         }
       }
+
+      // await this.saveOrUpdateCashBackBalance(user.id, id, statement.amount);
+      await this.saveOrUpdateCashBackBalance2(cashBackBalances);
     }
 
     console.log('end');
@@ -105,6 +115,42 @@ export class CashBackBalanceJob {
       await this.cashBackBalanceRepository.update(cashbackBalance.id, {
         updated_at: new Date(),
         balance: Number(cashbackBalance.balance) + Number(amount),
+      });
+    }
+  }
+
+  async saveOrUpdateCashBackBalance2(CashBackBalances: CashBackBalance[]) {
+    if (!CashBackBalances.length) return;
+
+    const cashbacks = await this.cashBackBalanceRepository.find({
+      where: {
+        user_id: CashBackBalances[0]?.user_id,
+      },
+    });
+
+    const toSave: CashBackBalance[] = [];
+    const toUpdate: CashBackBalance[] = [];
+
+    for (const cashbackBalance of CashBackBalances) {
+      const cashback = cashbacks.find(
+        (cb) => cb.rescue_id == cashbackBalance.rescue_id,
+      );
+
+      if (!cashback) {
+        toSave.push(cashbackBalance);
+      } else {
+        cashback.balance =
+          Number(cashback.balance) + Number(cashbackBalance.balance);
+        toUpdate.push(cashback);
+      }
+    }
+
+    await this.cashBackBalanceRepository.save(toSave);
+
+    for (const update of toUpdate) {
+      await this.cashBackBalanceRepository.update(update.id, {
+        balance: update.balance,
+        updated_at: new Date(),
       });
     }
   }
