@@ -28,6 +28,7 @@ export class CashBackBalanceJob {
   // @Cron(CronExpression.EVERY_MINUTE)
   async handleCron() {
     console.log('start');
+    console.time('cashback balance');
     const user = await this.userRepository.findOne(607);
 
     const statements = await this.statementRepository.find({
@@ -59,6 +60,7 @@ export class CashBackBalanceJob {
     }
 
     console.log('end');
+    console.timeEnd('cashback balance');
   }
 
   async selectCashBackBalance(user_id, rescue_id) {
