@@ -41,31 +41,38 @@ export class CashBackBalanceJob {
           user: user,
           statementable_type: 'CashBack',
         },
-        select: ['amount', 'statementable_id', 'created_at'],
+        select: ['id', 'amount', 'statementable_id', 'created_at'],
       });
 
       for (const statement of statements) {
-        if (
-          statement.statementable_id < 1400 &&
-          this.isAfter(statement.created_at)
-        ) {
-          await this.saveOrUpdateCashBackBalance(
-            user.id,
-            statement.statementable_id,
-            statement.amount,
-          );
-        } else {
-          const cashBack = await this.cashBackRepository.findOne({
-            where: { user: user, id: statement.statementable_id },
-          });
-
-          const id = cashBack ? cashBack.rescue_id : statement.statementable_id;
-          if (id)
+        try {
+          if (
+            statement.statementable_id < 1400 &&
+            this.isAfter(statement.created_at)
+          ) {
             await this.saveOrUpdateCashBackBalance(
               user.id,
-              id,
+              statement.statementable_id,
               statement.amount,
             );
+          } else {
+            const cashBack = await this.cashBackRepository.findOne({
+              where: { user: user, id: statement.statementable_id },
+            });
+
+            const id = cashBack
+              ? cashBack.rescue_id
+              : statement.statementable_id;
+            if (id)
+              await this.saveOrUpdateCashBackBalance(
+                user.id,
+                id,
+                statement.amount,
+              );
+          }
+        } catch (error) {
+          console.log(statement);
+          console.log(error.message);
         }
       }
     }
