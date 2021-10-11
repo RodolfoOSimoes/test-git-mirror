@@ -19,27 +19,24 @@ export class PreSaveJob {
 
   @Cron(CronExpression.EVERY_DAY_AT_2AM)
   async handleCron() {
-    const presaveUsers = await this.loadUserPreSaves();
-
-    for (const presave of presaveUsers) {
-      try {
-        const user = await this.userRepository.findOne({
-          where: { id: presave.user_id },
-          select: ['credentials'],
-        });
-
-        const refreshToken = user.credentials['refresh_token'];
-        const trackId = presave.uri.split(':')?.[2];
-
-        if (trackId) {
-          await this.spotifyService.saveTrack(refreshToken, trackId);
-          await this.repository.update(presave.id, {
-            saved: true,
-            updated_at: new Date(),
-          });
-        }
-      } catch (error) {}
-    }
+    // const presaveUsers = await this.loadUserPreSaves();
+    // for (const presave of presaveUsers) {
+    //   try {
+    //     const user = await this.userRepository.findOne({
+    //       where: { id: presave.user_id },
+    //       select: ['credentials'],
+    //     });
+    //     const refreshToken = user.credentials['refresh_token'];
+    //     const trackId = presave.uri.split(':')?.[2];
+    //     if (trackId) {
+    //       await this.spotifyService.saveTrack(refreshToken, trackId);
+    //       await this.repository.update(presave.id, {
+    //         saved: true,
+    //         updated_at: new Date(),
+    //       });
+    //     }
+    //   } catch (error) {}
+    // }
   }
 
   async loadUserPreSaves() {

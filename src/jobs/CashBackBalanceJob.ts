@@ -5,7 +5,7 @@ import { CashBack } from 'src/entities/cash-backs.entity';
 import { Rescue } from 'src/entities/rescue.entity';
 import { Statement } from 'src/entities/statement.entity';
 import { User } from 'src/entities/user.entity';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const moment = require('moment');
 
@@ -24,38 +24,44 @@ export class CashBackBalanceJob {
     private cashBackBalanceRepository: Repository<CashBackBalance>,
   ) {}
 
-  @Cron('32 13 * * *')
-  // @Cron(CronExpression.EVERY_MINUTE)
+  @Cron('40 15 * * *')
+  @Cron(CronExpression.EVERY_10_SECONDS)
   async handleCron() {
     console.log('start');
     console.time('cashback balance');
-    const user = await this.userRepository.findOne(607);
-
-    const statements = await this.statementRepository.find({
+    const users = await this.userRepository.find({
       where: {
-        user: user,
-        statementable_type: 'CashBack',
+        id: In([7846, 2871, 815, 3340, 1804, 545, 1975, 9801, 2766, 9557]),
       },
-      select: ['amount', 'statementable_id', 'created_at'],
     });
 
-    for (const statement of statements) {
-      if (
-        statement.statementable_id < 1400 &&
-        this.isAfter(statement.created_at)
-      ) {
-        await this.saveOrUpdateCashBackBalance(
-          user.id,
-          statement.statementable_id,
-          statement.amount,
-        );
-      } else {
-        const cashBack = await this.cashBackRepository.findOne({
-          where: { user: user, id: statement.statementable_id },
-        });
+    for (const user of users) {
+      const statements = await this.statementRepository.find({
+        where: {
+          user: user,
+          statementable_type: 'CashBack',
+        },
+        select: ['amount', 'statementable_id', 'created_at'],
+      });
 
-        const id = cashBack ? cashBack.rescue_id : statement.statementable_id;
-        await this.saveOrUpdateCashBackBalance(user.id, id, statement.amount);
+      for (const statement of statements) {
+        if (
+          statement.statementable_id < 1400 &&
+          this.isAfter(statement.created_at)
+        ) {
+          await this.saveOrUpdateCashBackBalance(
+            user.id,
+            statement.statementable_id,
+            statement.amount,
+          );
+        } else {
+          const cashBack = await this.cashBackRepository.findOne({
+            where: { user: user, id: statement.statementable_id },
+          });
+
+          const id = cashBack ? cashBack.rescue_id : statement.statementable_id;
+          await this.saveOrUpdateCashBackBalance(user.id, id, statement.amount);
+        }
       }
     }
 
