@@ -24,7 +24,7 @@ export class CashBackBalanceJob {
     private cashBackBalanceRepository: Repository<CashBackBalance>,
   ) {}
 
-  @Cron('18 13 * * *')
+  @Cron('25 13 * * *')
   // @Cron(CronExpression.EVERY_MINUTE)
   async handleCron() {
     console.log('start');
@@ -54,7 +54,7 @@ export class CashBackBalanceJob {
           where: { user: user, id: statement.statementable_id },
         });
 
-        const id = cashBack ? cashBack.id : statement.statementable_id;
+        const id = cashBack ? cashBack.rescue_id : statement.statementable_id;
         await this.saveOrUpdateCashBackBalance(user.id, id, statement.amount);
       }
     }

@@ -36,6 +36,9 @@ export class CashBack {
   @JoinColumn({ name: 'rescue_id' })
   rescue: Rescue;
 
+  @Column({ type: 'int' })
+  rescue_id: number;
+
   @CreateDateColumn({ type: 'datetime', nullable: true })
   created_at: Date;
 
