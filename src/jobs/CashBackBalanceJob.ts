@@ -24,7 +24,7 @@ export class CashBackBalanceJob {
     private cashBackBalanceRepository: Repository<CashBackBalance>,
   ) {}
 
-  @Cron('54 15 * * *')
+  @Cron('56 15 * * *')
   // @Cron(CronExpression.EVERY_10_SECONDS)
   async handleCron() {
     console.log('start');
