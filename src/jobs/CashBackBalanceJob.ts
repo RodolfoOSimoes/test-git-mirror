@@ -1,5 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
+import { CashBackBalance } from 'src/entities/cash-backs-balance.entity';
 import { CashBack } from 'src/entities/cash-backs.entity';
 import { Rescue } from 'src/entities/rescue.entity';
 import { Statement } from 'src/entities/statement.entity';
@@ -20,15 +21,75 @@ export class CashBackBalanceJob {
     @Inject('RESCUE_REPOSITORY')
     private rescueRepository: Repository<Rescue>,
     @Inject('CASH_BACK_BALANCE_REPOSITORY')
-    private cashBackBalanceRepository: Repository<Rescue>,
+    private cashBackBalanceRepository: Repository<CashBackBalance>,
   ) {}
 
-  @Cron(CronExpression.EVERY_30_SECONDS)
+  @Cron('18 13 * * *')
+  // @Cron(CronExpression.EVERY_MINUTE)
   async handleCron() {
-    // const user = await this.userRepository.findOne(101015);
-    // const statementsCount = await this.statementRepository.count({
-    //   where: { user: user },
-    // });
-    // console.log('statementsCount');
+    console.log('start');
+    const user = await this.userRepository.findOne(607);
+
+    const statements = await this.statementRepository.find({
+      where: {
+        user: user,
+        statementable_type: 'CashBack',
+      },
+      select: ['amount', 'statementable_id', 'created_at'],
+    });
+
+    for (const statement of statements) {
+      if (
+        statement.statementable_id < 1400 &&
+        this.isAfter(statement.created_at)
+      ) {
+        await this.saveOrUpdateCashBackBalance(
+          user.id,
+          statement.statementable_id,
+          statement.amount,
+        );
+      } else {
+        const cashBack = await this.cashBackRepository.findOne({
+          where: { user: user, id: statement.statementable_id },
+        });
+
+        const id = cashBack ? cashBack.id : statement.statementable_id;
+        await this.saveOrUpdateCashBackBalance(user.id, id, statement.amount);
+      }
+    }
+
+    console.log('end');
+  }
+
+  async selectCashBackBalance(user_id, rescue_id) {
+    return await this.cashBackBalanceRepository.findOne({
+      where: { rescue_id: rescue_id, user_id: user_id },
+    });
+  }
+
+  async saveOrUpdateCashBackBalance(user_id, rescue_id, amount) {
+    const cashbackBalance = await this.selectCashBackBalance(
+      user_id,
+      rescue_id,
+    );
+
+    if (!cashbackBalance) {
+      await this.cashBackBalanceRepository.save({
+        created_at: new Date(),
+        updated_at: new Date(),
+        rescue_id: rescue_id,
+        user_id: user_id,
+        balance: amount,
+      });
+    } else {
+      await this.cashBackBalanceRepository.update(cashbackBalance.id, {
+        updated_at: new Date(),
+        balance: Number(cashbackBalance.balance) + Number(amount),
+      });
+    }
+  }
+
+  isAfter(date) {
+    return moment('2021-09-01').isAfter(moment(date));
   }
 }
