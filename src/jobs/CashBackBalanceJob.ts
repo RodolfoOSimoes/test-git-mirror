@@ -24,18 +24,16 @@ export class CashBackBalanceJob {
     private cashBackBalanceRepository: Repository<CashBackBalance>,
   ) {}
 
-  @Cron('20 21 * * *')
+  @Cron('26 21 * * *')
   // @Cron(CronExpression.EVERY_MINUTE)
   async handleCron() {
     console.log('start');
     console.time('cashback balance');
     const users = await this.userRepository.find({
       where: {
-        where: {
-          deleted: false,
-          situation: false,
-          have_accepted: true,
-        },
+        deleted: false,
+        situation: false,
+        have_accepted: true,
       },
       select: ['id'],
     });
