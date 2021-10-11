@@ -24,7 +24,7 @@ export class CashBackBalanceJob {
     private cashBackBalanceRepository: Repository<CashBackBalance>,
   ) {}
 
-  @Cron('15 21 * * *')
+  @Cron('20 21 * * *')
   // @Cron(CronExpression.EVERY_MINUTE)
   async handleCron() {
     console.log('start');
@@ -46,7 +46,7 @@ export class CashBackBalanceJob {
         `
       SELECT s.id, s.amount, s.statementable_id, s.created_at, cb.rescue_id, cb.user_id FROM statements s 
       INNER JOIN cash_backs cb ON cb.id = s.statementable_id 
-      WHERE s.user_id = ? AND s.statementable_type = 'CashBack'
+      WHERE s.user_id = ? AND s.statementable_type = 'CashBack' AND s.created_at < '2021-10-11 03:00:00'
       `,
         [user.id],
       );
