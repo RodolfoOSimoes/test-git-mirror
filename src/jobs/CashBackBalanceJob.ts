@@ -24,19 +24,24 @@ export class CashBackBalanceJob {
     private cashBackBalanceRepository: Repository<CashBackBalance>,
   ) {}
 
-  @Cron('50 20 * * *')
+  @Cron('15 21 * * *')
   // @Cron(CronExpression.EVERY_MINUTE)
   async handleCron() {
     console.log('start');
     console.time('cashback balance');
     const users = await this.userRepository.find({
       where: {
-        id: In([7846, 2871]),
-        // id: 607,
+        where: {
+          deleted: false,
+          situation: false,
+          have_accepted: true,
+        },
       },
+      select: ['id'],
     });
 
     for (const user of users) {
+      console.log(user.id);
       const statements = await this.statementRepository.query(
         `
       SELECT s.id, s.amount, s.statementable_id, s.created_at, cb.rescue_id, cb.user_id FROM statements s 
