@@ -38,25 +38,25 @@ export class ExtractJob {
   // @Cron('30 * * * * *')
   @Cron(CronExpression.EVERY_DAY_AT_3AM)
   async handleCron() {
-    // const yesterday = this.getYesterday();
-    // let iteration = 0;
-    // console.log('start: extractJob');
-    // while (true) {
-    //   const users = await this.loadUsers(iteration);
-    //   if (!users.length) {
-    //     break;
-    //   } else {
-    //     iteration = users[users.length - 1].id;
-    //   }
-    //   await Promise.all([
-    //     this.processExtracts(users.splice(0, 10), yesterday),
-    //     this.processExtracts(users.splice(0, 10), yesterday),
-    //     this.processExtracts(users.splice(0, 10), yesterday),
-    //     this.processExtracts(users.splice(0, 10), yesterday),
-    //     this.processExtracts(users.splice(0, 10), yesterday),
-    //   ]);
-    // }
-    // console.log('finish: extractJob');
+    const yesterday = this.getYesterday();
+    let iteration = 0;
+    console.log('start: extractJob');
+    while (true) {
+      const users = await this.loadUsers(iteration);
+      if (!users.length) {
+        break;
+      } else {
+        iteration = users[users.length - 1].id;
+      }
+      await Promise.all([
+        this.processExtracts(users.splice(0, 10), yesterday),
+        this.processExtracts(users.splice(0, 10), yesterday),
+        this.processExtracts(users.splice(0, 10), yesterday),
+        this.processExtracts(users.splice(0, 10), yesterday),
+        this.processExtracts(users.splice(0, 10), yesterday),
+      ]);
+    }
+    console.log('finish: extractJob');
   }
 
   getYesterday() {

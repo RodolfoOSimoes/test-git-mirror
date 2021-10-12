@@ -12,21 +12,21 @@ export class RemoveOldRecentlyPlayedJob {
 
   @Cron(CronExpression.EVERY_30_SECONDS)
   async handleCron() {
-    // try {
-    //   const date = this.getDate();
-    //   const [result] = await this.recentlyRepository.query(
-    //     `SELECT COUNT(*) AS count FROM recently_playeds WHERE created_at < ?`,
-    //     [date],
-    //   );
-    //   if (result && result.count > 500) {
-    //     await this.recentlyRepository.query(
-    //       `DELETE FROM recently_playeds WHERE created_at < ? LIMIT 400`,
-    //       [date],
-    //     );
-    //   }
-    // } catch (error) {
-    //   console.log(error.message);
-    // }
+    try {
+      const date = this.getDate();
+      const [result] = await this.recentlyRepository.query(
+        `SELECT COUNT(*) AS count FROM recently_playeds WHERE created_at < ?`,
+        [date],
+      );
+      if (result && result.count > 500) {
+        await this.recentlyRepository.query(
+          `DELETE FROM recently_playeds WHERE created_at < ? LIMIT 400`,
+          [date],
+        );
+      }
+    } catch (error) {
+      console.log(error.message);
+    }
   }
 
   getDate(): string {

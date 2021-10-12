@@ -15,31 +15,31 @@ export class SpotifyProductJob {
   // @Cron('30 * * * * *')
   @Cron(CronExpression.EVERY_DAY_AT_3AM)
   async handleCron() {
-    // let iteration = 0;
-    // while (true) {
-    //   const users = await this.loadUsers(iteration);
-    //   if (!users.length) {
-    //     break;
-    //   } else {
-    //     iteration = users[users.length - 1].id;
-    //   }
-    //   for (const user of users) {
-    //     try {
-    //       const result = await this.spotifyService.getuser(
-    //         user.credentials['refresh_token'],
-    //       );
-    //       if (result && result.product) {
-    //         await this.userRepository.update(user.id, {
-    //           product: result.product,
-    //           updated_at: new Date(),
-    //           last_time_checked_product: new Date(),
-    //         });
-    //       }
-    //     } catch (error) {
-    //       console.log(`user_id: ${user.id} - error:: ${error.message}`);
-    //     }
-    //   }
-    // }
+    let iteration = 0;
+    while (true) {
+      const users = await this.loadUsers(iteration);
+      if (!users.length) {
+        break;
+      } else {
+        iteration = users[users.length - 1].id;
+      }
+      for (const user of users) {
+        try {
+          const result = await this.spotifyService.getuser(
+            user.credentials['refresh_token'],
+          );
+          if (result && result.product) {
+            await this.userRepository.update(user.id, {
+              product: result.product,
+              updated_at: new Date(),
+              last_time_checked_product: new Date(),
+            });
+          }
+        } catch (error) {
+          console.log(`user_id: ${user.id} - error:: ${error.message}`);
+        }
+      }
+    }
   }
 
   async loadUsers(id: number) {
