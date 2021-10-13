@@ -1,18 +1,7 @@
-import {
-  ForbiddenException,
-  Inject,
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { User } from 'src/entities/user.entity';
 import { Statement } from 'src/entities/statement.entity';
-import {
-  EntityManager,
-  getConnection,
-  LessThanOrEqual,
-  MoreThanOrEqual,
-  Repository,
-} from 'typeorm';
+import { LessThanOrEqual, MoreThanOrEqual, Repository } from 'typeorm';
 import { Address } from 'src/entities/address.entity';
 import { Order } from 'src/entities/order.entity';
 import { Product } from 'src/entities/product.entity';
@@ -22,14 +11,12 @@ import { Withdrawal } from 'src/entities/withdrawals.entity';
 import { Campaign } from 'src/entities/campaign.entity';
 import { formatDate, prepareDate } from 'src/utils/date.utils';
 import { generateBalance } from 'src/utils/balance.utils';
-import { IsolationLevel } from 'typeorm-transactional-cls-hooked';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const moment = require('moment');
 
 @Injectable()
 export class TransactionService {
-  static productLimit = 6;
   static transactionLimit = 10;
   static transactionUser = [];
   constructor(
@@ -103,129 +90,11 @@ export class TransactionService {
     }
 
     return { message: 'Produto resgatado com sucesso.' };
-    // if (!product) {
-    //   throw new UnauthorizedException('Produto não encontrado.');
-    // }
-
-    // if (product.quantity <= product.quantities_purchased) {
-    //   throw new UnauthorizedException('Produto indisponível.');
-    // }
-
-    // if (TransactionService.transactionLimit <= 0) {
-    //   throw new UnauthorizedException('Tente novamente em alguns instantes.');
-    // }
-
-    // if (!TransactionService.transactionUser.includes(user_id)) {
-    //   TransactionService.transactionUser.push(user_id);
-    // } else {
-    //   throw new UnauthorizedException('Você já está realizando um resgate.');
-    // }
-
-    // TransactionService.transactionLimit--;
-
-    // await this.productsRepository.update(product.id, {
-    //   quantities_purchased: product.quantities_purchased + 1,
-    // });
-
-    // product = await this.productsRepository.findOne({
-    //   where: { code_product: code },
-    // });
-
-    // if (product.quantity < product.quantities_purchased) {
-    //   const userIndex = TransactionService.transactionUser.findIndex(
-    //     (id) => id == user_id,
-    //   );
-    //   if (userIndex != -1)
-    //     TransactionService.transactionUser.splice(userIndex, 1);
-    //   TransactionService.transactionLimit++;
-    //   throw new UnauthorizedException('Produto indisponível.');
-    // }
-
-    // const connection = getConnection();
-    // const queryRunner = connection.createQueryRunner();
-    // await queryRunner.connect();
-    // try {
-    //   await queryRunner.startTransaction(IsolationLevel.READ_COMMITTED);
-
-    //   const user = await queryRunner.manager.findOne(User, {
-    //     where: { id: user_id },
-    //   });
-
-    //   const address = await queryRunner.manager.findOne(Address, {
-    //     where: { user: user },
-    //     order: { id: 'DESC' },
-    //     relations: ['city', 'city.state'],
-    //   });
-
-    //   const campaign = await queryRunner.manager.findOne(Campaign, {
-    //     status: true,
-    //     date_start: LessThanOrEqual(formatDate(new Date())),
-    //     date_finish: MoreThanOrEqual(formatDate(new Date())),
-    //   });
-
-    //   const product = await queryRunner.manager.findOne(Product, {
-    //     where: { code_product: code },
-    //   });
-
-    //   await this.purchaseValidation(product, user, queryRunner);
-
-    //   const statement = await queryRunner.manager.findOne(Statement, {
-    //     where: { user: user, statementable_type: 'Product' },
-    //     order: { id: 'DESC' },
-    //   });
-
-    //   if (this.isntAllowToBuy(statement)) {
-    //     throw new UnauthorizedException('Só pode comprar 1 produto por dia.');
-    //   }
-
-    //   await queryRunner.manager.save(Statement, {
-    //     user: user,
-    //     amount: product.value,
-    //     kind: 0,
-    //     balance: 0,
-    //     statementable_type: 'Product',
-    //     statementable_id: product.id,
-    //     delete: false,
-    //     created_at: new Date(),
-    //     updated_at: new Date(),
-    //     campaign: campaign,
-    //   });
-
-    //   const order = await queryRunner.manager.save(Order, {
-    //     user: user,
-    //     product: product,
-    //     created_at: new Date(),
-    //     updated_at: new Date(),
-    //     sent: false,
-    //     confirmation_email: true,
-    //     code_secret: generateCode(50),
-    //     price_of_product: product.value,
-    //   });
-
-    //   await queryRunner.manager.update(Address, address.id, {
-    //     order: order,
-    //   });
-
-    //   await queryRunner.commitTransaction();
-    //   this.sendMailProducer.sendOrderEmail(user, product, address);
-    // } catch (error) {
-    //   await queryRunner.rollbackTransaction();
-    //   throw new ForbiddenException({ message: error.message });
-    // } finally {
-    //   await queryRunner.release();
-    //   const userIndex = TransactionService.transactionUser.findIndex(
-    //     (id) => id == user_id,
-    //   );
-    //   if (userIndex != -1)
-    //     TransactionService.transactionUser.splice(userIndex, 1);
-    //   TransactionService.transactionLimit++;
-    // }
-    // return { message: 'Produto resgatado com sucesso.' };
   }
 
   async incrementProduct(code) {
     await this.productsRepository.manager.transaction(
-      'REPEATABLE READ',
+      'SERIALIZABLE',
       async (manager) => {
         const product = await manager.findOne(Product, {
           where: { code_product: code },
@@ -242,13 +111,6 @@ export class TransactionService {
   }
 
   async buyProduct(code, user, product) {
-    // if (code == 'BheSrveEqyW') {
-    //   TransactionService.productLimit--;
-    //   if (TransactionService.productLimit <= 0) {
-    //     console.log('limited');
-    //     throw new UnauthorizedException('Produto esgotado.');
-    //   }
-    // }
     try {
       const address = await this.productsRepository.manager.findOne(Address, {
         where: { user: user },
