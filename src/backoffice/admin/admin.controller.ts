@@ -23,37 +23,37 @@ import { UpdateAdminProfileDto } from './dto/update-profile.dto';
 export class AdminController {
   constructor(private readonly adminService: AdminService) {}
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(AdminRole.MASTER)
   @Post('admins')
   create(@Request() req, @Body() createAdminDto: CreateAdminDto) {
-    if (req.user.roles === AdminRole.MASTER)
-      return this.adminService.create(createAdminDto);
-    else throw new UnauthorizedException();
+    return this.adminService.create(createAdminDto);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(AdminRole.MASTER)
+  @Roles(AdminRole.MASTER, AdminRole.ADMIN, AdminRole.PROMOTER)
   @Get('admins')
   findAll(@Request() req, @Query('page') page: number) {
-    if (req.user.roles === AdminRole.MASTER)
-      return this.adminService.findAll(page);
-    else throw new UnauthorizedException();
+    return this.adminService.findAll(page);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(
+    AdminRole.MASTER,
+    AdminRole.ADMIN,
+    AdminRole.PROMOTER,
+    AdminRole.LOGISTIC,
+  )
   @Get('admins/me')
   me(@Request() req) {
-    if (req.user.roles === AdminRole.MASTER)
-      return this.adminService.me(req.user.email);
-    else throw new UnauthorizedException();
+    return this.adminService.me(req.user.email);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(AdminRole.MASTER, AdminRole.ADMIN, AdminRole.PROMOTER)
   @Get('admins/:id')
   findOne(@Request() req, @Param('id') id: number) {
-    if (req.user.roles === AdminRole.MASTER)
-      return this.adminService.findOne(id);
-    else throw new UnauthorizedException();
+    return this.adminService.findOne(id);
   }
 
   @Post('admins/forget_password')
@@ -61,33 +61,38 @@ export class AdminController {
     return this.adminService.forgetPassword(createAdminDto.admin.email);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(AdminRole.MASTER)
   @Put('admins/:id')
   update(
     @Request() req,
     @Param('id') id: number,
     @Body() createAdminDto: CreateAdminDto,
   ) {
-    if (req.user.roles === AdminRole.MASTER)
-      return this.adminService.update(id, createAdminDto);
-    else throw new UnauthorizedException();
+    return this.adminService.update(id, createAdminDto);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(AdminRole.MASTER)
   @Put('admins')
   updateByToken(@Request() req, @Body() createAdminDto: CreateAdminDto) {
-    if (req.user.roles === AdminRole.MASTER)
-      return this.adminService.updateByToken(req.user.email, createAdminDto);
-    else throw new UnauthorizedException();
+    return this.adminService.updateByToken(req.user.email, createAdminDto);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(AdminRole.MASTER)
   @Delete('admins')
   remove(@Request() req) {
     return this.adminService.remove(req.user.email);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(
+    AdminRole.MASTER,
+    AdminRole.ADMIN,
+    AdminRole.LOGISTIC,
+    AdminRole.PROMOTER,
+  )
   @Put('profile')
   updatePassword(@Request() req, @Body() dto: UpdateAdminProfileDto) {
     return this.adminService.updateProfile(req.user.id, dto);

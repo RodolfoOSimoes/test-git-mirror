@@ -68,6 +68,7 @@ export class AdminService {
       const count = await this.adminRepository.count();
       const data = (
         await this.adminRepository.find({
+          where: { deleted: false },
           skip: (page - 1) * limit,
           take: limit,
           order: { id: 'DESC' },
@@ -166,15 +167,7 @@ export class AdminService {
   async update(id: number, createAdminDto: CreateAdminDto) {
     try {
       const admin = await this.adminRepository.findOne({ id: id });
-      if (!admin) {
-        throw new HttpException(
-          {
-            status: HttpStatus.FORBIDDEN,
-            error: 'Admin não encontrado.',
-          },
-          HttpStatus.FORBIDDEN,
-        );
-      }
+
       const resultAdmin = await this.findByEmail(createAdminDto.admin.email);
 
       if (resultAdmin && createAdminDto.admin.email != admin.email) {
@@ -187,21 +180,19 @@ export class AdminService {
         );
       }
 
-      const newAdmin = new Admin();
-      newAdmin.email = createAdminDto.admin.email || admin.email;
-      newAdmin.password_digest = createAdminDto.admin.password
-        ? bcrypt.hashSync(
-            createAdminDto.admin.password + process.env.PASSWORD_SALT,
-            8,
-          )
-        : admin.password_digest;
-      newAdmin.roles = createAdminDto.admin.roles
-        ? AdminRole[createAdminDto.admin.roles.toUpperCase()]
-        : admin.roles;
-      newAdmin.status = createAdminDto.admin.status || admin.status;
-      newAdmin.last_otp_at = new Date();
-      newAdmin.update_password_time = new Date();
-      await this.adminRepository.update(admin.id, newAdmin);
+      await this.adminRepository.update(admin.id, {
+        email: createAdminDto.admin.email || admin.email,
+        password_digest: createAdminDto.admin.password
+          ? bcrypt.hashSync(
+              createAdminDto.admin.password + process.env.PASSWORD_SALT,
+              8,
+            )
+          : admin.password_digest,
+        roles: createAdminDto.admin.roles
+          ? AdminRole[createAdminDto.admin.roles.toUpperCase()]
+          : admin.roles,
+        status: createAdminDto.admin.status,
+      });
       return { message: 'Admin atualizado com sucesso! ' };
     } catch (error) {
       throw new HttpException(
@@ -282,7 +273,6 @@ export class AdminService {
   }
 
   async updateProfile(id: number, dto: UpdateAdminProfileDto) {
-    //TODO: verificar lógica do password
     const newPassword = bcrypt.hashSync(
       dto.admin.new_password + process.env.PASSWORD_SALT,
       8,
