@@ -16,84 +16,78 @@ import { CreateRescueDto } from './dto/create-rescue.dto';
 import { UpdateRescueDto } from './dto/update-rescue.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { AdminRole } from 'src/enums/AdminRoles';
+import { RolesGuard } from 'src/auth/guards/roles.guard';
+import { Roles } from 'src/auth/decorators/roles.decorator';
 
 @Controller('v1/backoffice/rescues')
 export class RescueController {
   constructor(private readonly rescueService: RescueService) {}
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(AdminRole.MASTER)
   @Post()
   create(@Request() req, @Body() createRescueDto: CreateRescueDto) {
-    if (req.user.roles === AdminRole.MASTER)
-      return this.rescueService.create(req.user.id, createRescueDto);
-    else throw new UnauthorizedException();
+    return this.rescueService.create(req.user.id, createRescueDto);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(AdminRole.MASTER, AdminRole.PROMOTER)
   @Get()
   findAll(@Request() req, @Query('page') page: number) {
-    if (req.user.roles === AdminRole.MASTER)
-      return this.rescueService.findAll(page);
-    else throw new UnauthorizedException();
+    return this.rescueService.findAll(page);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(AdminRole.MASTER, AdminRole.PROMOTER)
   @Get(':id')
   findOne(@Request() req, @Param('id') id: number) {
-    if (req.user.roles === AdminRole.MASTER)
-      return this.rescueService.findOne(id);
-    else throw new UnauthorizedException();
+    return this.rescueService.findOne(id);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(AdminRole.MASTER, AdminRole.PROMOTER)
   @Get(':id/users')
   findUsers(
     @Request() req,
     @Param('id') id: number,
     @Query('page') page: number,
   ) {
-    if (req.user.roles === AdminRole.MASTER)
-      return this.rescueService.findUsers(id, page);
-    else throw new UnauthorizedException();
+    return this.rescueService.findUsers(id, page);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(AdminRole.MASTER, AdminRole.PROMOTER)
   @Get(':id/cash_backs')
   findCashBacksByDay(
     @Request() req,
     @Param('id') id: number,
     @Query('page') page: number,
   ) {
-    if (req.user.roles === AdminRole.MASTER)
-      return this.rescueService.findCashBacksByDay(id, page);
-    else throw new UnauthorizedException();
+    return this.rescueService.findCashBacksByDay(id, page);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(AdminRole.MASTER)
   @Post(':id/users')
   exportUsers(@Request() req, @Param('id') id: number) {
-    if (req.user.roles === AdminRole.MASTER)
-      return this.rescueService.exportUsers(req.user.id, id);
-    else throw new UnauthorizedException();
+    return this.rescueService.exportUsers(req.user.id, id);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(AdminRole.MASTER)
   @Put(':id')
   update(
     @Request() req,
     @Param('id') id: number,
     @Body() updateRescueDto: UpdateRescueDto,
   ) {
-    if (req.user.roles === AdminRole.MASTER)
-      return this.rescueService.update(req.user.id, id, updateRescueDto);
-    else throw new UnauthorizedException();
+    return this.rescueService.update(req.user.id, id, updateRescueDto);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(AdminRole.MASTER)
   @Delete(':id')
   remove(@Request() req, @Param('id') id: number) {
-    if (req.user.roles === AdminRole.MASTER)
-      return this.rescueService.remove(id);
-    else throw new UnauthorizedException();
+    return this.rescueService.remove(id);
   }
 }

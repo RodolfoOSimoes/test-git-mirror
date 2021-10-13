@@ -16,64 +16,60 @@ import { UpdateQuestDto } from './dto/update-quest.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { AdminRole } from 'src/enums/AdminRoles';
 import { Put } from '@nestjs/common';
+import { Roles } from 'src/auth/decorators/roles.decorator';
+import { RolesGuard } from 'src/auth/guards/roles.guard';
 
 @Controller('v1/backoffice/quests')
 export class QuestController {
   constructor(private readonly questService: QuestService) {}
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(AdminRole.MASTER)
   @Post()
   create(@Request() req, @Body() createQuestDto: CreateQuestDto) {
-    if (req.user.roles === AdminRole.MASTER)
-      return this.questService.create(req.user.id, createQuestDto);
-    else throw new UnauthorizedException();
+    return this.questService.create(req.user.id, createQuestDto);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(AdminRole.MASTER, AdminRole.PROMOTER)
   @Get()
   findAll(@Request() req, @Query('page') page: number) {
-    if (req.user.roles === AdminRole.MASTER)
-      return this.questService.findAll(page);
-    else throw new UnauthorizedException();
+    return this.questService.findAll(page);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(AdminRole.MASTER, AdminRole.PROMOTER)
   @Get(':id')
   findOne(@Request() req, @Param('id') id: number) {
-    if (req.user.roles === AdminRole.MASTER)
-      return this.questService.findOne(id);
-    else throw new UnauthorizedException();
+    return this.questService.findOne(id);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(AdminRole.MASTER, AdminRole.PROMOTER)
   @Get(':id/users')
   findUsers(
     @Request() req,
     @Param('id') id: number,
     @Query('page') page: number,
   ) {
-    if (req.user.roles === AdminRole.MASTER)
-      return this.questService.findListUsers(id, page);
-    else throw new UnauthorizedException();
+    return this.questService.findListUsers(id, page);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(AdminRole.MASTER)
   @Put(':id')
   update(
     @Request() req,
     @Param('id') id: number,
     @Body() updateQuestDto: UpdateQuestDto,
   ) {
-    if (req.user.roles === AdminRole.MASTER)
-      return this.questService.update(req.user.id, id, updateQuestDto);
-    else throw new UnauthorizedException();
+    return this.questService.update(req.user.id, id, updateQuestDto);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(AdminRole.MASTER)
   @Delete(':id')
   remove(@Request() req, @Param('id') id: number) {
-    if (req.user.roles === AdminRole.MASTER)
-      return this.questService.remove(id);
-    else throw new UnauthorizedException();
+    return this.questService.remove(id);
   }
 }

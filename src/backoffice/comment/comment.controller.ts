@@ -10,7 +10,9 @@ import {
   UseGuards,
   UnauthorizedException,
 } from '@nestjs/common';
+import { Roles } from 'src/auth/decorators/roles.decorator';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { AdminRole } from 'src/enums/AdminRoles';
 import { CommentService } from './comment.service';
 import { CreateCommentDto } from './dto/create-comment.dto';
@@ -20,39 +22,35 @@ import { UpdateCommentDto } from './dto/update-comment.dto';
 export class CommentController {
   constructor(private readonly commentService: CommentService) {}
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(AdminRole.MASTER)
   @Post()
   create(@Request() req, @Body() createCommentDto: CreateCommentDto) {
-    if (req.user.roles === AdminRole.MASTER)
-      return this.commentService.create(req.user.id, createCommentDto);
-    else throw new UnauthorizedException();
+    return this.commentService.create(req.user.id, createCommentDto);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(AdminRole.MASTER, AdminRole.PROMOTER)
   @Get()
   findAll(@Request() req, @Query('page') page: number) {
-    if (req.user.roles === AdminRole.MASTER)
-      return this.commentService.findAll(page);
-    else throw new UnauthorizedException();
+    return this.commentService.findAll(page);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(AdminRole.MASTER, AdminRole.PROMOTER)
   @Get(':id')
   findOne(@Request() req, @Param('id') id: number) {
-    if (req.user.roles === AdminRole.MASTER)
-      return this.commentService.findOne(id);
-    else throw new UnauthorizedException();
+    return this.commentService.findOne(id);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(AdminRole.MASTER)
   @Patch(':id')
   update(
     @Request() req,
     @Param('id') id: number,
     @Body() updateCommentDto: UpdateCommentDto,
   ) {
-    if (req.user.roles === AdminRole.MASTER)
-      return this.commentService.update(req.user.id, id, updateCommentDto);
-    else throw new UnauthorizedException();
+    return this.commentService.update(req.user.id, id, updateCommentDto);
   }
 }

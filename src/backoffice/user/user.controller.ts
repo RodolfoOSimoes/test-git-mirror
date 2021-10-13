@@ -7,7 +7,9 @@ import {
   UnauthorizedException,
   Query,
 } from '@nestjs/common';
+import { Roles } from 'src/auth/decorators/roles.decorator';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { AdminRole } from 'src/enums/AdminRoles';
 import { UserService } from './user.service';
 
@@ -15,7 +17,8 @@ import { UserService } from './user.service';
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(AdminRole.MASTER, AdminRole.PROMOTER)
   @Get()
   findAll(
     @Request() req,
@@ -23,16 +26,13 @@ export class UserController {
     @Query('size') size: number,
     @Query('query') query: string,
   ) {
-    if (req.user.roles === AdminRole.MASTER)
-      return this.userService.findAll(page, size, query);
-    else throw new UnauthorizedException();
+    return this.userService.findAll(page, size, query);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(AdminRole.MASTER, AdminRole.PROMOTER)
   @Get(':id')
   findOne(@Request() req, @Param('id') id: number) {
-    if (req.user.roles === AdminRole.MASTER)
-      return this.userService.findOne(id);
-    else throw new UnauthorizedException();
+    return this.userService.findOne(id);
   }
 }

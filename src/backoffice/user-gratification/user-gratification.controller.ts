@@ -15,6 +15,8 @@ import { UserGratificationService } from './user-gratification.service';
 import { CreateUserGratificationDto } from './dto/create-user-gratification.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { AdminRole } from 'src/enums/AdminRoles';
+import { RolesGuard } from 'src/auth/guards/roles.guard';
+import { Roles } from 'src/auth/decorators/roles.decorator';
 
 @Controller('v1/backoffice/gratifications')
 export class UserGratificationController {
@@ -22,25 +24,23 @@ export class UserGratificationController {
     private readonly userGratificationService: UserGratificationService,
   ) {}
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(AdminRole.MASTER)
   @Post()
   create(
     @Request() req,
     @Body() createUserGratificationDto: CreateUserGratificationDto,
   ) {
-    if (req.user.roles === AdminRole.MASTER) {
-      return this.userGratificationService.create(
-        req.user.id,
-        createUserGratificationDto,
-      );
-    } else throw new UnauthorizedException();
+    return this.userGratificationService.create(
+      req.user.id,
+      createUserGratificationDto,
+    );
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(AdminRole.MASTER)
   @Delete(':id')
   delete(@Request() req, @Param('id') id: number) {
-    if (req.user.roles === AdminRole.MASTER)
-      return this.userGratificationService.delete(id);
-    else throw new UnauthorizedException();
+    return this.userGratificationService.delete(id);
   }
 }

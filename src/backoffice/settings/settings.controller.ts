@@ -11,6 +11,8 @@ import { SettingsService } from './settings.service';
 import { UpdateSettingDto } from './dto/update-setting.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { AdminRole } from 'src/enums/AdminRoles';
+import { RolesGuard } from 'src/auth/guards/roles.guard';
+import { Roles } from 'src/auth/decorators/roles.decorator';
 
 @Controller('v1/backoffice/settings')
 export class SettingsController {
@@ -24,11 +26,10 @@ export class SettingsController {
     else throw new UnauthorizedException();
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(AdminRole.MASTER)
   @Put()
   create(@Request() req, @Body() data: UpdateSettingDto) {
-    if (req.user.roles === AdminRole.MASTER)
-      return this.settingsService.update(req.user.id, data);
-    else throw new UnauthorizedException();
+    return this.settingsService.update(req.user.id, data);
   }
 }
