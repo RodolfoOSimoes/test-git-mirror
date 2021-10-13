@@ -8,10 +8,11 @@ import {
   UseGuards,
   Request,
   Query,
-  UnauthorizedException,
   Put,
 } from '@nestjs/common';
+import { Roles } from 'src/auth/decorators/roles.decorator';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { AdminRole } from 'src/enums/AdminRoles';
 import { BadgeChallengeService } from './badge-challenge.service';
 import { CreateBadgeChallengeDto } from './dto/create-badge-challenge.dto';
@@ -21,57 +22,52 @@ import { UpdateBadgeChallengeDto } from './dto/update-badge-challenge.dto';
 export class BadgeChallengeController {
   constructor(private readonly badgeChallengeService: BadgeChallengeService) {}
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(AdminRole.MASTER)
   @Post()
   create(
     @Request() req,
     @Body() createBadgeChallengeDto: CreateBadgeChallengeDto,
   ) {
-    if (req.user.roles === AdminRole.MASTER)
-      return this.badgeChallengeService.create(
-        req.user.id,
-        createBadgeChallengeDto,
-      );
-    else throw new UnauthorizedException();
+    return this.badgeChallengeService.create(
+      req.user.id,
+      createBadgeChallengeDto,
+    );
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(AdminRole.MASTER, AdminRole.PROMOTER)
   @Get()
   findAll(@Request() req, @Query('page') page: number) {
-    if (req.user.roles === AdminRole.MASTER)
-      return this.badgeChallengeService.findAll(page);
-    else throw new UnauthorizedException();
+    return this.badgeChallengeService.findAll(page);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(AdminRole.MASTER, AdminRole.PROMOTER)
   @Get(':id')
   findOne(@Request() req, @Param('id') id: number) {
-    if (req.user.roles === AdminRole.MASTER)
-      return this.badgeChallengeService.findOne(id);
-    else throw new UnauthorizedException();
+    return this.badgeChallengeService.findOne(id);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(AdminRole.MASTER)
   @Put(':id')
   update(
     @Request() req,
     @Param('id') id: number,
     @Body() updateBadgeChallengeDto: UpdateBadgeChallengeDto,
   ) {
-    if (req.user.roles === AdminRole.MASTER)
-      return this.badgeChallengeService.update(
-        req.user.id,
-        id,
-        updateBadgeChallengeDto,
-      );
-    else throw new UnauthorizedException();
+    return this.badgeChallengeService.update(
+      req.user.id,
+      id,
+      updateBadgeChallengeDto,
+    );
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(AdminRole.MASTER)
   @Delete(':id')
   remove(@Request() req, @Param('id') id: number) {
-    if (req.user.roles === AdminRole.MASTER)
-      return this.badgeChallengeService.remove(id);
-    else throw new UnauthorizedException();
+    return this.badgeChallengeService.remove(id);
   }
 }
