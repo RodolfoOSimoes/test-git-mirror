@@ -21,9 +21,7 @@ export class SettingsController {
   @UseGuards(JwtAuthGuard)
   @Get()
   findAll(@Request() req) {
-    if (req.user.roles === AdminRole.MASTER)
-      return this.settingsService.findAll();
-    else throw new UnauthorizedException();
+    return this.settingsService.findAll();
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)

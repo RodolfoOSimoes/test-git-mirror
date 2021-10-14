@@ -48,63 +48,6 @@ export class UserService {
       [limit, offset],
     );
 
-    // const orders = await this.orderRepository.find({
-    //   skip: (page - 1) * limit,
-    //   take: limit,
-    //   where: {},
-    //   order: {
-    //     id: 'DESC',
-    //   },
-    //   relations: ['product', 'user', 'address'],
-    // });
-
-    // const uniqueUserRelations = [
-    //   ...new Set(orders.map((item) => item.user.id)),
-    // ];
-
-    // const users = [];
-
-    // uniqueUserRelations.forEach((user_id) => {
-    //   const order = orders.find((order) => order.user.id === user_id);
-    //   if (!order.user.deleted) {
-    //     users.push(order.user);
-    //   }
-    // });
-
-    // const data = orders.map((order) => {
-    //   return {
-    //     id: order.id,
-    //     type: 'orders',
-    //     created_at: order.created_at,
-    //     price_of_product: order.product.value,
-    //     sent: order.sent,
-    //     tracking_code: order.tracking_code,
-    //     relationships: {
-    //       address: {
-    //         id: order.address.id,
-    //         type: 'addresses',
-    //       },
-    //       product: {
-    //         id: order.product.id,
-    //         type: 'products',
-    //       },
-    //       user: {
-    //         id: order.user.id,
-    //         type: 'users',
-    //       },
-    //     },
-    //   };
-    // });
-
-    // const included = users?.map((user) => {
-    //   return {
-    //     id: user.id,
-    //     type: 'users',
-    //     email: user.email,
-    //     name: user.name,
-    //   };
-    // });
-
     return {
       data: orders,
       currentPage: page,
