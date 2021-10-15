@@ -68,7 +68,9 @@ export class UserService {
       await this.authenticationTokenService.create(requestInfo, user);
       await this.userRepository.update(user.id, {
         credentials: data['credentials'],
+        product: data['product'],
         updated_at: new Date(),
+        last_time_checked_product: new Date(),
       });
 
       return {
