@@ -9,7 +9,6 @@ import {
   UseGuards,
   Request,
   Query,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { RescueService } from './rescue.service';
 import { CreateRescueDto } from './dto/create-rescue.dto';

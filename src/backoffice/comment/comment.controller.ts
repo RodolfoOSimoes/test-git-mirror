@@ -3,12 +3,11 @@ import {
   Get,
   Post,
   Body,
-  Patch,
   Param,
   Query,
   Request,
   UseGuards,
-  UnauthorizedException,
+  Put,
 } from '@nestjs/common';
 import { Roles } from 'src/auth/decorators/roles.decorator';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
@@ -45,7 +44,7 @@ export class CommentController {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(AdminRole.MASTER)
-  @Patch(':id')
+  @Put(':id')
   update(
     @Request() req,
     @Param('id') id: number,

@@ -1,8 +1,8 @@
 export class UpdateAdminProfileDto {
   admin: {
     email: string;
-    password_current: boolean;
-    new_password: number;
-    new_password_confirmation: boolean;
+    password_current: string;
+    new_password: string;
+    new_password_confirmation: string;
   };
 }
