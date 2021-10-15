@@ -59,8 +59,6 @@ export class SettingService {
       };
     }
 
-    delete setting.created_at;
-
     return setting;
   }
 }
