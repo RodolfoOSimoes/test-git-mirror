@@ -1,0 +1,2862 @@
+{
+	"info": {
+		"_postman_id": "86666d2e-318b-4649-b7af-38ad12935064",
+		"name": "Filtrgame",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Backoffice",
+			"item": [
+				{
+					"name": "Admin",
+					"item": [
+						{
+							"name": "Create Admin",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"admin\": {\r\n\t\t\"email\": \"joilson.leal56@druid.com.br\",\r\n\t\t\"password\": \"123456Aa-\",\r\n\t\t\"password_confirmation\": \"123456Aa-\",\r\n\t\t\"roles\": \"master\",\r\n\t\t\"status\": true\r\n\t}\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/v1/backoffice/admins",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"v1",
+										"backoffice",
+										"admins"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "List Admins",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/v1/backoffice/admins",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"v1",
+										"backoffice",
+										"admins"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Me",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/v1/backoffice/admins/me",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"v1",
+										"backoffice",
+										"admins",
+										"me"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Forget password",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"admin\": {\r\n        \"email\": \"joilson.leal@druid.com.br\"\r\n    }\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/v1/backoffice/admins/forget_password",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"v1",
+										"backoffice",
+										"admins",
+										"forget_password"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Show admin",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/v1/backoffice/admins/56",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"v1",
+										"backoffice",
+										"admins",
+										"56"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Update admin {id}",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"admin\": {\r\n\t\t\"email\": \"admin3@example.com\",\r\n\t\t\"roles\": \"master\",\r\n\t\t\"status\": false\r\n\t}\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/v1/backoffice/admins/5",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"v1",
+										"backoffice",
+										"admins",
+										"5"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Update admin token",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"admin\": {\r\n\t\t\"roles\": \"master\"\r\n\t}\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/v1/backoffice/admins",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"v1",
+										"backoffice",
+										"admins"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Update profile",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"admin\": {\r\n\t\t\"email\": \"teste@email.com\",\r\n        \"password_current\": \"123123123123\",\r\n        \"new_password\": \"Aa-123456\",\r\n        \"new_password_confirmation\": \"Aa-123456\"\r\n\t}\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/v1/backoffice/profile",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"v1",
+										"backoffice",
+										"profile"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete",
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/v1/backoffice/admins",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"v1",
+										"backoffice",
+										"admins"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Session",
+					"item": [
+						{
+							"name": "Send token",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"email\": \"joilson.leal@druid.com.br\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/v1/backoffice/admins/send_code",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"v1",
+										"backoffice",
+										"admins",
+										"send_code"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "forget password",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"admin\": {\r\n    \"email\": \"joilson.leal@druid.com.br\"\r\n}\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/v1/backoffice/admins/forget_password",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"v1",
+										"backoffice",
+										"admins",
+										"forget_password"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Verify token",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"let res = pm.response.json();\r",
+											"pm.environment.set('access_token', res.access_token);\r",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"login\": {\r\n        \"pre_token\": \"62755d7646585237533e3c51662f6566\",\r\n        \"code\": \"507808\"\r\n    }\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/v1/backoffice/session/verify_2fa",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"v1",
+										"backoffice",
+										"session",
+										"verify_2fa"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Login",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"login\": {\r\n        \"email\": \"joilson.leal@druid.com.br\",\r\n        \"password\": \")OS4#gon\"\r\n    }\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/v1/backoffice/login",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"v1",
+										"backoffice",
+										"login"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Logout",
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/v1/backoffice/admins/logout",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"v1",
+										"backoffice",
+										"admins",
+										"logout"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Settings",
+					"item": [
+						{
+							"name": "Get",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/v1/backoffice/settings",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"v1",
+										"backoffice",
+										"settings"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Update",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n     \"setting\": {\r\n         \"title\": \"Completando as missões, acumule moedas e troque por benefícios!\",\r\n         \"subtitle\": \"Para jogar faça login com Spotify\",\r\n         \"terms_and_conditions\": \"lorem\",\r\n         \"invitation_quantity\": 10,\r\n         \"invitation_score\": 11,\r\n         \"profile_completed_score\": 30,\r\n         \"limited_gratification_score\": 500,\r\n         \"uri_playlist\": \"uri_playlist\",\r\n         \"show_playlist\": 1,\r\n         \"enabled_splash_screen\": false,\r\n         \"splash_screen_message\": \"splash_screen_message\",\r\n         \"splash_screen_title\": \"splash_screen_title\"\r\n     }\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/v1/backoffice/settings",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"v1",
+										"backoffice",
+										"settings"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Users",
+					"item": [
+						{
+							"name": "List",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/v1/backoffice/users",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"v1",
+										"backoffice",
+										"users"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/v1/backoffice/users/581",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"v1",
+										"backoffice",
+										"users",
+										"581"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Order/Users",
+					"item": [
+						{
+							"name": "List",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/v1/backoffice/store/orders/users/list?page=1&query=pato",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"v1",
+										"backoffice",
+										"store",
+										"orders",
+										"users",
+										"list"
+									],
+									"query": [
+										{
+											"key": "page",
+											"value": "1"
+										},
+										{
+											"key": "query",
+											"value": "pato"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/v1/backoffice/store/orders/users/1",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"v1",
+										"backoffice",
+										"store",
+										"orders",
+										"users",
+										"1"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Order/Addresses",
+					"item": [
+						{
+							"name": "Update",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"address\": {\r\n        \"recipient\": \"string\",\r\n        \"full_address\": \"string\",\r\n        \"cep\": \"string\",\r\n        \"city_id\": 492,\r\n        \"cpf\": \"string\",\r\n        \"street\": \"string\",\r\n        \"complement\": \"string\",\r\n        \"neighborhood\": \"string\",\r\n        \"number\": \"string\",\r\n        \"completed\": true,\r\n        \"reference\": \"string\"\r\n    }\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/v1/backoffice/store/orders/addresses/344",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"v1",
+										"backoffice",
+										"store",
+										"orders",
+										"addresses",
+										"344"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/v1/backoffice/store/orders/addresses/344",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"v1",
+										"backoffice",
+										"store",
+										"orders",
+										"addresses",
+										"344"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "UserGratification",
+					"item": [
+						{
+							"name": "Delete",
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/v1/backoffice/gratifications/2",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"v1",
+										"backoffice",
+										"gratifications",
+										"2"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Create",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"gratification\": {\r\n        \"user_id\": 2,\r\n        \"kind\": 1,\r\n        \"score\": 1000,\r\n        \"score_gratification\": 1000,\r\n        \"is_cashback\":  false\r\n    }\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/v1/backoffice/gratifications",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"v1",
+										"backoffice",
+										"gratifications"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Store/Products",
+					"item": [
+						{
+							"name": "List",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/v1/backoffice/store/products",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"v1",
+										"backoffice",
+										"store",
+										"products"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Create",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n     \"product\": {\r\n        \"name\": \"string\",\r\n        \"value\": 10,\r\n        \"date_start\": \"2022-01-23\",\r\n        \"date_finish\": \"2022-01-29\",\r\n        \"status\": true,\r\n        \"quantity\": 10,\r\n        \"quantities_purchased\": 10,\r\n        \"procuct_code\": \"string\",\r\n        \"kind\": 10,\r\n        \"badge_challenge_id\": 10,\r\n        \"description\": \"string\"\r\n    }\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/v1/backoffice/store/products",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"v1",
+										"backoffice",
+										"store",
+										"products"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Update",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n     \"product\": {\r\n        \"date_start\": \"2022-01-23 18:00\",\r\n        \"date_finish\": \"2022-01-29 21:00\"\r\n    }\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/v1/backoffice/store/products/129",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"v1",
+										"backoffice",
+										"store",
+										"products",
+										"129"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/v1/backoffice/store/products/2",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"v1",
+										"backoffice",
+										"store",
+										"products",
+										"2"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Remove",
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/v1/backoffice/store/products/119",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"v1",
+										"backoffice",
+										"store",
+										"products",
+										"119"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Rescues",
+					"item": [
+						{
+							"name": "List",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/v1/backoffice/rescues?page=1",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"v1",
+										"backoffice",
+										"rescues"
+									],
+									"query": [
+										{
+											"key": "page",
+											"value": "1"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Create",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"rescue\": {\r\n        \"name\": \"string\",\r\n        \"artists\": \"string\",\r\n        \"cover_url\": \"string\",\r\n        \"uid\": \"string\",\r\n        \"playlist\": \"string\",\r\n        \"limited\": false,\r\n        \"info_playlist\": \"{\\\"string\\\": 10}\",\r\n        \"limit_streams\": 40,\r\n        \"uri\": \"string\",\r\n        \"score\": 20,\r\n        \"status\": true,\r\n        \"isrc\": \"string\"\r\n    }\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/v1/backoffice/rescues",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"v1",
+										"backoffice",
+										"rescues"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Update",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n     \"rescue\": {\r\n        \"name\": \"string\",\r\n        \"artists\": \"string\",\r\n        \"cover_url\": \"string\",\r\n        \"uid\": \"string\",\r\n        \"playlist\": \"string\",\r\n        \"limited\": false,\r\n        \"info_playlist\": \"{\\\"string\\\": 10}\",\r\n        \"limit_streams\": 40,\r\n        \"uri\": \"string\",\r\n        \"score\": 20,\r\n        \"status\": true,\r\n        \"isrc\": \"isrc\"\r\n    }\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/v1/backoffice/rescues/109",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"v1",
+										"backoffice",
+										"rescues",
+										"109"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/v1/backoffice/rescues/2",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"v1",
+										"backoffice",
+										"rescues",
+										"2"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Remove",
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/v1/backoffice/rescues/2",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"v1",
+										"backoffice",
+										"rescues",
+										"2"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get users",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/v1/backoffice/rescues/2/users",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"v1",
+										"backoffice",
+										"rescues",
+										"2",
+										"users"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get cash_backs",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/v1/backoffice/rescues/2/cash_backs",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"v1",
+										"backoffice",
+										"rescues",
+										"2",
+										"cash_backs"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Quests",
+					"item": [
+						{
+							"name": "List",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/v1/backoffice/quests?page=12",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"v1",
+										"backoffice",
+										"quests"
+									],
+									"query": [
+										{
+											"key": "page",
+											"value": "12"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Create",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"quest\": {\r\n        \"date_start\": \"2021-12-12\",\r\n        \"kind\": 7,\r\n        \"score\": 100,\r\n        \"status\": true,\r\n        \"deleted\": false,\r\n        \"accomplished_count\": 100\r\n    }\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/v1/backoffice/quests",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"v1",
+										"backoffice",
+										"quests"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Update",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"quest\": {\r\n        \"date_start\": \"2021-12-13\",\r\n        \"kind\": 7,\r\n        \"score\": 100,\r\n        \"status\": true,\r\n        \"deleted\": false,\r\n        \"accomplished_count\": 10000\r\n    }\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/v1/backoffice/quests/120",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"v1",
+										"backoffice",
+										"quests",
+										"120"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/v1/backoffice/quests/76",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"v1",
+										"backoffice",
+										"quests",
+										"76"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get Users",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/v1/backoffice/quests/76/users",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"v1",
+										"backoffice",
+										"quests",
+										"76",
+										"users"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Remove",
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/v1/backoffice/quests/119",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"v1",
+										"backoffice",
+										"quests",
+										"119"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Comments",
+					"item": [
+						{
+							"name": "List",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/v1/backoffice/comments?page=1",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"v1",
+										"backoffice",
+										"comments"
+									],
+									"query": [
+										{
+											"key": "page",
+											"value": "1"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Create",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"challenge\": {\r\n        \"name\": \"string\",\r\n        \"uri\": \"string\",\r\n        \"info\": \"string\",\r\n        \"goal\": 10,\r\n        \"status\": false,\r\n        \"deleted\": false,\r\n        \"completed_users_count\": 10,\r\n        \"total_times_of_streamings\": 10,\r\n        \"description\": \"string\",\r\n        \"voucher\": true\r\n    }\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/v1/backoffice/comments",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"v1",
+										"backoffice",
+										"comments"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Update",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"challenge\": {\r\n        \"name\": \"string\",\r\n        \"uri\": \"string\",\r\n        \"info\": \"{\\\"number\\\": 10}\",\r\n        \"goal\": 10,\r\n        \"status\": false,\r\n        \"deleted\": false,\r\n        \"completed_users_count\": 10,\r\n        \"total_times_of_streamings\": 10,\r\n        \"description\": \"string\",\r\n        \"voucher\": true\r\n    }\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/v1/backoffice/comments/38",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"v1",
+										"backoffice",
+										"comments",
+										"38"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/v1/backoffice/comments/37",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"v1",
+										"backoffice",
+										"comments",
+										"37"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Badge challenge",
+					"item": [
+						{
+							"name": "List",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/v1/backoffice/badge_challenges?page=1",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"v1",
+										"backoffice",
+										"badge_challenges"
+									],
+									"query": [
+										{
+											"key": "page",
+											"value": "1"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Create",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"comment\": {\r\n        \"commentable_type\": \"string\",\r\n        \"commentable_id\": 10,\r\n        \"body\": \"string\",\r\n        \"status\": true,\r\n        \"deleted\": false\r\n    }\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/v1/backoffice/badge_challenges",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"v1",
+										"backoffice",
+										"badge_challenges"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Update",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"comment\": {\r\n        \"commentable_type\": \"string\",\r\n        \"commentable_id\": 10,\r\n        \"body\": \"string\",\r\n        \"status\": true,\r\n        \"deleted\": false\r\n    }\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/v1/backoffice/badge_challenges/43",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"v1",
+										"backoffice",
+										"badge_challenges",
+										"43"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/v1/backoffice/badge-challenges/37",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"v1",
+										"backoffice",
+										"badge-challenges",
+										"37"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Remove",
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/v1/backoffice/badge_challenges/119",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"v1",
+										"backoffice",
+										"badge_challenges",
+										"119"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Campaigns",
+					"item": [
+						{
+							"name": "List",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/v1/backoffice/campaigns?page=1",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"v1",
+										"backoffice",
+										"campaigns"
+									],
+									"query": [
+										{
+											"key": "page",
+											"value": "1"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Create",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"campaign\": {\r\n        \"name\": \"string\",\r\n        \"slug\": \"string\",\r\n        \"status\": true,\r\n        \"date_start\": \"2020-10-10\",\r\n        \"date_finish\": \"2020-10-10\"\r\n    }\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/v1/backoffice/campaigns",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"v1",
+										"backoffice",
+										"campaigns"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Update",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"campaign\": {\r\n        \"status\": false\r\n    }\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/v1/backoffice/campaigns/17",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"v1",
+										"backoffice",
+										"campaigns",
+										"17"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/v1/backoffice/campaigns/2",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"v1",
+										"backoffice",
+										"campaigns",
+										"2"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Remove",
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/v1/backoffice/campaigns/2",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"v1",
+										"backoffice",
+										"campaigns",
+										"2"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Statements",
+					"item": [
+						{
+							"name": "List",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/v1/backoffice/statements",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"v1",
+										"backoffice",
+										"statements"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/v1/backoffice/statements/2",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"v1",
+										"backoffice",
+										"statements",
+										"2"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Store/Orders",
+					"item": [
+						{
+							"name": "List",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/v1/backoffice/store/orders",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"v1",
+										"backoffice",
+										"store",
+										"orders"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/v1/backoffice/store/orders/119",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"v1",
+										"backoffice",
+										"store",
+										"orders",
+										"119"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Update",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"order\": {\r\n        \"sent\": true,\r\n        \"code_secret\": \"code_secrete\",\r\n        \"confirmation_email\": false,\r\n        \"tracking_code\": \"string\",\r\n        \"price_of_product\": 100\r\n    }\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/v1/backoffice/store/orders/119",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"v1",
+										"backoffice",
+										"store",
+										"orders",
+										"119"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Cancel",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/v1/backoffice/store/orders/cancel/119",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"v1",
+										"backoffice",
+										"store",
+										"orders",
+										"cancel",
+										"119"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Validate_code",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/v1/backoffice/store/orders/validate_coupon/119",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"v1",
+										"backoffice",
+										"store",
+										"orders",
+										"validate_coupon",
+										"119"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Spotify",
+			"item": [
+				{
+					"name": "Access_token spotify",
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "password",
+									"value": "78fd37bd7e9749b2b86b8236ba93d998",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "2ccdfe066c534ec0b4fa74a99b7f9831",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/x-www-form-urlencoded",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic ZTZhMWM2MzFhMDkwNGEzMTgwYzFjYjYxNjE2Mjc0NzE6OGJmYTU4ZGY1OTJkNDJkYmEwZDUxMmVlNGYzZTgyYjY=",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "grant_type",
+									"value": "refresh_token",
+									"type": "text"
+								},
+								{
+									"key": "refresh_token",
+									"value": "AQDIAmzDg2Jbg4CtzaB1Dc3eEHTqWtcNkRjpWZJTiSJEkL_lL5JslzjdKQDDXWiG4_zT3d2xJaL3SAYO6AwdPmYs1xU5zaq3A2xscj4KZ_cjt2boUGOdagKKfW6VA50SOgk",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "https://accounts.spotify.com/api/token",
+							"protocol": "https",
+							"host": [
+								"accounts",
+								"spotify",
+								"com"
+							],
+							"path": [
+								"api",
+								"token"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "App",
+			"item": [
+				{
+					"name": "User",
+					"item": [
+						{
+							"name": "me",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{user_token}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/v1/app/users/me",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"v1",
+										"app",
+										"users",
+										"me"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "store",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{user_token}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/v1/app/users/me/store",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"v1",
+										"app",
+										"users",
+										"me",
+										"store"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "terms",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{user_token}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"user\": {\r\n        \"opt_in_mailing\": true,\r\n        \"invitation_code\": \"rHFe0bHsA4\"\r\n    }\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/v1/app/users/accept",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"v1",
+										"app",
+										"users",
+										"accept"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "terms Copy",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{user_token}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"user\": {\r\n        \"name\": \"Fernando da Silva\",\r\n    \"email\": \"fernando@dasilva.com\",\r\n    \"city_id\": 4000,\r\n    \"birthdate\": \"1991/10/10\",\r\n    \"image\": {\r\n      \"data\": \"base64 .....\"\r\n    },\r\n    \"phone\": \"(45) 99999999\"\r\n    }\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/v1/app/users/me",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"v1",
+										"app",
+										"users",
+										"me"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "delete",
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{user_token}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/v1/app/users/me",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"v1",
+										"app",
+										"users",
+										"me"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "CashBack",
+					"item": [
+						{
+							"name": "list",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{user_token}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/v1/app/users/cash_backs",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"v1",
+										"app",
+										"users",
+										"cash_backs"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "one",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{user_token}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/v1/app/users/cash_backs/1",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"v1",
+										"app",
+										"users",
+										"cash_backs",
+										"1"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Badges",
+					"item": [
+						{
+							"name": "list",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{user_token}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/v1/app/users/badges",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"v1",
+										"app",
+										"users",
+										"badges"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Settings",
+					"item": [
+						{
+							"name": "list",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{user_token}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/v1/app/settings",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"v1",
+										"app",
+										"settings"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Locations",
+					"item": [
+						{
+							"name": "states",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{user_token}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/v1/app/locations/states",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"v1",
+										"app",
+										"locations",
+										"states"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "cities",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{user_token}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/v1/app/locations/state/23/cities",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"v1",
+										"app",
+										"locations",
+										"state",
+										"23",
+										"cities"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Addresses",
+					"item": [
+						{
+							"name": "list",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{user_token}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/v1/app/users/addresses",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"v1",
+										"app",
+										"users",
+										"addresses"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "post",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{user_token}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n\t\"address\": {\r\n\t\t\"recipient\": \"recipient\",\r\n        \"full_address\": \"full_address\",\r\n\t\t\"cep\": \"cep\",\r\n\t\t\"street\": \"street\",\r\n\t\t\"number\": 10,\r\n\t\t\"complement\": \"ap 102\",\r\n\t\t\"neighborhood\": \"centro\",\r\n\t\t\"city_id\": 10,\r\n\t\t\"cpf\": \"000.000.000-00\"\r\n\t}\r\n}\r\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/v1/app/users/addresses",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"v1",
+										"app",
+										"users",
+										"addresses"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "put",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{user_token}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n\t\"address\": {\r\n\t\t\"recipient\": \"recipient\",\r\n        \"full_address\": \"full_address\",\r\n\t\t\"cep\": \"cep\",\r\n\t\t\"street\": \"street\",\r\n\t\t\"number\": 10,\r\n\t\t\"complement\": \"ap 102\",\r\n\t\t\"neighborhood\": \"centro\",\r\n\t\t\"city_id\": 11,\r\n\t\t\"cpf\": \"000.000.000-10\"\r\n\t}\r\n}\r\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:3000/v1/app/users/addresses",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "3000",
+									"path": [
+										"v1",
+										"app",
+										"users",
+										"addresses"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Quests",
+					"item": [
+						{
+							"name": "list",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{user_token}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/v1/app/quests",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"v1",
+										"app",
+										"quests"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "complete quest",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{user_token}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"quest\": {\r\n       \"answer\": \"a2\"\r\n    }\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/v1/app/quests?id=194",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"v1",
+										"app",
+										"quests"
+									],
+									"query": [
+										{
+											"key": "id",
+											"value": "194"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "BadgeChallenges",
+					"item": [
+						{
+							"name": "list",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{user_token}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/v1/app/badge_challenges",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"v1",
+										"app",
+										"badge_challenges"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "get",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{user_token}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/v1/app/badge_challenges/10",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"v1",
+										"app",
+										"badge_challenges",
+										"10"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Extratos",
+					"item": [
+						{
+							"name": "list",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{user_token}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/v1/app/transactions",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"v1",
+										"app",
+										"transactions"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "NewsLetter",
+					"item": [
+						{
+							"name": "create",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{user_token}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n\t\"newslatter\": {\r\n\t\t\"email\": \"oi@gmail.coma\",\r\n\t\t\"name\": \"werter meira\",\r\n\t\t\"opt\": true\r\n\t}\r\n}\r\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/v1/app/newslatter",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"v1",
+										"app",
+										"newslatter"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Store",
+					"item": [
+						{
+							"name": "Products",
+							"item": [
+								{
+									"name": "list",
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{user_token}}",
+												"type": "text"
+											}
+										],
+										"url": {
+											"raw": "{{base_url}}/v1/app/store/products",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"v1",
+												"app",
+												"store",
+												"products"
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "Orders",
+							"item": [
+								{
+									"name": "list",
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{user_token}}",
+												"type": "text"
+											}
+										],
+										"url": {
+											"raw": "{{base_url}}/v1/app/store/orders?kind=coupon",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"v1",
+												"app",
+												"store",
+												"orders"
+											],
+											"query": [
+												{
+													"key": "kind",
+													"value": "coupon"
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "get",
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{user_token}}",
+												"type": "text"
+											}
+										],
+										"url": {
+											"raw": "{{base_url}}/v1/app/store/orders/520",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"v1",
+												"app",
+												"store",
+												"orders",
+												"520"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "tracking",
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{user_token}}",
+												"type": "text"
+											}
+										],
+										"url": {
+											"raw": "{{base_url}}/v1/app/store/orders/tracking/OP997285798BR",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"v1",
+												"app",
+												"store",
+												"orders",
+												"tracking",
+												"OP997285798BR"
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "Transaction",
+							"item": [
+								{
+									"name": "buy",
+									"protocolProfileBehavior": {
+										"disableBodyPruning": true
+									},
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{user_token}}",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "urlencoded",
+											"urlencoded": []
+										},
+										"url": {
+											"raw": "http://localhost:3000/v1/app/store/transactions/sale/REaJIRI8JqI",
+											"protocol": "http",
+											"host": [
+												"localhost"
+											],
+											"port": "3000",
+											"path": [
+												"v1",
+												"app",
+												"store",
+												"transactions",
+												"sale",
+												"REaJIRI8JqI"
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						}
+					]
+				}
+			]
+		}
+	]
+}
