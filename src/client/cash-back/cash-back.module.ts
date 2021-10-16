@@ -5,6 +5,7 @@ import { userProviders } from 'src/providers/user.providers';
 import { cashBackProviders } from 'src/providers/cash-backs.providers';
 import { DatabaseModule } from 'src/database/database.module';
 import { rescueProviders } from 'src/providers/rescue.providers';
+import { cashBackBalanceProviders } from 'src/providers/cash-backs-balance.providers';
 
 @Module({
   imports: [DatabaseModule],
@@ -13,6 +14,7 @@ import { rescueProviders } from 'src/providers/rescue.providers';
     ...userProviders,
     ...cashBackProviders,
     ...rescueProviders,
+    ...cashBackBalanceProviders,
     CashBackService,
   ],
 })
