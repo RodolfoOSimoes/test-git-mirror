@@ -79,7 +79,7 @@ export class CashBackService {
 
     return {
       balance:
-        todayBalance + (priorPoints?.balance || 0),
+        Number(todayBalance) + Number(priorPoints?.balance || 0),
       limited:
         todayCashbacksFiltered?.filter(
           (cashback) =>
