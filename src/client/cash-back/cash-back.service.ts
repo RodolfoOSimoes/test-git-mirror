@@ -24,7 +24,7 @@ export class CashBackService {
     const user = await this.userRepository.findOne(userId);
 
     user.cashbacks = await this.cashBackRepository.query(
-      `SELECT * FROM cash_backs WHERE user_id = ? AND played_at = ? ORDER BY track_id DESC
+      `SELECT * FROM cash_backs WHERE user_id = ? AND played_at >= ? ORDER BY track_id DESC
       `,
       [userId,moment().format("YYYY-MM-DD")],
     );
