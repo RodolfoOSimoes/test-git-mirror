@@ -157,6 +157,20 @@ export class RescueService {
     this.excelService.generateRescueAnalytics(users, admin.email, rescue.name);
   }
 
+  async findTotalStreamsCashBacks(id: number) {
+    const uniqueUserIds = await this.rescueRepository.query(
+      `SELECT COUNT(id) AS total FROM cash_backs WHERE rescue_id = ?`,
+      [id],
+    );
+
+    const count = uniqueUserIds.length;
+
+    return {
+      data: count,
+    };
+  }
+
+
   async findCashBacksByDay(id: number, page = 1, limit = 25) {
     const uniqueUserIds = await this.rescueRepository.query(
       `SELECT COUNT(id) AS total, DATE(created_at) AS created, rescue_id, 

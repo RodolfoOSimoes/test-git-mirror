@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
+import { ForbiddenException, HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { CreateAdminDto } from './dto/create-admin.dto';
 import { Admin } from '../../entities/admin.entity';
@@ -273,6 +273,28 @@ export class AdminService {
   }
 
   async updateProfile(id: number, dto: UpdateAdminProfileDto) {
+    // Carregar o admin (findById(number) => linha 272 copy/paste)
+    // Verificar se o email vindo do admin, é igual ao dto.admin.email (UpdateAdminProfileDto)
+    // Se for diferente, validar:
+    // -- Validar se email é válido (ja existe um regex pra isso em algum lugar)
+    // -- Validar se o email existe no banco (usar o findByEmail linha 263)
+    // -- Se validação errada, lançar exceção throw new ForbiddenException('Senhas não conferem')
+    // -- Testar a senha ( se senha do banco é igual ): 
+    // bcrypt.compareSync((dto.admin.new_password + process.env.PASSWORD_SALT)), admin.password_digest)
+    // -- Se der erro, lançar a exceção throw new ForbiddenException('Senhas não conferem')
+    // -----------------------------------------------
+    // -- Verificar se o admin.new_password == admin.new_password_confirmation
+    // Se for diferente, lançar throw new ForbiddenException('Senha e confirmação de senha não conferem')
+    
+    // ----- usar esse codigo pra validar o email -----
+    /*validateEmail(email) {
+      const re =
+        /^(([^<>()[\]\.,;:\s@\"]+(\.[^<>()[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i;
+      return re.test(email.toLowerCase());
+    }*/
+
+    // Passando por tudo, deixa rolar o adminRepository.update
+    
     const newPassword = bcrypt.hashSync(
       dto.admin.new_password + process.env.PASSWORD_SALT,
       8,

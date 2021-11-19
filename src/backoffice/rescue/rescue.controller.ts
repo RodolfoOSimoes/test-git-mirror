@@ -66,6 +66,16 @@ export class RescueController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(AdminRole.MASTER, AdminRole.PROMOTER)
+  @Get(':id/total_streams_cash_backs')
+  findTotalStreamsCashBacks(
+    @Request() req,
+    @Param('id') id: number,
+  ) {
+    return this.rescueService.findTotalStreamsCashBacks(id);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(AdminRole.MASTER)
   @Post(':id/users')
   exportUsers(@Request() req, @Param('id') id: number) {
