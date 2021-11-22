@@ -163,7 +163,7 @@ export class RescueService {
       [id],
     );
 
-    const count = uniqueUserIds.length;
+    const count = uniqueUserIds[0].total;
 
     return {
       data: count,
