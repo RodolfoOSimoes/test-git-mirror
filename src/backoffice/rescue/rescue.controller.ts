@@ -76,6 +76,16 @@ export class RescueController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(AdminRole.MASTER, AdminRole.PROMOTER)
+  @Get(':id/total_users_cash_backs')
+  findTotalUsersCashBacks(
+    @Request() req,
+    @Param('id') id: number,
+  ) {
+    return this.rescueService.findTotalUsersCashBacks(id);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(AdminRole.MASTER)
   @Post(':id/users')
   exportUsers(@Request() req, @Param('id') id: number) {

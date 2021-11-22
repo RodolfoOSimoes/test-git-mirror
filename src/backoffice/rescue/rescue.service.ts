@@ -170,6 +170,19 @@ export class RescueService {
     };
   }
 
+  async findTotalUsersCashBacks(id: number) {
+    const uniqueUserIds = await this.rescueRepository.query(
+      `SELECT (DISTINCT(user_id)) AS total FROM cash_backs WHERE rescue_id = ?`,
+      [id],
+    );
+
+    const count = uniqueUserIds[0].total;
+
+    return {
+      data: count,
+    };
+  }
+
 
   async findCashBacksByDay(id: number, page = 1, limit = 25) {
     const uniqueUserIds = await this.rescueRepository.query(
