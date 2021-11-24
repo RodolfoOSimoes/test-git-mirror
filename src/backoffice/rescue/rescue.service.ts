@@ -172,7 +172,7 @@ export class RescueService {
 
   async findTotalUsersCashBacks(id: number) {
     const uniqueUserIds = await this.rescueRepository.query(
-      `SELECT (DISTINCT(user_id)) AS total FROM cash_backs WHERE rescue_id = ?`,
+      `SELECT COUNT(DISTINCT(user_id)) AS total FROM cash_backs WHERE rescue_id = ?`,
       [id],
     );
 
