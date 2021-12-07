@@ -32,7 +32,7 @@ export class TransactionService {
   async create(user_id: number, code: string) {
 
     const data_user_start = new Date();
-    
+
     const product = await this.productsRepository.findOne({
       where: { code_product: code },
     });
@@ -56,7 +56,7 @@ export class TransactionService {
     if (TransactionService.transactionLimit <= 0) {
 
       await this.logrescuesRepository.save({
-        id_user: user_id,
+        user_id: user_id,
         created_at: new Date(),
         qtd_product_purchased: product.quantities_purchased,
         user_rescue_date: data_user_start,
@@ -73,7 +73,7 @@ export class TransactionService {
     } else {
 
       await this.logrescuesRepository.save({
-        id_user: user_id,
+        user_id: user_id,
         created_at: new Date(),
         qtd_product_purchased: product.quantities_purchased,
         user_rescue_date: data_user_start,
@@ -97,7 +97,7 @@ export class TransactionService {
       if (!user) {
         
         await this.logrescuesRepository.save({
-          id_user: user_id,
+          user_id: user_id,
           created_at: new Date(),
           qtd_product_purchased: product.quantities_purchased,
           user_rescue_date: data_user_start,
@@ -112,7 +112,7 @@ export class TransactionService {
       if (!user.email) {
 
         await this.logrescuesRepository.save({
-          id_user: user_id,
+          user_id: user_id,
           created_at: new Date(),
           qtd_product_purchased: product.quantities_purchased,
           user_rescue_date: data_user_start,
@@ -135,7 +135,7 @@ export class TransactionService {
       if (this.isntAllowToBuy(statement)) {
 
         await this.logrescuesRepository.save({
-          id_user: user_id,
+          user_id: user_id,
           created_at: new Date(),
           qtd_product_purchased: product.quantities_purchased,
           user_rescue_date: data_user_start,
@@ -154,7 +154,7 @@ export class TransactionService {
       await this.buyProduct(code, user, product);
     } catch (err) {
       await this.logrescuesRepository.save({
-        id_user: user_id,
+        user_id: user_id,
         created_at: new Date(),
         qtd_product_purchased: product.quantities_purchased,
         user_rescue_date: data_user_start,
@@ -173,7 +173,7 @@ export class TransactionService {
     }
 
     await this.logrescuesRepository.save({
-      id_user: user_id,
+      user_id: user_id,
       created_at: new Date(),
       qtd_product_purchased: product.quantities_purchased,
       user_rescue_date: data_user_start,
@@ -198,7 +198,7 @@ export class TransactionService {
           });
         } else {
           await this.logrescuesRepository.save({
-            id_user: user_id,
+            user_id: user_id,
             created_at: new Date(),
             qtd_product_purchased: product.quantities_purchased,
             user_rescue_date: data_user_start,
@@ -306,7 +306,7 @@ export class TransactionService {
 
     if (balance < product.value) {
       await this.logrescuesRepository.save({
-        id_user: user.id,
+        user_id: user.id,
         created_at: new Date(),
         qtd_product_purchased: product.quantities_purchased,
         user_rescue_date: data_user_start,
