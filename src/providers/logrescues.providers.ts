@@ -1,7 +1,7 @@
 import { Connection } from 'typeorm';
 import { LogRescues } from '../entities/logrescues.entity';
 
-export const newsletterProviders = [
+export const logrescuesProviders = [
   {
     provide: 'LOGRESCUES_REPOSITORY',
     useFactory: (connection: Connection) =>

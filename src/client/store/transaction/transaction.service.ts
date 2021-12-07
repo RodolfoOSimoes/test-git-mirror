@@ -32,7 +32,6 @@ export class TransactionService {
 
   async create(user_id: number, code: string) {
 
-    const data_user_start = new Date();
 
     const product = await this.productsRepository.findOne({
       where: { code_product: code },
@@ -41,15 +40,7 @@ export class TransactionService {
 
     if (product.quantities_purchased >= product.quantity) {
 
-      await this.logrescuesRepository.save({
-        user_id: user_id,
-        created_at: new Date(),
-        qtd_product_purchased: product.quantities_purchased,
-        user_rescue_date: data_user_start,
-        product_code: code,
-        qtd_product: product.quantity,
-        message: 'Produto esgotado.'
-      });
+      
 
       throw new UnauthorizedException('Produto esgotado.');
     }
