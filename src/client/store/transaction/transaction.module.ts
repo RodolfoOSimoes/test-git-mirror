@@ -11,6 +11,7 @@ import { SendMailProducerService } from 'src/jobs/producers/sendMail-producer-se
 import { BullModule } from '@nestjs/bull';
 import { withdrawalProviders } from 'src/providers/withdrawal.providers';
 import { campaignProviders } from 'src/providers/campaign.providers';
+import { logrescuesProviders } from 'src/providers/logrescues.providers';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { campaignProviders } from 'src/providers/campaign.providers';
     ...campaignProviders,
     TransactionService,
     SendMailProducerService,
+    ...logrescuesProviders
   ],
 })
 export class TransactionModule {}

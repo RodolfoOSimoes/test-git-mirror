@@ -1,32 +1,34 @@
 import {
+  Entity,
   Column,
-  CreateDateColumn,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+  CreateDateColumn
 } from 'typeorm';
-import { Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('log_rescues')
 export class LogRescues {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'int', nullable: false, default: 0 })
-  id_user: number;
+  @Column({ nullable: true })
+  user_id: number;
 
   @CreateDateColumn({ type: 'datetime', nullable: true })
   created_at: Date;
 
-  @Column({ type: 'int', nullable: false, default: 0 })
+  @Column({ nullable: true })
   qtd_product_purchased: number;
 
-  @Column({ length: 255, nullable: true })
-  user_rescue_date: Date;
-
-  @Column({ length: 255, nullable: true })
+  @Column({ nullable: true })
   product_code: string;
 
-  @Column({ type: 'int', nullable: false, default: 0 })
+  @Column({ nullable: true })
   qtd_product: number;
 
-  @Column({ length: 255, nullable: true })
+  @UpdateDateColumn({ type: 'datetime', nullable: true })
+  user_rescue_date: Date;
+
+  @Column({ nullable: true })
   message: string;
 }
