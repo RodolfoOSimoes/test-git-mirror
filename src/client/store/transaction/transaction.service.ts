@@ -40,7 +40,7 @@ export class TransactionService {
 
     if (product.quantities_purchased >= product.quantity) {
   
-      await this.logrescuesRepository.save({
+      await this.logrescuesRepository.create({
         user_id: user_id,
         created_at: new Date(),
         qtd_product_purchased: product.quantities_purchased,
@@ -55,7 +55,7 @@ export class TransactionService {
 
     if (TransactionService.transactionLimit <= 0) {
 
-      await this.logrescuesRepository.save({
+      await this.logrescuesRepository.create({
         user_id: user_id,
         created_at: new Date(),
         qtd_product_purchased: product.quantities_purchased,
@@ -72,7 +72,7 @@ export class TransactionService {
       TransactionService.transactionUser.push(user_id);
     } else {
 
-      await this.logrescuesRepository.save({
+      await this.logrescuesRepository.create({
         user_id: user_id,
         created_at: new Date(),
         qtd_product_purchased: product.quantities_purchased,
@@ -96,7 +96,7 @@ export class TransactionService {
 
       if (!user) {
         
-        await this.logrescuesRepository.save({
+        await this.logrescuesRepository.create({
           user_id: user_id,
           created_at: new Date(),
           qtd_product_purchased: product.quantities_purchased,
@@ -111,7 +111,7 @@ export class TransactionService {
 
       if (!user.email) {
 
-        await this.logrescuesRepository.save({
+        await this.logrescuesRepository.create({
           user_id: user_id,
           created_at: new Date(),
           qtd_product_purchased: product.quantities_purchased,
@@ -134,7 +134,7 @@ export class TransactionService {
 
       if (this.isntAllowToBuy(statement)) {
 
-        await this.logrescuesRepository.save({
+        await this.logrescuesRepository.create({
           user_id: user_id,
           created_at: new Date(),
           qtd_product_purchased: product.quantities_purchased,
@@ -153,7 +153,7 @@ export class TransactionService {
 
       await this.buyProduct(code, user, product);
     } catch (err) {
-      await this.logrescuesRepository.save({
+      await this.logrescuesRepository.create({
         user_id: user_id,
         created_at: new Date(),
         qtd_product_purchased: product.quantities_purchased,
@@ -172,7 +172,7 @@ export class TransactionService {
       TransactionService.transactionLimit++;
     }
 
-    await this.logrescuesRepository.save({
+    await this.logrescuesRepository.create({
       user_id: user_id,
       created_at: new Date(),
       qtd_product_purchased: product.quantities_purchased,
@@ -197,7 +197,7 @@ export class TransactionService {
             quantities_purchased: product.quantities_purchased + 1,
           });
         } else {
-          await this.logrescuesRepository.save({
+          await this.logrescuesRepository.create({
             user_id: user_id,
             created_at: new Date(),
             qtd_product_purchased: product.quantities_purchased,
@@ -310,7 +310,7 @@ export class TransactionService {
         created_at: new Date(),
         qtd_product_purchased: product.quantities_purchased,
         user_rescue_date: data_user_start,
-        product_code: product.code,
+        product_code: product.code_product,
         qtd_product: product.quantity,
         message: 'Saldo insuficiente.'
       }
@@ -319,11 +319,11 @@ export class TransactionService {
       console.log(">>created_at: " + new Date());
       console.log(">>qtd_product_purchased: " + product.quantities_purchased);
       console.log(">>user_rescue_date: " + data_user_start);
-      console.log(">>product_code: " + product.code);
+      console.log(">>product_code: " + product.code_product);
       console.log(">>qtd_product: " + product.quantity);
       console.log(">>message: Saldo insuficiente");
 
-      await this.logrescuesRepository.save(objToSave);
+      await this.logrescuesRepository.create(objToSave);
       throw new UnauthorizedException('Saldo insuficiente.');
     }
   }
