@@ -134,6 +134,8 @@ export class TransactionService {
 
       if (this.isntAllowToBuy(statement)) {
 
+        console.log(">Só pode comprar 1 produto por dia.<")
+
         await this.logrescuesRepository.save({
           user_id: user_id,
           created_at: new Date(),
@@ -274,7 +276,7 @@ export class TransactionService {
   }
 
   isntAllowToBuy(statement: Statement): boolean {
-    if (!statement) return false;
+    /*if (!statement) return false;
     try {
       const buyDate = moment(statement.created_at)
         .utcOffset('-0300')
@@ -283,7 +285,8 @@ export class TransactionService {
       return buyDate == today;
     } catch (error) {
       return true;
-    }
+    }*/
+    return true;
   }
 
   async purchaseValidation(product, user, data_user_start) {
