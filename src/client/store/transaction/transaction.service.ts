@@ -25,8 +25,6 @@ export class TransactionService {
     private productsRepository: Repository<Product>,
     private sendMailProducer: SendMailProducerService,
 
-    @Inject('LOGRESCUES_REPOSITORY')
-    private logrescuesRepository: Repository<LogRescues>,
   ) {}
 
   async create(user_id: number, code: string) {
@@ -39,31 +37,14 @@ export class TransactionService {
 
 
     if (product.quantities_purchased >= product.quantity) {
-  
-      await this.logrescuesRepository.save({
-        user_id: user_id,
-        created_at: new Date(),
-        qtd_product_purchased: product.quantities_purchased,
-        user_rescue_date: data_user_start,
-        product_code: code,
-        qtd_product: product.quantity,
-        message: 'Produto esgotado.'
-      });
+
 
       throw new UnauthorizedException('Produto esgotado.');
     }
 
     if (TransactionService.transactionLimit <= 0) {
 
-      await this.logrescuesRepository.save({
-        user_id: user_id,
-        created_at: new Date(),
-        qtd_product_purchased: product.quantities_purchased,
-        user_rescue_date: data_user_start,
-        product_code: code,
-        qtd_product: product.quantity,
-        message: 'Tente novamente em alguns instantes.'
-      });
+
 
       throw new UnauthorizedException('Tente novamente em alguns instantes.');
     }
@@ -72,15 +53,7 @@ export class TransactionService {
       TransactionService.transactionUser.push(user_id);
     } else {
 
-      await this.logrescuesRepository.save({
-        user_id: user_id,
-        created_at: new Date(),
-        qtd_product_purchased: product.quantities_purchased,
-        user_rescue_date: data_user_start,
-        product_code: code,
-        qtd_product: product.quantity,
-        message: 'Você já fez uma solicitação para resgate desse produto em outra sessão.'
-      });
+
 
       throw new UnauthorizedException(
         'Você já fez uma solicitação para resgate desse produto em outra sessão.',
@@ -96,30 +69,13 @@ export class TransactionService {
 
       if (!user) {
         
-        await this.logrescuesRepository.save({
-          user_id: user_id,
-          created_at: new Date(),
-          qtd_product_purchased: product.quantities_purchased,
-          user_rescue_date: data_user_start,
-          product_code: code,
-          qtd_product: product.quantity,
-          message: 'Usuário não encontrado.'
-        });
 
         throw new UnauthorizedException('Usuário não encontrado.');
       }
 
       if (!user.email) {
 
-        await this.logrescuesRepository.save({
-          user_id: user_id,
-          created_at: new Date(),
-          qtd_product_purchased: product.quantities_purchased,
-          user_rescue_date: data_user_start,
-          product_code: code,
-          qtd_product: product.quantity,
-          message: 'Necessário cadastrar email.'
-        });
+
 
         throw new UnauthorizedException('Necessário cadastrar email.');
       }
@@ -134,34 +90,18 @@ export class TransactionService {
 
       if (this.isntAllowToBuy(statement)) {
 
-        await this.logrescuesRepository.save({
-          user_id: user_id,
-          created_at: new Date(),
-          qtd_product_purchased: product.quantities_purchased,
-          user_rescue_date: data_user_start,
-          product_code: code,
-          qtd_product: product.quantity,
-          message: 'Só pode comprar 1 produto por dia.'
-        });
+
 
         throw new UnauthorizedException('Só pode comprar 1 produto por dia.');
       }
 
-      await this.purchaseValidation(product, user, data_user_start);
+      await this.purchaseValidation(product, user);
 
-      await this.incrementProduct(code, user_id, data_user_start);
+      await this.incrementProduct(code);
 
-      await this.buyProduct(code, user, product);
+      await this.buyProduct(code, user);
     } catch (err) {
-      await this.logrescuesRepository.save({
-        user_id: user_id,
-        created_at: new Date(),
-        qtd_product_purchased: product.quantities_purchased,
-        user_rescue_date: data_user_start,
-        product_code: code,
-        qtd_product: product.quantity,
-        message: err.message
-      });
+
       throw new UnauthorizedException(err.message);
     } finally {
       const userIndex = TransactionService.transactionUser.findIndex(
@@ -172,20 +112,12 @@ export class TransactionService {
       TransactionService.transactionLimit++;
     }
 
-    await this.logrescuesRepository.save({
-      user_id: user_id,
-      created_at: new Date(),
-      qtd_product_purchased: product.quantities_purchased,
-      user_rescue_date: data_user_start,
-      product_code: code,
-      qtd_product: product.quantity,
-      message: 'Produto resgatado com sucesso.'
-    });
+
 
     return { message: 'Produto resgatado com sucesso.' };
   }
 
-  async incrementProduct(code, user_id, data_user_start) {
+  async incrementProduct(code) {
     await this.productsRepository.manager.transaction(
       'SERIALIZABLE',
       async (manager) => {
@@ -197,22 +129,14 @@ export class TransactionService {
             quantities_purchased: product.quantities_purchased + 1,
           });
         } else {
-          await this.logrescuesRepository.save({
-            user_id: user_id,
-            created_at: new Date(),
-            qtd_product_purchased: product.quantities_purchased,
-            user_rescue_date: data_user_start,
-            product_code: code,
-            qtd_product: product.quantity,
-            message: 'Produto esgotado.'
-          });
+ 
           throw new UnauthorizedException('Produto esgotado.');
         }
       },
     );
   }
 
-  async buyProduct(code, user, product) {
+  async buyProduct(user, product) {
     try {
       const address = await this.productsRepository.manager.findOne(Address, {
         where: { user: user },
@@ -286,7 +210,7 @@ export class TransactionService {
     }
   }
 
-  async purchaseValidation(product, user, data_user_start) {
+  async purchaseValidation(product, user) {
     const withdrawals = await this.productsRepository.manager.find(Withdrawal, {
       where: {
         user: user,
@@ -305,15 +229,7 @@ export class TransactionService {
     const balance = generateBalance(statements, withdrawals) || 0;
 
     if (balance < product.value) {
-      await this.logrescuesRepository.save({
-        user_id: user.id,
-        created_at: new Date(),
-        qtd_product_purchased: product.quantities_purchased,
-        user_rescue_date: data_user_start,
-        product_code: product.code,
-        qtd_product: product.quantity,
-        message: 'Saldo insuficiente.'
-      });
+
       throw new UnauthorizedException('Saldo insuficiente.');
     }
   }
