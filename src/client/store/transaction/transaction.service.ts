@@ -134,8 +134,6 @@ export class TransactionService {
 
       if (this.isntAllowToBuy(statement)) {
 
-        console.log(">Só pode comprar 1 produto por dia.<")
-
         await this.logrescuesRepository.save({
           user_id: user_id,
           created_at: new Date(),
@@ -276,7 +274,7 @@ export class TransactionService {
   }
 
   isntAllowToBuy(statement: Statement): boolean {
-    /*if (!statement) return false;
+    if (!statement) return false;
     try {
       const buyDate = moment(statement.created_at)
         .utcOffset('-0300')
@@ -285,8 +283,7 @@ export class TransactionService {
       return buyDate == today;
     } catch (error) {
       return true;
-    }*/
-    return true;
+    }
   }
 
   async purchaseValidation(product, user, data_user_start) {
@@ -308,15 +305,25 @@ export class TransactionService {
     const balance = generateBalance(statements, withdrawals) || 0;
 
     if (balance < product.value) {
-      await this.logrescuesRepository.save({
+      const objToSave = {
         user_id: user.id,
         created_at: new Date(),
         qtd_product_purchased: product.quantities_purchased,
         user_rescue_date: data_user_start,
         product_code: product.code,
         qtd_product: product.quantity,
-        message: 'Produto esgotado.'
-      });
+        message: 'Saldo insuficiente.'
+      }
+      console.log(">>objToSave: " + objToSave);
+      console.log(">>user_id: " + user.id);
+      console.log(">>created_at: " + new Date());
+      console.log(">>qtd_product_purchased: " + product.quantities_purchased);
+      console.log(">>user_rescue_date: " + data_user_start);
+      console.log(">>product_code: " + product.code);
+      console.log(">>qtd_product: " + product.quantity);
+      console.log(">>message: Saldo insuficiente");
+
+      await this.logrescuesRepository.save(objToSave);
       throw new UnauthorizedException('Saldo insuficiente.');
     }
   }
