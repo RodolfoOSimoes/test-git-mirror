@@ -6,8 +6,8 @@ import {
   CreateDateColumn
 } from 'typeorm';
 
-@Entity('admins')
-export class Admin {
+@Entity('log_rescues')
+export class LogRescues {
   @PrimaryGeneratedColumn()
   id: number;
 
