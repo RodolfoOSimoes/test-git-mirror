@@ -5,7 +5,6 @@ import { LessThanOrEqual, MoreThanOrEqual, Repository } from 'typeorm';
 import { Address } from 'src/entities/address.entity';
 import { Order } from 'src/entities/order.entity';
 import { Product } from 'src/entities/product.entity';
-import { LogRescues } from 'src/entities/logrescues.entity';
 import { generateCode } from 'src/utils/code.utils';
 import { SendMailProducerService } from 'src/jobs/producers/sendMail-producer-service';
 import { Withdrawal } from 'src/entities/withdrawals.entity';
@@ -27,8 +26,6 @@ export class TransactionService {
   ) {}
 
   async create(user_id: number, code: string) {
-
-    const data_user_start = new Date();
 
     const product = await this.productsRepository.findOne({
       where: { code_product: code },
