@@ -40,30 +40,14 @@ export class TransactionService {
 
     if (product.quantities_purchased >= product.quantity) {
   
-      await this.logrescuesRepository.save({
-        id_user: user_id,
-        created_at: new Date(),
-        qtd_product_purchased: product.quantities_purchased,
-        user_rescue_date: data_user_start,
-        product_code: code,
-        qtd_product: product.quantity,
-        message: 'Produto esgotado.'
-      });
+ 
 
       throw new UnauthorizedException('Produto esgotado.');
     }
 
     if (TransactionService.transactionLimit <= 0) {
 
-      await this.logrescuesRepository.save({
-        id_user: user_id,
-        created_at: new Date(),
-        qtd_product_purchased: product.quantities_purchased,
-        user_rescue_date: data_user_start,
-        product_code: code,
-        qtd_product: product.quantity,
-        message: 'Tente novamente em alguns instantes.'
-      });
+     
 
       throw new UnauthorizedException('Tente novamente em alguns instantes.');
     }
@@ -72,15 +56,7 @@ export class TransactionService {
       TransactionService.transactionUser.push(user_id);
     } else {
 
-      await this.logrescuesRepository.save({
-        id_user: user_id,
-        created_at: new Date(),
-        qtd_product_purchased: product.quantities_purchased,
-        user_rescue_date: data_user_start,
-        product_code: code,
-        qtd_product: product.quantity,
-        message: 'Você já fez uma solicitação para resgate desse produto em outra sessão.'
-      });
+     
 
       throw new UnauthorizedException(
         'Você já fez uma solicitação para resgate desse produto em outra sessão.',
@@ -96,30 +72,14 @@ export class TransactionService {
 
       if (!user) {
         
-        await this.logrescuesRepository.save({
-          id_user: user_id,
-          created_at: new Date(),
-          qtd_product_purchased: product.quantities_purchased,
-          user_rescue_date: data_user_start,
-          product_code: code,
-          qtd_product: product.quantity,
-          message: 'Usuário não encontrado.'
-        });
+       
 
         throw new UnauthorizedException('Usuário não encontrado.');
       }
 
       if (!user.email) {
 
-        await this.logrescuesRepository.save({
-          id_user: user_id,
-          created_at: new Date(),
-          qtd_product_purchased: product.quantities_purchased,
-          user_rescue_date: data_user_start,
-          product_code: code,
-          qtd_product: product.quantity,
-          message: 'Necessário cadastrar email.'
-        });
+     
 
         throw new UnauthorizedException('Necessário cadastrar email.');
       }
@@ -134,15 +94,7 @@ export class TransactionService {
 
       if (this.isntAllowToBuy(statement)) {
 
-        await this.logrescuesRepository.save({
-          id_user: user_id,
-          created_at: new Date(),
-          qtd_product_purchased: product.quantities_purchased,
-          user_rescue_date: data_user_start,
-          product_code: code,
-          qtd_product: product.quantity,
-          message: 'Só pode comprar 1 produto por dia.'
-        });
+     
 
         throw new UnauthorizedException('Só pode comprar 1 produto por dia.');
       }
@@ -153,15 +105,7 @@ export class TransactionService {
 
       await this.buyProduct(code, user, product);
     } catch (err) {
-      await this.logrescuesRepository.save({
-        id_user: user_id,
-        created_at: new Date(),
-        qtd_product_purchased: product.quantities_purchased,
-        user_rescue_date: data_user_start,
-        product_code: code,
-        qtd_product: product.quantity,
-        message: err.message
-      });
+  
       throw new UnauthorizedException(err.message);
     } finally {
       const userIndex = TransactionService.transactionUser.findIndex(
@@ -172,15 +116,7 @@ export class TransactionService {
       TransactionService.transactionLimit++;
     }
 
-    await this.logrescuesRepository.save({
-      id_user: user_id,
-      created_at: new Date(),
-      qtd_product_purchased: product.quantities_purchased,
-      user_rescue_date: data_user_start,
-      product_code: code,
-      qtd_product: product.quantity,
-      message: 'Produto resgatado com sucesso.'
-    });
+   
 
     return { message: 'Produto resgatado com sucesso.' };
   }
@@ -197,15 +133,7 @@ export class TransactionService {
             quantities_purchased: product.quantities_purchased + 1,
           });
         } else {
-          await this.logrescuesRepository.save({
-            id_user: user_id,
-            created_at: new Date(),
-            qtd_product_purchased: product.quantities_purchased,
-            user_rescue_date: data_user_start,
-            product_code: code,
-            qtd_product: product.quantity,
-            message: 'Produto esgotado.'
-          });
+          
           throw new UnauthorizedException('Produto esgotado.');
         }
       },
@@ -305,15 +233,7 @@ export class TransactionService {
     const balance = generateBalance(statements, withdrawals) || 0;
 
     if (balance < product.value) {
-      await this.logrescuesRepository.save({
-        id_user: user.id,
-        created_at: new Date(),
-        qtd_product_purchased: product.quantities_purchased,
-        user_rescue_date: data_user_start,
-        product_code: product.code,
-        qtd_product: product.quantity,
-        message: 'Produto esgotado.'
-      });
+     
       throw new UnauthorizedException('Saldo insuficiente.');
     }
   }
