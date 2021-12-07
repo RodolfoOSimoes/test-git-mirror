@@ -25,6 +25,9 @@ export class TransactionService {
     private productsRepository: Repository<Product>,
     private sendMailProducer: SendMailProducerService,
 
+    @Inject('LOGRESCUES_REPOSITORY')
+    private logrescuesRepository: Repository<LogRescues>,
+
   ) {}
 
   async create(user_id: number, code: string) {
@@ -38,6 +41,15 @@ export class TransactionService {
 
     if (product.quantities_purchased >= product.quantity) {
 
+      await this.logrescuesRepository.save({
+        user_id: user_id,
+        created_at: new Date(),
+        qtd_product_purchased: product.quantities_purchased,
+        user_rescue_date: data_user_start,
+        product_code: code,
+        qtd_product: product.quantity,
+        message: 'Produto esgotado.'
+      });
 
       throw new UnauthorizedException('Produto esgotado.');
     }
