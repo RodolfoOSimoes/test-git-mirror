@@ -37,6 +37,26 @@ export class TransactionService {
       where: { code_product: code },
     });
 
+    const objToSave = {
+      user_id: user_id,
+      created_at: new Date(),
+      qtd_product_purchased: product.quantities_purchased,
+      user_rescue_date: data_user_start,
+      product_code: product.code_product,
+      qtd_product: product.quantity,
+      message: 'Iniciada tentativa de resgate.'
+    }
+    console.log(">Tentativa de resgate<")
+    console.log(">>user_id: " + user_id);
+    console.log(">>created_at: " + new Date());
+    console.log(">>qtd_product_purchased: " + product.quantities_purchased);
+    console.log(">>user_rescue_date: " + data_user_start);
+    console.log(">>product_code: " + product.code_product);
+    console.log(">>qtd_product: " + product.quantity);
+    console.log(">>message: Iniciada tentativa de resgate");
+
+    await this.logrescuesRepository.create(objToSave);
+
 
     if (product.quantities_purchased >= product.quantity) {
   
@@ -392,7 +412,7 @@ export class TransactionService {
       console.log(">>qtd_product: " + product.quantity);
       console.log(">>message: Saldo insuficiente");
 
-      this.logrescuesRepository.create(objToSave);
+      await this.logrescuesRepository.create(objToSave);
       throw new UnauthorizedException('Saldo insuficiente.');
     }
   }
