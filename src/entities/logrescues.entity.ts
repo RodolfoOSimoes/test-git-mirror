@@ -19,4 +19,16 @@ export class Admin {
 
   @Column({ nullable: true })
   qtd_product_purchased: number;
+
+  @Column({ nullable: true })
+  product_code: string;
+
+  @Column({ nullable: true })
+  qtd_product: number;
+
+  @UpdateDateColumn({ type: 'datetime', nullable: true })
+  user_rescue_date: Date;
+
+  @Column({ nullable: true })
+  message: string;
 }
