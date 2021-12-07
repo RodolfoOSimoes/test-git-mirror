@@ -12,6 +12,7 @@ import { BullModule } from '@nestjs/bull';
 import { withdrawalProviders } from 'src/providers/withdrawal.providers';
 import { campaignProviders } from 'src/providers/campaign.providers';
 import { logrescuesProviders } from 'src/providers/logrescues.providers';
+import { LogrescueService } from './logrescue.service';
 
 @Module({
   imports: [
@@ -31,7 +32,8 @@ import { logrescuesProviders } from 'src/providers/logrescues.providers';
     ...campaignProviders,
     TransactionService,
     SendMailProducerService,
-    ...logrescuesProviders
+    ...logrescuesProviders,
+    LogrescueService
   ],
 })
 export class TransactionModule {}
