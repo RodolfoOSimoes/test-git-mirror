@@ -24,7 +24,6 @@ export class TransactionService {
     @Inject('PRODUCT_REPOSITORY')
     private productsRepository: Repository<Product>,
     private sendMailProducer: SendMailProducerService,
-
   ) {}
 
   async create(user_id: number, code: string) {
