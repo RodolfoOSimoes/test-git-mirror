@@ -24,9 +24,10 @@ export class LogrescueService {
         user_rescue_date: user_rescue_date,
         product_code: product_code,
         qtd_product: qtd_product,
-        message: message
+        message: message,
+        reload: false
       }
-      console.log(">Tentativa de resgate<")
+      console.log(">>>Tentativa de resgate<<<")
       console.log(">>user_id: " + user_id,);
       console.log(">>created_at: " + new Date());
       console.log(">>qtd_product_purchased: " + qtd_product_purchased);
@@ -35,6 +36,6 @@ export class LogrescueService {
       console.log(">>qtd_product: " + qtd_product);
       console.log(">>message: " + message);
 
-      await this.logrescuesRepository.create(objToSave);
+      await this.logrescuesRepository.save(objToSave);
   }
 }

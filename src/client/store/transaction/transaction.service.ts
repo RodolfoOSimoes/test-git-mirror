@@ -5,13 +5,13 @@ import { LessThanOrEqual, MoreThanOrEqual, Repository } from 'typeorm';
 import { Address } from 'src/entities/address.entity';
 import { Order } from 'src/entities/order.entity';
 import { Product } from 'src/entities/product.entity';
-import { LogRescues } from 'src/entities/logrescues.entity';
 import { generateCode } from 'src/utils/code.utils';
 import { SendMailProducerService } from 'src/jobs/producers/sendMail-producer-service';
 import { Withdrawal } from 'src/entities/withdrawals.entity';
 import { Campaign } from 'src/entities/campaign.entity';
 import { formatDate, prepareDate } from 'src/utils/date.utils';
 import { generateBalance } from 'src/utils/balance.utils';
+import { LogrescueService } from './logrescue.service';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const moment = require('moment');
@@ -24,9 +24,7 @@ export class TransactionService {
     @Inject('PRODUCT_REPOSITORY')
     private productsRepository: Repository<Product>,
     private sendMailProducer: SendMailProducerService,
-
-    @Inject('LOGRESCUES_REPOSITORY')
-    private logrescuesRepository: Repository<LogRescues>,
+    private readonly logrescuesService: LogrescueService,
   ) {}
 
   async create(user_id: number, code: string) {
@@ -37,49 +35,18 @@ export class TransactionService {
       where: { code_product: code },
     });
 
+    this.logrescuesService.create(user_id, code, 0, data_user_start, product.quantity, "Iniciando tentativa de resgate");
+
     if (product.quantities_purchased >= product.quantity) {
-  
-      /*await this.logrescuesRepository.create({
-        user_id: user_id,
-        created_at: new Date(),
-        qtd_product_purchased: product.quantities_purchased,
-        user_rescue_date: data_user_start,
-        product_code: code,
-        qtd_product: product.quantity,
-        message: 'Produto esgotado.'
-      });*/
-      console.log(">Tentativa de resgate<")
-      console.log(">>user_id: " + user_id);
-      console.log(">>created_at: " + new Date());
-      console.log(">>qtd_product_purchased: " + product.quantities_purchased);
-      console.log(">>user_rescue_date: " + data_user_start);
-      console.log(">>product_code: " + product.code_product);
-      console.log(">>qtd_product: " + product.quantity);
-      console.log(">>message: Produto esgotado");
+
+      this.logrescuesService.create(user_id, code, 0, data_user_start, product.quantity, "Produto esgotado");
 
       throw new UnauthorizedException('Produto esgotado.');
     }
 
     if (TransactionService.transactionLimit <= 0) {
 
-      /*await this.logrescuesRepository.create({
-        user_id: user_id,
-        created_at: new Date(),
-        qtd_product_purchased: product.quantities_purchased,
-        user_rescue_date: data_user_start,
-        product_code: code,
-        qtd_product: product.quantity,
-        message: 'Tente novamente em alguns instantes.'
-      });*/
-
-      console.log(">Tentativa de resgate<")
-      console.log(">>user_id: " + user_id);
-      console.log(">>created_at: " + new Date());
-      console.log(">>qtd_product_purchased: " + product.quantities_purchased);
-      console.log(">>user_rescue_date: " + data_user_start);
-      console.log(">>product_code: " + product.code_product);
-      console.log(">>qtd_product: " + product.quantity);
-      console.log(">>message: Tente novamente em alguns instantes");
+      this.logrescuesService.create(user_id, code, 0, data_user_start, product.quantity, "Tente novamente em alguns instantes");
 
       throw new UnauthorizedException('Tente novamente em alguns instantes.');
     }
@@ -88,24 +55,7 @@ export class TransactionService {
       TransactionService.transactionUser.push(user_id);
     } else {
 
-      /*await this.logrescuesRepository.create({
-        user_id: user_id,
-        created_at: new Date(),
-        qtd_product_purchased: product.quantities_purchased,
-        user_rescue_date: data_user_start,
-        product_code: code,
-        qtd_product: product.quantity,
-        message: 'Você já fez uma solicitação para resgate desse produto em outra sessão.'
-      });*/
-
-      console.log(">Tentativa de resgate<")
-      console.log(">>user_id: " + user_id);
-      console.log(">>created_at: " + new Date());
-      console.log(">>qtd_product_purchased: " + product.quantities_purchased);
-      console.log(">>user_rescue_date: " + data_user_start);
-      console.log(">>product_code: " + product.code_product);
-      console.log(">>qtd_product: " + product.quantity);
-      console.log(">>message: Você já fez uma solicitação para resgate desse produto em outra sessão.");
+      this.logrescuesService.create(user_id, code, 0, data_user_start, product.quantity, "Você já fez uma solicitação para resgate desse produto em outra sessão");
 
       throw new UnauthorizedException(
         'Você já fez uma solicitação para resgate desse produto em outra sessão.',
@@ -121,48 +71,14 @@ export class TransactionService {
 
       if (!user) {
         
-        /*await this.logrescuesRepository.create({
-          user_id: user_id,
-          created_at: new Date(),
-          qtd_product_purchased: product.quantities_purchased,
-          user_rescue_date: data_user_start,
-          product_code: code,
-          qtd_product: product.quantity,
-          message: 'Usuário não encontrado.'
-        });*/
-
-        console.log(">Tentativa de resgate<")
-        console.log(">>user_id: " + user_id);
-        console.log(">>created_at: " + new Date());
-        console.log(">>qtd_product_purchased: " + product.quantities_purchased);
-        console.log(">>user_rescue_date: " + data_user_start);
-        console.log(">>product_code: " + product.code_product);
-        console.log(">>qtd_product: " + product.quantity);
-        console.log(">>message: Usuário não encontrado.");
+        this.logrescuesService.create(user_id, code, 0, data_user_start, product.quantity, "Usuário não encontrado");
 
         throw new UnauthorizedException('Usuário não encontrado.');
       }
 
       if (!user.email) {
 
-        /*await this.logrescuesRepository.create({
-          user_id: user_id,
-          created_at: new Date(),
-          qtd_product_purchased: product.quantities_purchased,
-          user_rescue_date: data_user_start,
-          product_code: code,
-          qtd_product: product.quantity,
-          message: 'Necessário cadastrar email.'
-        });*/
-
-        console.log(">Tentativa de resgate<")
-        console.log(">>user_id: " + user_id);
-        console.log(">>created_at: " + new Date());
-        console.log(">>qtd_product_purchased: " + product.quantities_purchased);
-        console.log(">>user_rescue_date: " + data_user_start);
-        console.log(">>product_code: " + product.code_product);
-        console.log(">>qtd_product: " + product.quantity);
-        console.log(">>message: Necessário cadastrar email.");
+        this.logrescuesService.create(user_id, code, 0, data_user_start, product.quantity, "Necessário cadastrar email.");
 
         throw new UnauthorizedException('Necessário cadastrar email.');
       }
@@ -177,51 +93,18 @@ export class TransactionService {
 
       if (this.isntAllowToBuy(statement)) {
 
-        /*await this.logrescuesRepository.create({
-          user_id: user_id,
-          created_at: new Date(),
-          qtd_product_purchased: product.quantities_purchased,
-          user_rescue_date: data_user_start,
-          product_code: code,
-          qtd_product: product.quantity,
-          message: 'Só pode comprar 1 produto por dia.'
-        });*/
-
-        console.log(">Tentativa de resgate<")
-        console.log(">>user_id: " + user_id);
-        console.log(">>created_at: " + new Date());
-        console.log(">>qtd_product_purchased: " + product.quantities_purchased);
-        console.log(">>user_rescue_date: " + data_user_start);
-        console.log(">>product_code: " + product.code_product);
-        console.log(">>qtd_product: " + product.quantity);
-        console.log(">>message: Só pode comprar 1 produto por dia.");
+        this.logrescuesService.create(user_id, code, 0, data_user_start, product.quantity, "Só pode comprar 1 produto por dia.");
 
         throw new UnauthorizedException('Só pode comprar 1 produto por dia.');
       }
 
-      //await this.purchaseValidation(product, user, data_user_start);
+      await this.purchaseValidation(product, user, data_user_start);
 
       await this.incrementProduct(code, user_id, data_user_start);
 
       await this.buyProduct(code, user, product);
     } catch (err) {
-      /*await this.logrescuesRepository.create({
-        user_id: user_id,
-        created_at: new Date(),
-        qtd_product_purchased: product.quantities_purchased,
-        user_rescue_date: data_user_start,
-        product_code: code,
-        qtd_product: product.quantity,
-        message: err.message
-      });*/
-      console.log(">Tentativa de resgate<")
-      console.log(">>user_id: " + user_id);
-      console.log(">>created_at: " + new Date());
-      console.log(">>qtd_product_purchased: " + product.quantities_purchased);
-      console.log(">>user_rescue_date: " + data_user_start);
-      console.log(">>product_code: " + product.code_product);
-      console.log(">>qtd_product: " + product.quantity);
-      console.log(">>message: " + err.message);
+      this.logrescuesService.create(user_id, code, 0, data_user_start, product.quantity, err.message);
       throw new UnauthorizedException(err.message);
     } finally {
       const userIndex = TransactionService.transactionUser.findIndex(
@@ -232,15 +115,7 @@ export class TransactionService {
       TransactionService.transactionLimit++;
     }
 
-    await this.logrescuesRepository.create({
-      user_id: user_id,
-      created_at: new Date(),
-      qtd_product_purchased: product.quantities_purchased,
-      user_rescue_date: data_user_start,
-      product_code: code,
-      qtd_product: product.quantity,
-      message: 'Produto resgatado com sucesso.'
-    });
+    this.logrescuesService.create(user_id, code, 1, data_user_start, product.quantity, "Produto resgatado com sucesso.");
 
     return { message: 'Produto resgatado com sucesso.' };
   }
@@ -257,23 +132,8 @@ export class TransactionService {
             quantities_purchased: product.quantities_purchased + 1,
           });
         } else {
-          /*await this.logrescuesRepository.create({
-            user_id: user_id,
-            created_at: new Date(),
-            qtd_product_purchased: product.quantities_purchased,
-            user_rescue_date: data_user_start,
-            product_code: code,
-            qtd_product: product.quantity,
-            message: 'Produto esgotado.'
-          });*/
-          console.log(">Tentativa de resgate<")
-          console.log(">>user_id: " + user_id);
-          console.log(">>created_at: " + new Date());
-          console.log(">>qtd_product_purchased: " + product.quantities_purchased);
-          console.log(">>user_rescue_date: " + data_user_start);
-          console.log(">>product_code: " + product.code_product);
-          console.log(">>qtd_product: " + product.quantity);
-          console.log(">>message: Produto esgotado");
+          console.log("aqui 135");
+          this.logrescuesService.create(user_id, code, 0, data_user_start, product.quantity, "Produto esgotado.");
           throw new UnauthorizedException('Produto esgotado.');
         }
       },
@@ -373,25 +233,8 @@ export class TransactionService {
     const balance = generateBalance(statements, withdrawals) || 0;
 
     if (balance < product.value) {
-      const objToSave = {
-        user_id: user.id,
-        created_at: new Date(),
-        qtd_product_purchased: product.quantities_purchased,
-        user_rescue_date: data_user_start,
-        product_code: product.code_product,
-        qtd_product: product.quantity,
-        message: 'Saldo insuficiente.'
-      }
-      console.log(">Tentativa de resgate<")
-      console.log(">>user_id: " + user.id);
-      console.log(">>created_at: " + new Date());
-      console.log(">>qtd_product_purchased: " + product.quantities_purchased);
-      console.log(">>user_rescue_date: " + data_user_start);
-      console.log(">>product_code: " + product.code_product);
-      console.log(">>qtd_product: " + product.quantity);
-      console.log(">>message: Saldo insuficiente");
+      this.logrescuesService.create(user.id, product.code_product, 0, data_user_start, product.quantity, "Saldo insuficiente.");
 
-      await this.logrescuesRepository.create(objToSave);
       throw new UnauthorizedException('Saldo insuficiente.');
     }
   }
