@@ -15,7 +15,7 @@ export class LogrescueService {
     private logrescuesRepository: Repository<LogRescues>,
   ) {}
 
-  async create(user_id: number, product_code: string, qtd_product_purchased: number, user_rescue_date: Date, qtd_product: number, message: string) {
+  async create(user_id: number, product_code: number, qtd_product_purchased: number, user_rescue_date: Date, qtd_product: number, message: string) {
       
     const objToSave = {
         user_id: user_id,

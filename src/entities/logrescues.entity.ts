@@ -21,8 +21,8 @@ export class LogRescues {
   @Column({ type: 'datetime', nullable: true })
   user_rescue_date: Date;
 
-  @Column({ length: 255, nullable: true })
-  product_code: string;
+  @Column({ type: 'int', nullable: true, default: 0 })
+  product_code: number;
 
   @Column({ type: 'int', nullable: false, default: 0 })
   qtd_product: number;

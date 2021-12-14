@@ -35,18 +35,18 @@ export class TransactionService {
       where: { code_product: code },
     });
 
-    this.logrescuesService.create(user_id, code, 0, data_user_start, product.quantity, "Iniciando tentativa de resgate");
+    this.logrescuesService.create(user_id, product.id, 0, data_user_start, product.quantity, "Iniciando tentativa de resgate");
 
     if (product.quantities_purchased >= product.quantity) {
 
-      this.logrescuesService.create(user_id, code, 0, data_user_start, product.quantity, "Produto esgotado");
+      this.logrescuesService.create(user_id, product.id, 0, data_user_start, product.quantity, "Produto esgotado");
 
       throw new UnauthorizedException('Produto esgotado.');
     }
 
     if (TransactionService.transactionLimit <= 0) {
 
-      this.logrescuesService.create(user_id, code, 0, data_user_start, product.quantity, "Tente novamente em alguns instantes");
+      this.logrescuesService.create(user_id, product.id, 0, data_user_start, product.quantity, "Tente novamente em alguns instantes");
 
       throw new UnauthorizedException('Tente novamente em alguns instantes.');
     }
@@ -55,7 +55,7 @@ export class TransactionService {
       TransactionService.transactionUser.push(user_id);
     } else {
 
-      this.logrescuesService.create(user_id, code, 0, data_user_start, product.quantity, "Você já fez uma solicitação para resgate desse produto em outra sessão");
+      this.logrescuesService.create(user_id, product.id, 0, data_user_start, product.quantity, "Você já fez uma solicitação para resgate desse produto em outra sessão");
 
       throw new UnauthorizedException(
         'Você já fez uma solicitação para resgate desse produto em outra sessão.',
@@ -71,14 +71,14 @@ export class TransactionService {
 
       if (!user) {
         
-        this.logrescuesService.create(user_id, code, 0, data_user_start, product.quantity, "Usuário não encontrado");
+        this.logrescuesService.create(user_id, product.id, 0, data_user_start, product.quantity, "Usuário não encontrado");
 
         throw new UnauthorizedException('Usuário não encontrado.');
       }
 
       if (!user.email) {
 
-        this.logrescuesService.create(user_id, code, 0, data_user_start, product.quantity, "Necessário cadastrar email.");
+        this.logrescuesService.create(user_id, product.id, 0, data_user_start, product.quantity, "Necessário cadastrar email.");
 
         throw new UnauthorizedException('Necessário cadastrar email.');
       }
@@ -93,7 +93,7 @@ export class TransactionService {
 
       if (this.isntAllowToBuy(statement)) {
 
-        this.logrescuesService.create(user_id, code, 0, data_user_start, product.quantity, "Só pode comprar 1 produto por dia.");
+        this.logrescuesService.create(user_id, product.id, 0, data_user_start, product.quantity, "Só pode comprar 1 produto por dia.");
 
         throw new UnauthorizedException('Só pode comprar 1 produto por dia.');
       }
@@ -104,7 +104,7 @@ export class TransactionService {
 
       await this.buyProduct(code, user, product);
     } catch (err) {
-      this.logrescuesService.create(user_id, code, 0, data_user_start, product.quantity, err.message);
+      this.logrescuesService.create(user_id, product.id, 0, data_user_start, product.quantity, err.message);
       throw new UnauthorizedException(err.message);
     } finally {
       const userIndex = TransactionService.transactionUser.findIndex(
@@ -115,7 +115,7 @@ export class TransactionService {
       TransactionService.transactionLimit++;
     }
 
-    this.logrescuesService.create(user_id, code, 1, data_user_start, product.quantity, "Produto resgatado com sucesso.");
+    this.logrescuesService.create(user_id, product.id, 1, data_user_start, product.quantity, "Produto resgatado com sucesso.");
 
     return { message: 'Produto resgatado com sucesso.' };
   }
@@ -133,7 +133,7 @@ export class TransactionService {
           });
         } else {
           console.log("aqui 135");
-          this.logrescuesService.create(user_id, code, 0, data_user_start, product.quantity, "Produto esgotado.");
+          this.logrescuesService.create(user_id, product.id, 0, data_user_start, product.quantity, "Produto esgotado.");
           throw new UnauthorizedException('Produto esgotado.');
         }
       },
