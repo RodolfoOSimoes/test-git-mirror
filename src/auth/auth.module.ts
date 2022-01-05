@@ -21,7 +21,7 @@ import { ConfigModule } from '@nestjs/config';
     DatabaseModule,
     JwtModule.register({
       secret: process.env.JWT_SECRET,
-      signOptions: { expiresIn: '300d' },
+      signOptions: { expiresIn: '15m' },
     }),
   ],
   providers: [
