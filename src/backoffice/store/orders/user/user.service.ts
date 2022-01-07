@@ -33,19 +33,18 @@ export class UserService {
 
     const offset = (page - 1) * limit;
 
-    const orders = await this.orderRepository.query(
-      `SELECT MAX(orders.id) AS order_id, users.id AS id, users.email AS email, users.name AS name FROM orders 
-         LEFT OUTER JOIN products
-          ON products.id = orders.product_id AND products.deleted = FALSE 
-         LEFT OUTER JOIN users 
-          ON users.id = orders.user_id AND users.deleted = FALSE 
-         LEFT OUTER JOIN addresses 
-          ON addresses.user_id = users.id AND addresses.deleted = FALSE AND addresses.order_id IS NULL
-          WHERE users.email LIKE '%${query}%' OR addresses.cep LIKE '%${query}%' OR
-          users.name LIKE '%${query}%' OR products.name LIKE '%${query}%'
-         GROUP BY orders.user_id ORDER BY order_id DESC LIMIT ? OFFSET ?
-        `,
-      [limit, offset],
+    var sqlOrders = `SELECT MAX(orders.id) AS order_id, users.id AS id, users.email AS email, users.name AS name FROM orders 
+    LEFT OUTER JOIN products
+     ON products.id = orders.product_id AND products.deleted = FALSE 
+    LEFT OUTER JOIN users 
+     ON users.id = orders.user_id AND users.deleted = FALSE 
+    LEFT OUTER JOIN addresses 
+     ON addresses.user_id = users.id AND addresses.deleted = FALSE AND addresses.order_id IS NULL
+     WHERE users.email LIKE ? OR addresses.cep LIKE ? OR
+     users.name LIKE ? OR products.name LIKE ?
+    GROUP BY orders.user_id ORDER BY order_id DESC LIMIT ? OFFSET ?`;
+    const orders = await this.orderRepository.query(sqlOrders,
+      [query, query, query, query, limit, offset],
     );
 
     return {
