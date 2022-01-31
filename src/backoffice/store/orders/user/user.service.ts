@@ -18,18 +18,18 @@ export class UserService {
   async findAll(page = 1, query = '') {
     const limit = 20;
 
-    const [result] = await this.orderRepository.query(
-      `SELECT COUNT(DISTINCT(orders.user_id)) AS count FROM orders 
-       LEFT OUTER JOIN products
-        ON products.id = orders.product_id AND products.deleted = FALSE 
-       LEFT OUTER JOIN users 
-        ON users.id = orders.user_id
-       LEFT OUTER JOIN addresses 
-        ON addresses.user_id = users.id AND addresses.deleted = FALSE AND addresses.order_id IS NULL
-        WHERE users.email LIKE '%${query}%' OR addresses.cep LIKE '%${query}%' OR
-        users.name LIKE '%${query}%' OR products.name LIKE '%${query}%'
-      `,
-    );
+    var sqlQuery = 
+    `SELECT COUNT(DISTINCT(orders.user_id)) AS count FROM orders 
+     LEFT OUTER JOIN products
+      ON products.id = orders.product_id AND products.deleted = FALSE 
+     LEFT OUTER JOIN users 
+      ON users.id = orders.user_id
+     LEFT OUTER JOIN addresses 
+      ON addresses.user_id = users.id AND addresses.deleted = FALSE AND addresses.order_id IS NULL
+      WHERE users.email LIKE ? OR addresses.cep LIKE ? OR
+      users.name LIKE ? OR products.name LIKE ?`;
+
+    const [result] = await this.orderRepository.query(sqlQuery,[query, query, query, query]);
 
     const offset = (page - 1) * limit;
 
@@ -46,6 +46,8 @@ export class UserService {
     const orders = await this.orderRepository.query(sqlOrders,
       [query, query, query, query, limit, offset],
     );
+
+    console.log(">>sqlOrders: " + sqlOrders);
 
     return {
       data: orders,
