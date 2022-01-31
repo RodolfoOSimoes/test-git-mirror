@@ -22,4 +22,15 @@ export class AuthController {
 
     return this.authService.saveUser(requestInfo);
   }
+
+  @Post('spotify/signed_in')
+  async spotifySignedIn(@Req() req, @Body() body) {
+    const requestInfo = {
+      ip_address: req.headers['x-forwarded-for'] || req.ip,
+      user_agent: req.headers['user-agent'],
+      body: body,
+    };
+
+    return this.authService.saveSignedInSpotifyUser(requestInfo);
+  }
 }

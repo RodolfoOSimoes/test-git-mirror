@@ -45,13 +45,43 @@ export class AuthService {
       requestInfo.body,
     );
 
-    const userInfo = await this.spotifyService.getuserInfo(
+    const userInfo = await this.spotifyService.getUserInfo(
       credentials['access_token'],
     );
 
     userInfo.credentials = {
       token: credentials['access_token'],
       refresh_token: credentials['refresh_token'],
+      expires: true,
+      expires_in: new Date(new Date().getTime() + 3600000),
+    };
+
+    try {
+      const user = await this.userService.create(requestInfo, userInfo);
+
+      return {
+        access_token: this.jwtService.sign({
+          id: user.id,
+          email: user.email,
+          roles: 'spotify',
+        }),
+      };
+    } catch (error) {
+      throw new UnauthorizedException('Usuário deletado.');
+    }
+  }
+
+  async saveSignedInSpotifyUser(requestInfo: any) {
+    const spotifyAccessToken = requestInfo.body["access_token"];
+    const spotifyRefreshToken = requestInfo.body["refresh_token"];
+
+    const userInfo = await this.spotifyService.getUserInfo(
+      spotifyAccessToken,
+    );
+
+    userInfo.credentials = {
+      token: spotifyAccessToken,
+      refresh_token: spotifyRefreshToken,
       expires: true,
       expires_in: new Date(new Date().getTime() + 3600000),
     };

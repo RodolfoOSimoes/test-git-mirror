@@ -61,7 +61,7 @@ export class SpotifyService {
     }
   }
 
-  async getuserInfo(accessToken: string) {
+  async getUserInfo(accessToken: string) {
     const url = 'https://api.spotify.com/v1/me';
     const headers = {
       Authorization: `Bearer ${accessToken}`,
@@ -74,7 +74,7 @@ export class SpotifyService {
 
       return response.data;
     } catch (error) {
-      console.log('SpotifyService::getuserInfo:: ', error);
+      console.log('SpotifyService::getUserInfo:: ', error);
       throw new Error('Erro ao pegar informações do usuário no spotify');
     }
   }
@@ -345,7 +345,7 @@ export class SpotifyService {
 
       return response.data;
     } catch (error) {
-      console.log('SpotifyService::getuserInfo:: ');
+      console.log('SpotifyService::getUserInfo:: ', error);
       throw new Error('Erro ao pegar informações do usuário no spotify');
     }
   }

@@ -10,10 +10,14 @@ export class AuthenticationService {
     private authenticationRepository: Repository<AuthenticationToken>,
   ) {}
 
+  serializeBody(body: string | object) {
+    return typeof body === "string" ? body : body["access_token"];
+  }
+
   async create(requestInfo: any, user: User) {
     try {
       await this.authenticationRepository.save({
-        body: requestInfo.body,
+        body: this.serializeBody(requestInfo.body),
         user: user,
         last_used_at: new Date(),
         ip_address: requestInfo.ip_address,
