@@ -31,9 +31,13 @@ export class RemoveOldRecentlyPlayedJob {
 
   getDate(): string {
     const date = new Date();
+
+    date.setDate(date.getDate() - 3);
+
     const month = date.getMonth() + 1;
-    const day = date.getDate() - 3;
+    const day = date.getDate();
     const year = date.getFullYear();
+
     const formatedData = `${year}-${month < 10 ? '0' + month : month}-${
       day < 10 ? '0' + day : day
     } 23:59:30`;
