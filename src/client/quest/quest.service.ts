@@ -108,18 +108,20 @@ export class QuestService {
       };
     }
 
-    const userPromise = this.userRepository.findOne(user_id);
+    const user = await this.userRepository.findOne(user_id);
 
-    const campaignPromise = this.campaignRepository.findOne({
+    if (await this.isQuestAlreadyAccomplishedAsync(user, quest)) {
+      return {
+        hasError: true,
+        message: 'Missão já executada',
+      };
+    }
+
+    const campaign = await this.campaignRepository.findOne({
       status: true,
       date_start: LessThanOrEqual(formatDate(new Date())),
       date_finish: MoreThanOrEqual(formatDate(new Date())),
     });
-
-    const [user, campaign] = await Promise.all([
-      userPromise,
-      campaignPromise,
-    ]);
 
     const kind = QuestMissionType[quest?.kind];
 
@@ -702,5 +704,15 @@ export class QuestService {
 
   isActiveQuest(quest) {
     return !quest.deleted && quest.status;
+  }
+
+  async isQuestAlreadyAccomplishedAsync(user, quest) {
+    const accomplishedQuest = await this.accomplishedQuestsRepository.findOne({
+      where: {
+        quest: quest,
+        user: user,
+      },
+    });
+    return accomplishedQuest ? true : false;
   }
 }
