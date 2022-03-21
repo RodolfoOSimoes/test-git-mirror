@@ -97,11 +97,18 @@ export class QuestService {
     quest_id: number,
     body: any,
   ): Promise<{ hasError: boolean; message?: any; answer?: Array<string> }> {
-    const userPromise = this.userRepository.findOne(user_id);
-
-    const questPromise = this.questsRepository.findOne(quest_id, {
+    const quest = await this.questsRepository.findOne(quest_id, {
       relations: ['quest_spotify_playlists'],
     });
+
+    if (!this.isActiveQuest(quest)) {
+      return {
+        hasError: true,
+        message: 'Requisição inválida',
+      };
+    }
+
+    const userPromise = this.userRepository.findOne(user_id);
 
     const campaignPromise = this.campaignRepository.findOne({
       status: true,
@@ -109,9 +116,8 @@ export class QuestService {
       date_finish: MoreThanOrEqual(formatDate(new Date())),
     });
 
-    const [user, quest, campaign] = await Promise.all([
+    const [user, campaign] = await Promise.all([
       userPromise,
-      questPromise,
       campaignPromise,
     ]);
 
@@ -692,5 +698,9 @@ export class QuestService {
       user_id = user_id.substring(0, ampersandPosition);
     }
     return user_id;
+  }
+
+  isActiveQuest(quest) {
+    return !quest.deleted && quest.status;
   }
 }
