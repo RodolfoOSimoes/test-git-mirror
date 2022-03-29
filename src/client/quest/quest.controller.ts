@@ -32,9 +32,10 @@ export class QuestController {
     @Res() res,
     @Query('id') id: number,
     @Body() body,
+    @Query() query,
   ) {
     if (req.user.roles == 'spotify') {
-      const result = await this.questService.update(req.user.id, id, body);
+      const result = await this.questService.update(req.user.id, id, body, query);
       if (result.hasError) {
         const message = result.message
           ? { message: result.message }

@@ -96,6 +96,7 @@ export class QuestService {
     user_id: number,
     quest_id: number,
     body: any,
+    query: any,
   ): Promise<{ hasError: boolean; message?: any; answer?: Array<string> }> {
     const quest = await this.questsRepository.findOne(quest_id, {
       relations: ['quest_spotify_playlists'],
@@ -525,8 +526,94 @@ export class QuestService {
         await Promise.all([statementPromise, accomplishedPromise]);
       }
     }
+    if (kind == 'spotify_listen_track') {
+      const time = this.resolveTimeParam(query);
+
+      try {
+        await this.executeSpotifyListenTrackQuest(user, quest, campaign, time);
+      } catch (e) {
+        return {
+          hasError: true,
+          message: 'Erro ao executar missão',
+        };
+      }
+    }
 
     return { hasError: false, message: 'ok' };
+  }
+
+  private async saveQuestAsExecuted(user: any, quest: any, campaign: any) {
+    const accomplishedPromise = this.accomplishedQuestsRepository.save({
+      quest: quest,
+      user: user,
+      created_at: new Date(),
+      updated_at: new Date(),
+    });
+    const statementPromise = this.statementRepository.save({
+      user: user,
+      campaign: campaign,
+      amount: quest.score,
+      kind: 1,
+      statementable_type: 'Quest',
+      balance: 0,
+      statementable_id: quest.id,
+      expiration_date: new Date(new Date().setDate(new Date().getDate() + 90)),
+      created_at: new Date(),
+      updated_at: new Date(),
+    });
+    await Promise.all([accomplishedPromise, statementPromise]);
+  }
+
+  private async executeSpotifyListenTrackQuest(
+    user: any,
+    quest: any,
+    campaign: any,
+    time: any,
+  ) {
+    const questSpotify = await this.getQuestSpotify(quest);
+    const recentlyPlayed = await this.getSpotifyRecentlyPlayed(user, time);
+
+    if (this.wasTrackListened(recentlyPlayed, questSpotify)) {
+      this.saveQuestAsExecuted(user, quest, campaign);
+    }
+  }
+
+  private async getQuestSpotify(quest: any): Promise<any> {
+    return await this.questSpotifyRepository.findOne({
+      where: { quest: quest },
+    });
+  }
+
+  private async getSpotifyRecentlyPlayed(user: any, time: any): Promise<any[]> {
+    const spotifyService = new SpotifyService();
+    const response = await spotifyService.getRecentlyPlayed(
+      user.credentials['refresh_token'],
+      time,
+    );
+    return response && Array.isArray(response['items'])
+      ? response['items']
+      : [];
+  }
+
+  private wasTrackListened(recentlyPlayed: any[], questSpotify: any) {
+    const foundTrack = recentlyPlayed.find((track: any) => {
+      return track['track']['external_ids']['isrc'] == questSpotify.isrc;
+    });
+    return foundTrack ? true : false;
+  }
+
+  private resolveTimeParam(query: any) {
+    if (!query || !("time" in query)) {
+      return 0;
+    }
+
+    const time = query["time"];
+
+    if (isNaN(time)) {
+      return 0;
+    }
+
+    return time;
   }
 
   validateEmail(email) {
