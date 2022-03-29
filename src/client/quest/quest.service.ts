@@ -16,6 +16,7 @@ import { formatDate } from 'src/utils/date.utils';
 import { PaginationService } from 'src/utils/pagination/pagination.service';
 import { LessThanOrEqual, MoreThanOrEqual } from 'typeorm';
 import { LessThan, Repository } from 'typeorm';
+import TrackNotListenedError from 'src/utils/errors/TrackNotListenedError';
 
 @Injectable()
 export class QuestService {
@@ -532,6 +533,13 @@ export class QuestService {
       try {
         await this.executeSpotifyListenTrackQuest(user, quest, campaign, time);
       } catch (e) {
+        if (e instanceof TrackNotListenedError) {
+          return {
+            hasError: true,
+            message: 'Faixa não ouvida.',
+          };
+        }
+
         return {
           hasError: true,
           message: 'Erro ao executar missão',
@@ -573,9 +581,11 @@ export class QuestService {
     const questSpotify = await this.getQuestSpotify(quest);
     const recentlyPlayed = await this.getSpotifyRecentlyPlayed(user, time);
 
-    if (this.wasTrackListened(recentlyPlayed, questSpotify)) {
-      this.saveQuestAsExecuted(user, quest, campaign);
+    if (!this.wasTrackListened(recentlyPlayed, questSpotify)) {
+      throw new TrackNotListenedError("Track not listened.");
     }
+
+    this.saveQuestAsExecuted(user, quest, campaign);
   }
 
   private async getQuestSpotify(quest: any): Promise<any> {
