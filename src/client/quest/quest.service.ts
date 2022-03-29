@@ -536,7 +536,7 @@ export class QuestService {
         if (e instanceof TrackNotListenedError) {
           return {
             hasError: true,
-            message: 'Faixa não ouvida.',
+            message: 'Faixa não ouvida',
           };
         }
 
