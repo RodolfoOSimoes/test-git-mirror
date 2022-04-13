@@ -1,9 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import axios from 'axios';
 import * as querystring from 'querystring';
+import { DeezerToSpotifyAdapter } from '../adapters/deezerToSpotify.adapter';
 
 @Injectable()
 export class SpotifyService {
+  private deezerAdapter: DeezerToSpotifyAdapter;
+
+  constructor() {
+    this.deezerAdapter = new DeezerToSpotifyAdapter();
+  }
+
   async authenticateUser(code: string) {
     const auth = Buffer.from(
       `${process.env.SPOTIFY_CLIENT}:${process.env.SPOTIFY_SECRET}`,
@@ -61,6 +68,8 @@ export class SpotifyService {
     }
   }
 
+  /* Spotify removed from Filtrgame (2022/04). Service not used in Deezer
+     version.
   async getUserInfo(accessToken: string) {
     const url = 'https://api.spotify.com/v1/me';
     const headers = {
@@ -77,7 +86,7 @@ export class SpotifyService {
       console.log('SpotifyService::getUserInfo:: ', error);
       throw new Error('Erro ao pegar informações do usuário no spotify');
     }
-  }
+  } */
 
   async getTrackInfo(id: string) {
     const url = `https://api.spotify.com/v1/tracks/${id}`;
@@ -329,6 +338,7 @@ export class SpotifyService {
     }
   }
 
+  /* Service not used.
   async getuser(user_token: string) {
     const url = 'https://api.spotify.com/v1/me';
 
@@ -348,5 +358,5 @@ export class SpotifyService {
       console.log('SpotifyService::getUserInfo:: ', error);
       throw new Error('Erro ao pegar informações do usuário no spotify');
     }
-  }
+  } */
 }
