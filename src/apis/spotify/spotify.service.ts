@@ -11,6 +11,9 @@ export class SpotifyService {
     this.deezerAdapter = new DeezerToSpotifyAdapter();
   }
 
+  /* 
+     Spotify removed from Filtrgame (2022/04).
+     Service not used in Deezer version.
   async authenticateUser(code: string) {
     const auth = Buffer.from(
       `${process.env.SPOTIFY_CLIENT}:${process.env.SPOTIFY_SECRET}`,
@@ -39,6 +42,7 @@ export class SpotifyService {
       throw new Error('Erro ao gerar credenciais spotify');
     }
   }
+  */
 
   async refreshToken(token: string) {
     const auth = Buffer.from(
@@ -68,8 +72,9 @@ export class SpotifyService {
     }
   }
 
-  /* Spotify removed from Filtrgame (2022/04). Service not used in Deezer
-     version.
+  /* 
+     Spotify removed from Filtrgame (2022/04).
+     Service not used in Deezer version.
   async getUserInfo(accessToken: string) {
     const url = 'https://api.spotify.com/v1/me';
     const headers = {
