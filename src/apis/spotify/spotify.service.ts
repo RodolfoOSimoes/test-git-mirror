@@ -88,6 +88,7 @@ export class SpotifyService {
     }
   } */
 
+  /* Spotify removed from Filtrgame (2022/04).
   async getTrackInfo(id: string) {
     const url = `https://api.spotify.com/v1/tracks/${id}`;
 
@@ -107,8 +108,16 @@ export class SpotifyService {
       console.log('SpotifyService::getTrackInfo:: ', error);
       throw new Error('Erro ao pegar informações da track no spotify.');
     }
+  } */
+  async getTrackInfo(id: string) {
+    try {
+      return await this.deezerAdapter.getTrackInfo(id);
+    } catch (error) {
+      throw new Error('Erro ao pegar informações da track no spotify.');
+    }
   }
 
+  /* Spotify removed from Filtrgame (2022/04).
   async getPlaylistName(id: string) {
     const url = `https://api.spotify.com/v1/playlists/${id}?fields=name`;
 
@@ -128,8 +137,16 @@ export class SpotifyService {
       console.log('SpotifyService::getPlaylistName:: ', error);
       throw new Error('Erro ao pegar informações da playlist no spotify.');
     }
+  } */
+  async getPlaylistName(id: string) {
+    try {
+      return await this.deezerAdapter.getPlaylistInfo(id);
+    } catch (error) {
+      throw new Error('Erro ao pegar informações da playlist no spotify.');
+    }
   }
 
+  /* Spotify removed from Filtrgame (2022/04).
   async getPlaylistNameAndDescription(id: string) {
     const url = `https://api.spotify.com/v1/playlists/${id}?fields=name%2Cdescription`;
 
@@ -150,7 +167,16 @@ export class SpotifyService {
       throw new Error('Erro ao pegar informações da playlist no spotify.');
     }
   }
+  */
+  async getPlaylistNameAndDescription(id: string) {
+    try {
+      return await this.deezerAdapter.getPlaylistInfo(id);
+    } catch (error) {
+      throw new Error('Erro ao pegar informações da playlist no spotify.');
+    }
+  }
 
+  /* Spotify removed from Filtrgame (2022/04).
   async getArtistInfo(id: string) {
     const url = `https://api.spotify.com/v1/artists/${id}`;
 
@@ -170,8 +196,16 @@ export class SpotifyService {
       console.log('SpotifyService::getArtistInfo:: ', error);
       throw new Error('Erro ao pegar informações da artista no spotify.');
     }
+  } */
+  async getArtistInfo(id: string) {
+    try {
+      return await this.deezerAdapter.getArtistInfo(id);
+    } catch (error) {
+      throw new Error('Erro ao pegar informações da artista no spotify.');
+    }
   }
 
+  /* Spotify removed from Filtrgame (2022/04).
   async getAlbumInfo(id: string) {
     const url = `https://api.spotify.com/v1/albums/${id}`;
 
@@ -191,8 +225,16 @@ export class SpotifyService {
       console.log('SpotifyService::getAlbumInfo:: ', error);
       throw new Error('Erro ao pegar informações do album no spotify.');
     }
+  } */
+  async getAlbumInfo(id: string) {
+    try {
+      return await this.deezerAdapter.getAlbumInfo(id);
+    } catch (error) {
+      throw new Error('Erro ao pegar informações do album no spotify.');
+    }
   }
 
+  /* Spotify removed from Filtrgame (2022/04).
   async getPlaylistInfo(id: string) {
     const url = `https://api.spotify.com/v1/playlists/${id}`;
 
@@ -210,6 +252,13 @@ export class SpotifyService {
       return response.data;
     } catch (error) {
       console.log('SpotifyService::getPlaylistInfo:: ', error);
+      throw new Error('Erro ao pegar informações da playlist no spotify.');
+    }
+  } */
+  async getPlaylistInfo(id: string) {
+    try {
+      return await this.deezerAdapter.getPlaylistInfo(id);
+    } catch (error) {
       throw new Error('Erro ao pegar informações da playlist no spotify.');
     }
   }

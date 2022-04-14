@@ -48,7 +48,7 @@ export class RescueService {
       updated_at: new Date(),
       rescues_count: 0,
       playlist: dto.rescue.playlist,
-      info_playlist: playlist,
+      info_playlist: playlist ? JSON.stringify(playlist) : "",
       limited: dto.rescue.limited,
       limit_streams: dto.rescue.limit_streams,
       priority: dto.rescue.priority,
