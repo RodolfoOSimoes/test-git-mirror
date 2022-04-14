@@ -76,4 +76,23 @@ export class DeezerToSpotifyAdapter {
       },
     };
   }
+
+  public followArtist(accessToken: string, artistId: string): Promise<boolean> {
+    return this.deezerService.favoriteArtist(accessToken, artistId);
+  }
+
+  public saveTrack(accessToken: string, trackId: string): Promise<boolean> {
+    return this.deezerService.favoriteTrack(accessToken, trackId);
+  }
+
+  async followAlbum(accessToken: string, albumId: string): Promise<boolean> {
+    return this.deezerService.favoriteAlbum(accessToken, albumId);
+  }
+
+  async followPlaylist(
+    accessToken: string,
+    playlistId: string,
+  ): Promise<boolean> {
+    return this.deezerService.favoritePlaylist(accessToken, playlistId);
+  }
 }

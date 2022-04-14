@@ -268,6 +268,7 @@ export class SpotifyService {
     }
   }
 
+  /* Spotify removed from Filtrgame (2022/04).
   async followPlaylist(user_token: string, playlist_id: string) {
     const url = `https://api.spotify.com/v1/playlists/${playlist_id}/followers`;
 
@@ -292,8 +293,16 @@ export class SpotifyService {
       console.log('SpotifyService::followPlaylist:: ', error);
       throw new Error('Erro ao seguir playlist no spotify.');
     }
+  } */
+  public followPlaylist(accessToken: string, playlistId: string) {
+    try {
+      return this.deezerAdapter.followPlaylist(accessToken, playlistId);
+    } catch (error) {
+      throw new Error('Erro ao seguir playlist no spotify.');
+    }
   }
 
+  /* Spotify removed from Filtrgame (2022/04).
   async followArtist(user_token: string, artist_id: string) {
     const url = `https://api.spotify.com/v1/me/following?type=artist&ids=${artist_id}`;
 
@@ -318,8 +327,16 @@ export class SpotifyService {
       console.log('SpotifyService::followArtist:: ', error);
       throw new Error('Erro ao seguir artista no spotify.');
     }
+  } */
+  public followArtist(accessToken: string, artistId: string): Promise<boolean> {
+    try {
+      return this.deezerAdapter.followArtist(accessToken, artistId);
+    } catch (e) {
+      throw new Error('Erro ao seguir artista no spotify.');
+    }
   }
 
+  /* Spotify removed from Filtrgame (2022/04).
   async followAlbum(user_token: string, album_id: string) {
     const url = `https://api.spotify.com/v1/me/albums?ids=${album_id}`;
 
@@ -344,8 +361,16 @@ export class SpotifyService {
       console.log('SpotifyService::followAlbum:: ', error);
       throw new Error('Erro ao seguir album no spotify.');
     }
+  } */
+  public followAlbum(accessToken: string, albumId: string): Promise<boolean> {
+    try {
+      return this.deezerAdapter.followAlbum(accessToken, albumId);
+    } catch (error) {
+      throw new Error('Erro ao seguir album no spotify.');
+    }
   }
 
+  /* Spotify removed from Filtrgame (2022/04).
   async saveTrack(user_token: string, track_id: string) {
     const url = `https://api.spotify.com/v1/me/tracks?ids=${track_id}`;
 
@@ -368,6 +393,13 @@ export class SpotifyService {
       return response.data;
     } catch (error) {
       console.log('SpotifyService::saveTrack:: ', error);
+      throw new Error('Erro ao salvar track no spotify.');
+    }
+  } */
+  public saveTrack(accessToken: string, trackId: string): Promise<boolean> {
+    try {
+      return this.deezerAdapter.saveTrack(accessToken, trackId);
+    } catch (error) {
       throw new Error('Erro ao salvar track no spotify.');
     }
   }
