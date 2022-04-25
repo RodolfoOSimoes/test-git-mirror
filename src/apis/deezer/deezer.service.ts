@@ -72,4 +72,12 @@ export class DeezerService {
       },
     });
   }
+
+  public history(accessToken: string): Promise<any> {
+    return axios.get('https://api.deezer.com/user/me/history', {
+      params: {
+        access_token: accessToken,
+      },
+    });
+  }
 }
