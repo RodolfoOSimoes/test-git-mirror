@@ -44,6 +44,9 @@ export class SpotifyService {
   }
   */
 
+  /*
+    Spotify removed from Filtrgame (2022/04).
+    Service not used in Deezer version.
   async refreshToken(token: string) {
     const auth = Buffer.from(
       `${process.env.SPOTIFY_CLIENT}:${process.env.SPOTIFY_SECRET}`,
@@ -71,6 +74,7 @@ export class SpotifyService {
       throw new Error('Erro ao atualizar credenciais spotify');
     }
   }
+  */
 
   /* 
      Spotify removed from Filtrgame (2022/04).
@@ -404,6 +408,9 @@ export class SpotifyService {
     }
   }
 
+  /*
+    Spotify removed from Filtrgame (2022/04).
+    Service not used in Deezer version.
   async getRecentlyPlayed(user_token: string, after: any) {
     const url = `https://api.spotify.com/v1/me/player/recently-played?after=${after}&limit=50`;
 
@@ -423,6 +430,7 @@ export class SpotifyService {
       throw new Error('Erro ao salvar track no spotify.');
     }
   }
+  */
 
   /* Service not used.
   async getuser(user_token: string) {
