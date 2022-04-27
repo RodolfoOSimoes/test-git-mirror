@@ -28,6 +28,9 @@ export class UserQuestSpotifyPlaylist {
   quest_spotify_playlists: QuestSpotifyPlaylists;
 
   @Column({ type: 'text', nullable: true })
+  tracks: string;
+
+  @Column({ type: 'text', nullable: true })
   isrcs: string;
 
   @Column({ type: 'boolean', nullable: true, default: false })

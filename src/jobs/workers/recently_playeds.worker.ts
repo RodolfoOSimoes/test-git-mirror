@@ -109,16 +109,17 @@ async function processUserRecentlyPlayed(user): Promise<void> {
 
     console.log(`Updating data for user: ${user.id}`);
 
-    await prepareCashbacks(
-      user,
-      rescues,
-      recently,
-      campaign,
-      questPlaylistSpotify,
-      dbConnection,
-    );
-    await updateUser(user, recently, dbConnection);
-    await saveRecentlyPlaylist(user, recently, dbConnection);
+    // TODO: review.
+    // await prepareCashbacks(
+    //   user,
+    //   rescues,
+    //   recently,
+    //   campaign,
+    //   questPlaylistSpotify,
+    //   dbConnection,
+    // );
+    // await updateUser(user, recently, dbConnection);
+    // await saveRecentlyPlaylist(user, recently, dbConnection);
   }
 }
 
@@ -145,6 +146,10 @@ function filterRecentlyPlayedOnly(user: any, history: any): any {
   };
 }
 
+function parseTracks(tracks: string | null): Number[] {
+  return tracks ? tracks.split(';').map((value) => parseInt(value)) : [];
+}
+
 async function loadSpotifyPlaylistQuests(connection) {
   const quests = await connection.query(
     `SELECT q.*, qsp.* FROM quests q
@@ -164,7 +169,7 @@ async function loadSpotifyPlaylistQuests(connection) {
         uri: quest.uri,
         tracks_count: quest.tracks_count,
         points_for_track: quest.points_for_track,
-        isrcs: quest.isrcs,
+        tracks: parseTracks(quest.tracks),
         quest_id: quest.quest_id,
       });
     }
@@ -351,24 +356,15 @@ async function prepareCashbacks(
       return;
     }
 
-    /* Necessário revisar código para Deezer.
-    const isrc = item['track']['external_ids']['isrc'];
-    const rescue = rescues.find((rescue) => rescue.isrc == isrc);
-    const todayCashback = cashbacksLimit.find(
-      (cb) => cb.track_id == item.id,
-    );
-
     questPlaylistSpotify.forEach((qsp) => {
-      if (qsp.isrcs.includes(isrc)) {
+      if (qsp.tracks.includes(item.id)) {
         const userQuest = userQuestSpotify.find((uqs) => uqs.qsp_id == qsp.id);
-
         const filteredUserQuest = userQuestPlaylist.find(
           (uqp) => uqp.playlist_id == qsp.id,
         );
-
         if (!userQuest && !filteredUserQuest) {
           userQuestPlaylist.push({
-            isrcs: `---\r\n- ${isrc}`,
+            tracks: [item.id],
             playlist_id: qsp.id,
             playlist: qsp,
             id: null,
@@ -376,14 +372,14 @@ async function prepareCashbacks(
           });
         } else if (
           filteredUserQuest &&
-          !filteredUserQuest.isrcs.includes(isrc)
+          !filteredUserQuest.tracks.includes(item.id)
         ) {
-          filteredUserQuest.isrcs = `${filteredUserQuest.isrcs}\r\n- ${isrc}`;
+          filteredUserQuest.tracks = [...filteredUserQuest.tracks, item.id];
         } else if (!filteredUserQuest && userQuest) {
           userQuestPlaylist.push({
-            isrcs: !userQuest.isrcs.includes(isrc)
-              ? `${userQuest.isrcs}\r\n- ${isrc}`
-              : userQuest.isrcs,
+            tracks: !userQuest.tracks.includes(item.id)
+              ? [...userQuest.tracks, item.id]
+              : [...userQuest.tracks],
             playlist_id: qsp.id,
             playlist: qsp,
             id: userQuest.id,
@@ -392,7 +388,6 @@ async function prepareCashbacks(
         }
       }
     });
-    */
 
     const rescueList = process.env.RESCUES_CAMPAIGN
       ? process.env.RESCUES_CAMPAIGN.split(';')
@@ -409,17 +404,20 @@ async function prepareCashbacks(
       });
     }
 
-    if (rescue && todayCashback && todayCashback.limit > 0) {
-      todayCashback.limit--;
-      statementCashbacks.push({
-        user_id: user.id,
-        rescue_id: rescue,
-        track_id: item.id,
-        played_at: epochToDate(item.timestamp),
-        name: item.title,
-        score: rescue.score,
-      });
-    }
+    // const isrc = item['track']['external_ids']['isrc'];
+    // const rescue = rescues.find((rescue) => rescue.isrc == isrc);
+    // const todayCashback = cashbacksLimit.find((cb) => cb.track_id == item.id);
+    // if (rescue && todayCashback && todayCashback.limit > 0) {
+    //   todayCashback.limit--;
+    //   statementCashbacks.push({
+    //     user_id: user.id,
+    //     rescue_id: rescue,
+    //     track_id: item.id,
+    //     played_at: epochToDate(item.timestamp),
+    //     name: item.title,
+    //     score: rescue.score,
+    //   });
+    // }
   });
 
   const userQuestSpotifySave = [];
@@ -652,7 +650,7 @@ async function saveRecentlyPlaylist(user, recently, connection) {
 
 function getLastHeardTime(recently): Date {
   if (recently.total <= 0) {
-    throw Error("One or more recent activity is expected.");
+    throw Error('One or more recent activity is expected.');
   }
 
   const last: any = recently.data[0];

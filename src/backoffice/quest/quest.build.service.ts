@@ -172,24 +172,30 @@ export class QuestSpotifyPlaylistsFactory implements QuestFactory {
       dto.quest.quest_spotify_playlist_attributes.points_for_track *
       dto.quest.quest_spotify_playlist_attributes.tracks_count;
 
-    const playlist = await spotifyService.getPlaylistInfo(
-      questType.uri.split('playlist:')[1],
-    );
+    const playlistId: string = this.getPlaylistIdFromURI(questType.uri);
+    const playlist = await spotifyService.getPlaylistInfo(playlistId);
 
     questType.cover_url = playlist?.images[0]?.url;
     questType.name = playlist.name;
-    questType.isrcs =
-      '---\r\n- ' +
-      playlist.tracks.items
-        .filter((track) => track.track?.external_ids?.isrc)
-        .map((track) => track.track.external_ids.isrc)
-        .join('\r\n- ');
+    questType.tracks = this.joinTracks(playlist.tracks.items);
 
     questType.created_at = new Date();
     questType.updated_at = new Date();
     quest.quest_spotify_playlists = questType;
     quest.kind = 12;
     return quest;
+  }
+
+  private joinTracks(tracks: Array<any>): string {
+    return tracks.map((track) => track.id).join(';');
+  }
+
+  private getPlaylistIdFromURI(uri: string): string {
+    const cleanUri: string = uri.trim();
+    if (!/\/\d+$/g.test(cleanUri)) {
+      throw Error('URI inválida');
+    }
+    return /\d+$/g.exec(cleanUri)[0];
   }
 }
 

@@ -408,29 +408,28 @@ export class SpotifyService {
     }
   }
 
-  /*
-    Spotify removed from Filtrgame (2022/04).
-    Service not used in Deezer version.
   async getRecentlyPlayed(user_token: string, after: any) {
-    const url = `https://api.spotify.com/v1/me/player/recently-played?after=${after}&limit=50`;
+    return await [];
 
-    const { access_token } = await this.refreshToken(user_token);
+    // Spotify removed from Filtrgame (2022/04).
+    // const url = `https://api.spotify.com/v1/me/player/recently-played?after=${after}&limit=50`;
 
-    const headers = {
-      Authorization: `Bearer ${access_token}`,
-    };
+    // const { access_token } = await this.refreshToken(user_token);
 
-    try {
-      const response = await axios.get(url, {
-        headers: headers,
-      });
-      return response.data;
-    } catch (error) {
-      console.log('SpotifyService::getRecentlyPlayed:: ', error);
-      throw new Error('Erro ao salvar track no spotify.');
-    }
+    // const headers = {
+    //   Authorization: `Bearer ${access_token}`,
+    // };
+
+    // try {
+    //   const response = await axios.get(url, {
+    //     headers: headers,
+    //   });
+    //   return response.data;
+    // } catch (error) {
+    //   console.log('SpotifyService::getRecentlyPlayed:: ', error);
+    //   throw new Error('Erro ao salvar track no spotify.');
+    // }
   }
-  */
 
   /* Service not used.
   async getuser(user_token: string) {

@@ -66,7 +66,7 @@ export class DeezerToSpotifyAdapter {
         },
       ],
       tracks: {
-        items: playlist.tracks.maps((track) => ({
+        items: playlist.tracks.data.map((track) => ({
           id: track.id,
           name: track.title,
           external_ids: {
