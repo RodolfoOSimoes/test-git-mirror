@@ -9,6 +9,7 @@ import { QuestSpotifyPlaylists } from 'src/entities/quest-spotify-playlists.enti
 import { QuestYoutubes } from 'src/entities/quest-youtubes.entity';
 import { Quest } from 'src/entities/quest.entity';
 import { getDate } from 'src/utils/date.utils';
+import { getPlaylistIdElementFromUri } from 'src/utils/playlist.utils';
 import { CreateQuestDto } from './dto/create-quest.dto';
 
 export class QuestBuildService {
@@ -172,7 +173,7 @@ export class QuestSpotifyPlaylistsFactory implements QuestFactory {
       dto.quest.quest_spotify_playlist_attributes.points_for_track *
       dto.quest.quest_spotify_playlist_attributes.tracks_count;
 
-    const playlistId: string = this.getPlaylistIdFromURI(questType.uri);
+    const playlistId: string = getPlaylistIdElementFromUri(questType.uri);
     const playlist = await spotifyService.getPlaylistInfo(playlistId);
 
     questType.cover_url = playlist?.images[0]?.url;
@@ -188,14 +189,6 @@ export class QuestSpotifyPlaylistsFactory implements QuestFactory {
 
   private joinTracks(tracks: Array<any>): string {
     return tracks.map((track) => track.id).join(';');
-  }
-
-  private getPlaylistIdFromURI(uri: string): string {
-    const cleanUri: string = uri.trim();
-    if (!/\/\d+$/g.test(cleanUri)) {
-      throw Error('URI inválida');
-    }
-    return /\d+$/g.exec(cleanUri)[0];
   }
 }
 

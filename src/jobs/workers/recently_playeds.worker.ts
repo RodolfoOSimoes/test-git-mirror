@@ -109,17 +109,18 @@ async function processUserRecentlyPlayed(user): Promise<void> {
 
     console.log(`Updating data for user: ${user.id}`);
 
-    // TODO: review.
-    // await prepareCashbacks(
-    //   user,
-    //   rescues,
-    //   recently,
-    //   campaign,
-    //   questPlaylistSpotify,
-    //   dbConnection,
-    // );
-    // await updateUser(user, recently, dbConnection);
-    // await saveRecentlyPlaylist(user, recently, dbConnection);
+    await prepareCashbacks(
+      user,
+      rescues,
+      recently,
+      campaign,
+      questPlaylistSpotify,
+      dbConnection,
+    );
+    await updateUser(user, recently, dbConnection);
+    await saveRecentlyPlaylist(user, recently, dbConnection);
+  } else {
+    await setUserAsChecked(user);
   }
 }
 
@@ -146,8 +147,8 @@ function filterRecentlyPlayedOnly(user: any, history: any): any {
   };
 }
 
-function parseTracks(tracks: string | null): Number[] {
-  return tracks ? tracks.split(';').map((value) => parseInt(value)) : [];
+function parseTracks(tracks: string | null): string[] {
+  return tracks ? tracks.split(';') : [];
 }
 
 async function loadSpotifyPlaylistQuests(connection) {
@@ -310,7 +311,7 @@ async function loadUserQuestSpotifyPlaylists(
 
     const questIds = questSpotifyPlaylist.map((qsp) => qsp.id);
     const userQuest = await connection.query(
-      `SELECT uqsp.id AS id, uqsp.isrcs AS isrcs, qsp.id AS qsp_id
+      `SELECT uqsp.id AS id, uqsp.tracks AS tracks, qsp.id AS qsp_id
     FROM user_quest_spotify_playlists uqsp
     INNER JOIN quest_spotify_playlists qsp ON uqsp.quest_spotify_playlist_id = qsp.id
     WHERE qsp.id IN (?) AND uqsp.user_id = ?`,
@@ -356,15 +357,17 @@ async function prepareCashbacks(
       return;
     }
 
+    const itemTrackId: string = String(item.id);
+
     questPlaylistSpotify.forEach((qsp) => {
-      if (qsp.tracks.includes(item.id)) {
+      if (qsp.tracks.includes(itemTrackId)) {
         const userQuest = userQuestSpotify.find((uqs) => uqs.qsp_id == qsp.id);
         const filteredUserQuest = userQuestPlaylist.find(
           (uqp) => uqp.playlist_id == qsp.id,
         );
         if (!userQuest && !filteredUserQuest) {
           userQuestPlaylist.push({
-            tracks: [item.id],
+            tracks: [itemTrackId],
             playlist_id: qsp.id,
             playlist: qsp,
             id: null,
@@ -372,13 +375,13 @@ async function prepareCashbacks(
           });
         } else if (
           filteredUserQuest &&
-          !filteredUserQuest.tracks.includes(item.id)
+          !filteredUserQuest.tracks.includes(itemTrackId)
         ) {
-          filteredUserQuest.tracks = [...filteredUserQuest.tracks, item.id];
+          filteredUserQuest.tracks = [...filteredUserQuest.tracks, itemTrackId];
         } else if (!filteredUserQuest && userQuest) {
           userQuestPlaylist.push({
-            tracks: !userQuest.tracks.includes(item.id)
-              ? [...userQuest.tracks, item.id]
+            tracks: !userQuest.tracks.includes(itemTrackId)
+              ? [...userQuest.tracks, itemTrackId]
               : [...userQuest.tracks],
             playlist_id: qsp.id,
             playlist: qsp,
@@ -392,9 +395,9 @@ async function prepareCashbacks(
     const rescueList = process.env.RESCUES_CAMPAIGN
       ? process.env.RESCUES_CAMPAIGN.split(';')
       : [];
-    if (rescueList.includes(item.id)) {
+    if (rescueList.includes(itemTrackId)) {
       rescuesCampaign.push({
-        uri: item.id,
+        uri: itemTrackId,
         date: getToday(),
         name: item.title,
         user_id: user.id,
@@ -404,20 +407,21 @@ async function prepareCashbacks(
       });
     }
 
-    // const isrc = item['track']['external_ids']['isrc'];
-    // const rescue = rescues.find((rescue) => rescue.isrc == isrc);
-    // const todayCashback = cashbacksLimit.find((cb) => cb.track_id == item.id);
-    // if (rescue && todayCashback && todayCashback.limit > 0) {
-    //   todayCashback.limit--;
-    //   statementCashbacks.push({
-    //     user_id: user.id,
-    //     rescue_id: rescue,
-    //     track_id: item.id,
-    //     played_at: epochToDate(item.timestamp),
-    //     name: item.title,
-    //     score: rescue.score,
-    //   });
-    // }
+    const rescue = rescues.find((rescue) => rescue.uid == itemTrackId);
+    const todayCashback = cashbacksLimit.find(
+      (cb) => cb.track_id == itemTrackId,
+    );
+    if (rescue && todayCashback && todayCashback.limit > 0) {
+      todayCashback.limit--;
+      statementCashbacks.push({
+        user_id: user.id,
+        rescue_id: rescue,
+        track_id: itemTrackId,
+        played_at: epochToDate(item.timestamp),
+        name: item.title,
+        score: rescue.score,
+      });
+    }
   });
 
   const userQuestSpotifySave = [];
@@ -427,15 +431,17 @@ async function prepareCashbacks(
     if (uqp.id) {
       userQuestSpotifyUpdate.push({
         updated_at: new Date(),
-        isrcs: uqp.isrcs,
+        tracks: uqp.tracks.join(';'),
         id: uqp.id,
       });
     } else {
       userQuestSpotifySave.push({
         updated_at: new Date(),
-        isrcs: uqp.isrcs,
+        tracks: uqp.tracks.join(';'),
         user: user,
-        quest_spotify_playlists: uqp.playlist,
+        quest_spotify_playlists: {
+          id: uqp.playlist.id,
+        },
         created_at: new Date(),
         complete: false,
         question_answered: false,
@@ -565,18 +571,20 @@ async function saveUserQuestSpotify(userQuestSpotifies, connection) {
         quest_spotify_playlist_id,
         complete,
         question_answered,
+        tracks,
         isrcs,
         created_at,
         updated_at
       ) VALUES (
-        ?,?,?,?,?,?,?
+        ?,?,?,?,?,?,?,?
       )`,
       [
         uqs.user?.id,
         uqs.quest_spotify_playlists?.id,
         uqs.complete,
         uqs.question_answered,
-        uqs.isrcs,
+        uqs.tracks,
+        null,
         uqs.created_at,
         uqs.updated_at,
       ],
@@ -587,8 +595,8 @@ async function saveUserQuestSpotify(userQuestSpotifies, connection) {
 async function updateUserQuestSpotify(userQuestSpotifies, connection) {
   for (const uqs of userQuestSpotifies) {
     await connection.query(
-      `UPDATE user_quest_spotify_playlists SET isrcs = ?, updated_at = ? WHERE id = ?`,
-      [uqs.isrcs, uqs.updated_at, uqs.id],
+      `UPDATE user_quest_spotify_playlists SET tracks = ?, updated_at = ? WHERE id = ?`,
+      [uqs.tracks, uqs.updated_at, uqs.id],
     );
   }
 }
@@ -634,6 +642,18 @@ async function updateUser(user, recently, connection) {
       `last_deezer_history_check = ? ` +
       `WHERE id = ?`,
     [new Date().getTime(), getLastHeardTime(recently), now, now, user.id],
+  );
+}
+
+async function setUserAsChecked(user: any): Promise<void> {
+  const now: Date = new Date();
+  await dbConnection.query(
+    `UPDATE users ` +
+      `SET last_time_verified = ?, ` +
+      `updated_at = ?, ` +
+      `last_deezer_history_check = ? ` +
+      `WHERE id = ?`,
+    [now.getTime(), now, now, user.id],
   );
 }
 
