@@ -6,7 +6,7 @@ export class CampaignController {
   constructor(private readonly campaignService: CampaignService) {}
 
   @Get('banner')
-  findBanner() {
-    return this.campaignService.findBanner();
+  loadBanner() {
+    return this.campaignService.loadBanner();
   }
 }
