@@ -40,7 +40,7 @@ export class QuestBuildService {
         newQuest = await new QuestPreSavesFactory().buildQuest(newQuest, dto);
         break;
       case 'quest_opt':
-        // newQuest = await new QuestOptsFactory().buildQuest(newQuest, dto);
+        newQuest = await new QuestOptsFactory().buildQuest(newQuest, dto);
         break;
       case 'quest_spotify_playlist':
         // newQuest = await new QuestSpotifyPlaylistsFactory().buildQuest(
