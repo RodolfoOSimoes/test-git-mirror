@@ -31,7 +31,7 @@ export class QuestBuildService {
         // newQuest = await new QuestSpotifiesFactory().buildQuest(newQuest, dto);
         break;
       case 'quest_question':
-        // newQuest = await new QuestQuestionsFactory().buildQuest(newQuest, dto);
+        newQuest = await new QuestQuestionsFactory().buildQuest(newQuest, dto);
         break;
       case 'quest_youtube':
         newQuest = await new QuestYoutubesFactory().buildQuest(newQuest, dto);
