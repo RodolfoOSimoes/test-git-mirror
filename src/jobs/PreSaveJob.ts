@@ -4,6 +4,8 @@ import { SpotifyService } from 'src/apis/spotify/spotify.service';
 import { PreSaveUser } from 'src/entities/pre-save-users.entity';
 import { User } from 'src/entities/user.entity';
 import { Repository } from 'typeorm';
+import { getIdElementFromUri } from 'src/utils/deezer.utils';
+
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const moment = require('moment');
 
@@ -26,10 +28,10 @@ export class PreSaveJob {
           where: { id: presave.user_id },
           select: ['credentials'],
         });
-        const refreshToken = user.credentials['refresh_token'];
-        const trackId = presave.uri.split(':')?.[2];
+        const accessToken = user.credentials['token'];
+        const trackId = getIdElementFromUri(presave.uri);
         if (trackId) {
-          await this.spotifyService.saveTrack(refreshToken, trackId);
+          await this.spotifyService.saveTrack(accessToken, trackId);
           await this.repository.update(presave.id, {
             saved: true,
             updated_at: new Date(),

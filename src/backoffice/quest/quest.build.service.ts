@@ -28,25 +28,25 @@ export class QuestBuildService {
 
     switch (quest_kind) {
       case 'quest_spotify':
-        newQuest = await new QuestSpotifiesFactory().buildQuest(newQuest, dto);
+        // newQuest = await new QuestSpotifiesFactory().buildQuest(newQuest, dto);
         break;
       case 'quest_question':
-        newQuest = await new QuestQuestionsFactory().buildQuest(newQuest, dto);
+        // newQuest = await new QuestQuestionsFactory().buildQuest(newQuest, dto);
         break;
       case 'quest_youtube':
-        newQuest = await new QuestYoutubesFactory().buildQuest(newQuest, dto);
+        // newQuest = await new QuestYoutubesFactory().buildQuest(newQuest, dto);
         break;
       case 'quest_pre_save':
         newQuest = await new QuestPreSavesFactory().buildQuest(newQuest, dto);
         break;
       case 'quest_opt':
-        newQuest = await new QuestOptsFactory().buildQuest(newQuest, dto);
+        // newQuest = await new QuestOptsFactory().buildQuest(newQuest, dto);
         break;
       case 'quest_spotify_playlist':
-        newQuest = await new QuestSpotifyPlaylistsFactory().buildQuest(
-          newQuest,
-          dto,
-        );
+        // newQuest = await new QuestSpotifyPlaylistsFactory().buildQuest(
+        //   newQuest,
+        //   dto,
+        // );
         break;
     }
 
