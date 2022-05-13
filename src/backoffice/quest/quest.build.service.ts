@@ -9,9 +9,8 @@ import { QuestSpotifyPlaylists } from 'src/entities/quest-spotify-playlists.enti
 import { QuestYoutubes } from 'src/entities/quest-youtubes.entity';
 import { Quest } from 'src/entities/quest.entity';
 import { getDate } from 'src/utils/date.utils';
-import { getPlaylistIdElementFromUri } from 'src/utils/playlist.utils';
 import { CreateQuestDto } from './dto/create-quest.dto';
-import { parseUri } from 'src/utils/deezer.utils';
+import { parseUri, getIdElementFromUri } from 'src/utils/deezer.utils';
 
 export class QuestBuildService {
   async buildQuest(dto: CreateQuestDto, admin: Admin): Promise<Quest> {
@@ -44,10 +43,10 @@ export class QuestBuildService {
         newQuest = await new QuestOptsFactory().buildQuest(newQuest, dto);
         break;
       case 'quest_spotify_playlist':
-        // newQuest = await new QuestSpotifyPlaylistsFactory().buildQuest(
-        //   newQuest,
-        //   dto,
-        // );
+        newQuest = await new QuestSpotifyPlaylistsFactory().buildQuest(
+          newQuest,
+          dto,
+        );
         break;
     }
 
@@ -175,7 +174,7 @@ export class QuestSpotifyPlaylistsFactory implements QuestFactory {
       dto.quest.quest_spotify_playlist_attributes.points_for_track *
       dto.quest.quest_spotify_playlist_attributes.tracks_count;
 
-    const playlistId: string = getPlaylistIdElementFromUri(questType.uri);
+    const playlistId: string = getIdElementFromUri(questType.uri);
     const playlist = await spotifyService.getPlaylistInfo(playlistId);
 
     questType.cover_url = playlist?.images[0]?.url;

@@ -7,8 +7,7 @@ import { UpdateRescueDto } from './dto/update-rescue.dto';
 import { Rescue } from '../../entities/rescue.entity';
 import { SpotifyService } from 'src/apis/spotify/spotify.service';
 import { ExcelService } from 'src/utils/excel/excel.service';
-import { getPlaylistIdElementFromUri } from 'src/utils/playlist.utils';
-import { getTrackIdElementFromUri } from 'src/utils/track.utils';
+import { getIdElementFromUri } from 'src/utils/deezer.utils';
 
 @Injectable()
 export class RescueService {
@@ -23,12 +22,12 @@ export class RescueService {
 
   async create(admin_id: number, dto: CreateRescueDto) {
     const admin = await this.adminService.findById(admin_id);
-    const trackId: string = getTrackIdElementFromUri(dto.rescue.uri);
+    const trackId: string = getIdElementFromUri(dto.rescue.uri);
     const track = await this.spotifyService.getTrackInfo(trackId);
 
     let playlist: any | undefined = undefined;
     if (dto.rescue.playlist) {
-      const playlistId: string = getPlaylistIdElementFromUri(
+      const playlistId: string = getIdElementFromUri(
         dto.rescue.playlist,
       );
       playlist = await this.spotifyService.getPlaylistNameAndDescription(
