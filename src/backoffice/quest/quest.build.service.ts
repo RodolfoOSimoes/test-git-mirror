@@ -11,6 +11,7 @@ import { Quest } from 'src/entities/quest.entity';
 import { getDate } from 'src/utils/date.utils';
 import { getPlaylistIdElementFromUri } from 'src/utils/playlist.utils';
 import { CreateQuestDto } from './dto/create-quest.dto';
+import { parseUri } from 'src/utils/deezer.utils';
 
 export class QuestBuildService {
   async buildQuest(dto: CreateQuestDto, admin: Admin): Promise<Quest> {
@@ -28,7 +29,7 @@ export class QuestBuildService {
 
     switch (quest_kind) {
       case 'quest_spotify':
-        // newQuest = await new QuestSpotifiesFactory().buildQuest(newQuest, dto);
+        newQuest = await new QuestSpotifiesFactory().buildQuest(newQuest, dto);
         break;
       case 'quest_question':
         newQuest = await new QuestQuestionsFactory().buildQuest(newQuest, dto);
@@ -100,28 +101,29 @@ export class QuestQuestionsFactory implements QuestFactory {
 
 export class QuestSpotifiesFactory implements QuestFactory {
   public async buildQuest(quest: Quest, dto: CreateQuestDto): Promise<Quest> {
-    const spotifyService = new SpotifyService();
+    const uriInfo: any = parseUri(dto.quest.quest_spotify_attributes.uri);
+
     const questType = new QuestSpotifies();
     questType.created_at = new Date();
     questType.updated_at = new Date();
     questType.to_listen = dto.quest.quest_spotify_attributes.to_listen;
     questType.uri = dto.quest.quest_spotify_attributes.uri;
-    questType.uid = dto.quest.quest_spotify_attributes.uri.split(':')[2];
+    questType.uid = uriInfo.id;
 
-    if (dto.quest.quest_spotify_attributes.uri.indexOf('artist') != -1) {
+    const spotifyService = new SpotifyService();
+
+    if (uriInfo.type === 'artist') {
       const artist = await spotifyService.getArtistInfo(questType.uid);
       questType.name = artist?.name;
       quest.kind = 0;
       questType.kind = 1;
-    } else if (
-      dto.quest.quest_spotify_attributes.uri.indexOf('playlist') != -1
-    ) {
+    } else if (uriInfo.type === 'playlist') {
       const playlist = await spotifyService.getPlaylistName(questType.uid);
       questType.name = playlist?.name;
       quest.kind = 1;
       questType.kind = 0;
     } else if (
-      dto.quest.quest_spotify_attributes.uri.indexOf('track') != -1 &&
+      uriInfo.type === 'track' &&
       !dto.quest.quest_spotify_attributes.to_listen
     ) {
       const track = await spotifyService.getTrackInfo(questType.uid);
@@ -129,13 +131,13 @@ export class QuestSpotifiesFactory implements QuestFactory {
       questType.isrc = track?.external_ids?.isrc;
       quest.kind = 2;
       questType.kind = 3;
-    } else if (dto.quest.quest_spotify_attributes.uri.indexOf('album') != -1) {
+    } else if (uriInfo.type === 'album') {
       const almum = await spotifyService.getAlbumInfo(questType.uid);
       questType.name = almum?.name;
       quest.kind = 3;
       questType.kind = 2;
     } else if (
-      dto.quest.quest_spotify_attributes.uri.indexOf('track') != -1 &&
+      uriInfo.type === 'track' &&
       dto.quest.quest_spotify_attributes.to_listen
     ) {
       const track = await spotifyService.getTrackInfo(questType.uid);
