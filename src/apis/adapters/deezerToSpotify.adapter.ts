@@ -45,7 +45,7 @@ export class DeezerToSpotifyAdapter {
     const album: any = await this.deezerService.getAlbum(id);
     return {
       id: album.id,
-      name: album.label,
+      name: album.title,
     };
   }
 

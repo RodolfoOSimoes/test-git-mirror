@@ -15,9 +15,9 @@ export function parseUri(uri: string): any {
 
   return {
     domain: url.origin,
-    lang: pathChunks[0],
-    type: pathChunks[1],
-    id: pathChunks[2],
+    lang: pathChunks[1],
+    type: pathChunks[2],
+    id: pathChunks[3],
   };
 }
 
