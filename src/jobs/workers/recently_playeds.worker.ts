@@ -693,6 +693,8 @@ function prepareRecentlyPlayed(recently: any) {
   };
 }
 
-(async () => {
-  await runWorker();
-})();
+// Worker disabled for Spotify. It will only be activated for Deezer.
+// (2022/05/19)
+// (async () => {
+//   await runWorker();
+// })();
