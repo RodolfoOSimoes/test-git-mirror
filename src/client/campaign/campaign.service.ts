@@ -11,31 +11,89 @@ export class CampaignService {
     private storageService: StorageService,
   ) {}
 
-  async loadBanner() {
+  private static CAMPAIGN_IMAGE_KEYS = [
+    'CampaignImage',
+    'CampaignImageMedium',
+    'CampaignImageSmall',
+    'CampaignBanner',
+  ];
+
+  private async extendCampaigns(
+    campaigns: any[],
+    imageKeys: string[] = CampaignService.CAMPAIGN_IMAGE_KEYS,
+  ) {
+    const campaignRequests: any[] = campaigns.map(async (campaign) => {
+      return await this.extendCampaign(campaign, imageKeys);
+    });
+    return await Promise.all(campaignRequests);
+  }
+
+  private async extendCampaign(
+    campaign: any,
+    imageKeys: string[] = CampaignService.CAMPAIGN_IMAGE_KEYS,
+  ) {
+    const imageRequests: Promise<any>[] = imageKeys.map(async (imageKey) => {
+      const url: string = await this.storageService.getPicture(
+        imageKey,
+        campaign.id,
+      );
+
+      switch (imageKey) {
+        case 'CampaignImage':
+          campaign.image = url ? url : '';
+          break;
+        case 'CampaignImageMedium':
+          campaign.imageMedium = url ? url : '';
+          break;
+        case 'CampaignImageSmall':
+          campaign.imageSmall = url ? url : '';
+          break;
+        case 'CampaignBanner':
+          campaign.banner = url ? url : '';
+          break;
+      }
+    });
+
+    await Promise.all(imageRequests);
+
+    return campaign;
+  }
+
+  async getBanner() {
+    const campaigns: any[] = await this.campaignRepository.find({
+      order: { id: 'DESC' },
+      where: {
+        date_start: LessThanOrEqual(new Date()),
+        date_finish: MoreThanOrEqual(new Date()),
+        enable_banner: true,
+        deleted: false,
+      },
+    });
+
+    const extendedCampaigns: any[] = await this.extendCampaigns(campaigns, [
+      'CampaignBanner',
+    ]);
+
+    return extendedCampaigns;
+  }
+
+  async getActiveCampaigns() {
     const campaigns: any[] = await this.campaignRepository.find({
       order: { id: 'DESC' },
       where: {
         date_start: LessThanOrEqual(new Date()),
         date_finish: MoreThanOrEqual(new Date()),
         status: true,
-        enable_banner: true,
         deleted: false,
       },
     });
 
-    const pictureLoadingPromises: any = campaigns.map(async (campaign) => {
-      const picture: any = await this.storageService.getPicture(
-        'CampaignBanner',
-        campaign.id,
-      );
-      return {
-        campaign,
-        picture,
-      };
-    });
+    const extendedCampaigns: any[] = await this.extendCampaigns(campaigns, [
+      'CampaignImage',
+      'CampaignImageMedium',
+      'CampaignImageSmall',
+    ]);
 
-    const banner: any[] = await Promise.all(pictureLoadingPromises);
-
-    return await banner;
+    return extendedCampaigns;
   }
 }

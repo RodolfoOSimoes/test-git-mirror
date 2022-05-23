@@ -20,7 +20,7 @@ export class CampaignService {
   async create(admin_id: number, data: CreateCampaignDto) {
     const admin = await this.adminService.findById(admin_id);
 
-    const campaing = await this.campaignRepository.save({
+    const campaign: any = await this.campaignRepository.save({
       admin: admin,
       name: data.campaign.name,
       slug: data.campaign.slug,
@@ -33,19 +33,37 @@ export class CampaignService {
       users_count: 0,
     });
 
-    if (data?.campaign?.image?.data)
+    if (data?.campaign?.image?.image) {
       await this.storageService.createPic(
-        data.campaign.image.data,
-        campaing.id,
-        'Campaign',
+        data.campaign.image.image,
+        campaign.id,
+        'CampaignImage',
       );
+    }
 
-    if (data?.campaign?.image?.banner)
+    if (data?.campaign?.image?.image_medium) {
+      await this.storageService.createPic(
+        data.campaign.image.image_medium,
+        campaign.id,
+        'CampaignImageMedium',
+      );
+    }
+
+    if (data?.campaign?.image?.image_small) {
+      await this.storageService.createPic(
+        data.campaign.image.image_small,
+        campaign.id,
+        'CampaignImageSmall',
+      );
+    }
+
+    if (data?.campaign?.image?.banner) {
       await this.storageService.createPic(
         data.campaign.image.banner,
-        campaing.id,
+        campaign.id,
         'CampaignBanner',
       );
+    }
 
     return { message: 'Campanha criada com sucesso.' };
   }
@@ -89,19 +107,37 @@ export class CampaignService {
       updated_at: new Date(),
     });
 
-    if (data?.campaign?.image?.data)
+    if (data?.campaign?.image?.image) {
       await this.storageService.updatePic(
-        data.campaign.image.data,
+        data.campaign.image.image,
         id,
-        'Campaign',
+        'CampaignImage',
       );
+    }
 
-    if (data?.campaign?.image?.banner)
+    if (data?.campaign?.image?.image_medium) {
+      await this.storageService.updatePic(
+        data.campaign.image.image_medium,
+        id,
+        'CampaignImageMedium',
+      );
+    }
+
+    if (data?.campaign?.image?.image_small) {
+      await this.storageService.updatePic(
+        data.campaign.image.image_small,
+        id,
+        'CampaignImageSmall',
+      );
+    }
+
+    if (data?.campaign?.image?.banner) {
       await this.storageService.updatePic(
         data.campaign.image.banner,
         id,
         'CampaignBanner',
       );
+    }
 
     return { message: 'Campanha atualizada com sucesso.' };
   }

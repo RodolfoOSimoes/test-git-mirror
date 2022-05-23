@@ -6,7 +6,12 @@ export class CampaignController {
   constructor(private readonly campaignService: CampaignService) {}
 
   @Get('banner')
-  loadBanner() {
-    return this.campaignService.loadBanner();
+  getBanner() {
+    return this.campaignService.getBanner();
+  }
+
+  @Get('active')
+  getActiveCampaigns() {
+    return this.campaignService.getActiveCampaigns();
   }
 }
