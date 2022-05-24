@@ -71,8 +71,8 @@ export class UserService {
     const credentials: any = {
       token: accessData.accessToken,
       refresh_token: '',
-      expires: true,
-      expires_in: this.getDeezerAccessTokenExpirationDate(accessData.expires),
+      expires: false,
+      expires_in: null,
     };
 
     if (user) {
@@ -95,10 +95,6 @@ export class UserService {
     this.saveAuthenticationLog(accessData, user);
 
     return user;
-  }
-
-  private getDeezerAccessTokenExpirationDate(expires: number) {
-    return new Date(new Date().getTime() + expires * 1000);
   }
 
   private async createOne(data: any) {
