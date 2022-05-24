@@ -25,4 +25,8 @@ const prepareDate = () => {
   return `${moment(new Date()).format('YYYY-MM-DD')} 00:00:00`;
 };
 
-export { formatDate, getDate, getBrlUtcDate, prepareDate };
+const epochToDate = (value: number): Date => {
+  return new Date(value * 1000);
+};
+
+export { formatDate, getDate, getBrlUtcDate, prepareDate, epochToDate };

@@ -142,7 +142,7 @@ export class QuestService {
       });
 
       const followPlaylistPromise = spotifyService.followPlaylist(
-        user.credentials['refresh_token'],
+        user.credentials['token'],
         quest.quest_spotifies.uid,
       );
       const accomplishedPromise = this.accomplishedQuestsRepository.save({
@@ -177,7 +177,7 @@ export class QuestService {
       });
 
       const followArtist = spotifyService.followArtist(
-        user.credentials['refresh_token'],
+        user.credentials['token'],
         quest.quest_spotifies.uid,
       );
       const accomplishedPromise = this.accomplishedQuestsRepository.save({
@@ -208,7 +208,7 @@ export class QuestService {
       });
 
       const followAlbum = await spotifyService.followAlbum(
-        user.credentials['refresh_token'],
+        user.credentials['token'],
         quest.quest_spotifies.uid,
       );
       const accomplishedPromise = this.accomplishedQuestsRepository.save({
@@ -239,7 +239,7 @@ export class QuestService {
       });
 
       const saveTrack = await spotifyService.saveTrack(
-        user.credentials['refresh_token'],
+        user.credentials['token'],
         quest.quest_spotifies.uid,
       );
       const accomplishedPromise = this.accomplishedQuestsRepository.save({

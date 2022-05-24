@@ -1,11 +1,15 @@
-import { Controller, Get, UseGuards, Req, Body, Post } from '@nestjs/common';
+/* Spotify removed from Filtrgame (2022/04).
+import { Controller, Get, UseGuards, Req, Body, Post } from '@nestjs/common'; */
+import { Controller, Req, Body, Post } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { SpotifyAuthGuard } from './guards/spotify-auth.guard';
+/* Spotify removed from Filtrgame (2022/04).
+import { SpotifyAuthGuard } from './guards/spotify-auth.guard'; */
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  /* Spotify removed from Filtrgame (2022/04).
   @UseGuards(SpotifyAuthGuard)
   @Get('spotify')
   async find(@Req() req) {
@@ -22,7 +26,23 @@ export class AuthController {
 
     return this.authService.saveUser(requestInfo);
   }
+  */
 
+  @Post('deezer/signin')
+  async signInWithDeezer(@Req() req, @Body() body) {
+    // TODO: validate body.
+
+    const accessData = {
+      ipAddress: body.ipAddress,
+      userAgent: body.userAgent,
+      accessToken: body.accessToken,
+      expires: body.expires,
+    };
+
+    return this.authService.signInWithDeezer(accessData);
+  }
+
+  /* Spotify removed from Filtrgame (2022/04).
   @Post('spotify/signed_in')
   async spotifySignedIn(@Req() req, @Body() body) {
     const requestInfo = {
@@ -33,4 +53,5 @@ export class AuthController {
 
     return this.authService.saveSignedInSpotifyUser(requestInfo);
   }
+  */
 }

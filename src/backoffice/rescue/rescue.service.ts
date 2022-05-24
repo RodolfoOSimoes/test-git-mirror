@@ -6,8 +6,8 @@ import { CreateRescueDto } from './dto/create-rescue.dto';
 import { UpdateRescueDto } from './dto/update-rescue.dto';
 import { Rescue } from '../../entities/rescue.entity';
 import { SpotifyService } from 'src/apis/spotify/spotify.service';
-import { SendMailProducerService } from 'src/jobs/producers/sendMail-producer-service';
 import { ExcelService } from 'src/utils/excel/excel.service';
+import { getIdElementFromUri } from 'src/utils/deezer.utils';
 
 @Injectable()
 export class RescueService {
@@ -22,16 +22,18 @@ export class RescueService {
 
   async create(admin_id: number, dto: CreateRescueDto) {
     const admin = await this.adminService.findById(admin_id);
-
-    const trackId = dto.rescue.uri.split(':')[2];
-
+    const trackId: string = getIdElementFromUri(dto.rescue.uri);
     const track = await this.spotifyService.getTrackInfo(trackId);
 
-    const playlist = dto.rescue.playlist
-      ? await this.spotifyService.getPlaylistNameAndDescription(
-          dto.rescue.playlist.split(':')[2],
-        )
-      : undefined;
+    let playlist: any | undefined = undefined;
+    if (dto.rescue.playlist) {
+      const playlistId: string = getIdElementFromUri(
+        dto.rescue.playlist,
+      );
+      playlist = await this.spotifyService.getPlaylistNameAndDescription(
+        playlistId,
+      );
+    }
 
     await this.rescueRepository.save({
       admin: admin,
@@ -48,7 +50,7 @@ export class RescueService {
       updated_at: new Date(),
       rescues_count: 0,
       playlist: dto.rescue.playlist,
-      info_playlist: playlist,
+      info_playlist: playlist ? JSON.stringify(playlist) : null,
       limited: dto.rescue.limited,
       limit_streams: dto.rescue.limit_streams,
       priority: dto.rescue.priority,
@@ -182,7 +184,6 @@ export class RescueService {
       data: count,
     };
   }
-
 
   async findCashBacksByDay(id: number, page = 1, limit = 25) {
     const uniqueUserIds = await this.rescueRepository.query(

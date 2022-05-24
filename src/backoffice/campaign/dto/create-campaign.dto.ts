@@ -7,8 +7,10 @@ export class CreateCampaignDto {
     date_finish: string;
     enable_banner: boolean;
     image: {
-      data: string;
-      banner: string;
+      banner?: string;
+      image?: string;
+      image_medium?: string;
+      image_small?: string;
     };
   };
 }

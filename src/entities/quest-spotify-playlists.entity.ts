@@ -27,6 +27,9 @@ export class QuestSpotifyPlaylists {
   points_for_track: number;
 
   @Column({ type: 'text', nullable: true })
+  tracks: string;
+
+  @Column({ type: 'text', nullable: true })
   isrcs: string;
 
   @OneToOne((type) => Quest, (entity) => entity.quest_spotify_playlists)

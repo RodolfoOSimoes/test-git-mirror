@@ -4,7 +4,8 @@ import { JwtService } from '@nestjs/jwt';
 import { AdminService } from 'src/backoffice/admin/admin.service';
 import { Admin } from '../entities/admin.entity';
 import { AdminRole } from 'src/enums/AdminRoles';
-import { SpotifyService } from 'src/apis/spotify/spotify.service';
+/* Spotify removed from Filtrgame (2022/04).
+import { SpotifyService } from 'src/apis/spotify/spotify.service'; */
 import { UserService } from 'src/client/user/user.service';
 
 @Injectable()
@@ -13,8 +14,9 @@ export class AuthService {
     private adminService: AdminService,
     private jwtService: JwtService,
     private userService: UserService,
-    private spotifyService: SpotifyService,
-  ) {}
+  ) /* Spotify removed from Filtrgame (2022/04).
+    private spotifyService: SpotifyService, */
+  {}
 
   async validateAdmin(email: string, password: string): Promise<any> {
     const admin = await this.adminService.findByEmail(email);
@@ -36,6 +38,7 @@ export class AuthService {
     return this.jwtService.sign(payload);
   }
 
+  /* Spotify removed from Filtrgame (2022/04).
   async saveUser(requestInfo: any) {
     if (!requestInfo.body) {
       return { message: 'Necessário enviar código do spotify' };
@@ -70,7 +73,24 @@ export class AuthService {
       throw new UnauthorizedException('Usuário deletado.');
     }
   }
+  */
 
+  async signInWithDeezer(accessData: any) {
+    const user = await this.userService.signInWithDeezer(accessData);
+    const accessToken = this.generateAccessToken(user);
+    return { accessToken };
+  }
+
+  private generateAccessToken(user: any): string {
+    return this.jwtService.sign({
+      id: user.id,
+      email: user.email,
+      // Roles as 'spotify' up to full Spotify replacement.
+      roles: 'spotify',
+    });
+  }
+
+  /* Spotify removed from Filtrgame (2022/04).
   async saveSignedInSpotifyUser(requestInfo: any) {
     const spotifyAccessToken = requestInfo.body["access_token"];
     const spotifyRefreshToken = requestInfo.body["refresh_token"];
@@ -100,4 +120,5 @@ export class AuthService {
       throw new UnauthorizedException('Usuário deletado.');
     }
   }
+  */
 }

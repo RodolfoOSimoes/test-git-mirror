@@ -3,6 +3,7 @@ import { Quest } from 'src/entities/quest.entity';
 import { User } from 'src/entities/user.entity';
 import { Setting } from 'src/entities/setting.entity';
 import { Extract } from 'src/entities/extract.entity';
+import { DeezerService } from 'src/apis/deezer/deezer.service';
 import { AuthenticationService } from 'src/utils/authentication/authentication.service';
 import { StorageService } from 'src/utils/storage/storage.service';
 import {
@@ -52,9 +53,104 @@ export class UserService {
     @Inject('WITHDRAWAL_REPOSITORY')
     private withdrawRepository: Repository<Withdrawal>,
     private authenticationTokenService: AuthenticationService,
+    private deezerService: DeezerService,
     private storageService: StorageService,
   ) {}
 
+  async signInWithDeezer(accessData: any): Promise<any> {
+    const userData = await this.deezerService.getUser(accessData.accessToken);
+
+    let user = await this.userRepository.findOne({
+      uid: userData.id,
+    });
+
+    if (user && user.deleted) {
+      throw Error('User deleted');
+    }
+
+    const credentials: any = {
+      token: accessData.accessToken,
+      refresh_token: '',
+      expires: true,
+      expires_in: this.getDeezerAccessTokenExpirationDate(accessData.expires),
+    };
+
+    if (user) {
+      await this.updateCredentials(user, {
+        credentials: credentials,
+        product: null,
+      });
+    } else {
+      user = await this.createOne({
+        uid: userData.id,
+        name: userData.name,
+        email: userData.email,
+        provider: 'deezer',
+        credentials: credentials,
+        product: null,
+      });
+      await this.storeProfileImage(user, userData.picture);
+    }
+
+    this.saveAuthenticationLog(accessData, user);
+
+    return user;
+  }
+
+  private getDeezerAccessTokenExpirationDate(expires: number) {
+    return new Date(new Date().getTime() + expires * 1000);
+  }
+
+  private async createOne(data: any) {
+    const user = new User();
+    user.name = data.name;
+    user.email = data.email;
+    user.uid = data.uid;
+    user.provider = data.provider;
+    user.credentials = data.credentials;
+    user.login_count = 1;
+    user.last_time_verified = new Date().getTime();
+    user.created_at = new Date();
+    user.updated_at = new Date();
+    user.have_accepted = false;
+    user.opt_in_mailing = false;
+    user.profile_completed = false;
+    user.situation = false;
+    user.situation = false;
+    user.invitation_code = generateCode();
+    user.balance = 0;
+    user.product = data.product;
+    return await this.userRepository.save(user);
+  }
+
+  private async updateCredentials(user: any, data: any) {
+    await this.userRepository.update(user.id, {
+      credentials: data.credentials,
+      product: data.product,
+      updated_at: new Date(),
+      last_time_checked_product: new Date(),
+    });
+  }
+
+  private async storeProfileImage(user, url) {
+    await this.storageService.saveProfilePic(url, user.id);
+  }
+
+  private async saveAuthenticationLog(accessData: any, user: any) {
+    await this.authenticationTokenService.create(
+      {
+        body: {
+          access_token: accessData.accessToken,
+          expires: accessData.expires,
+        },
+        ip_address: accessData.ipAddress,
+        user_agent: accessData.userAgent,
+      },
+      user,
+    );
+  }
+
+  /* Spotify removed from Filtrgame (2022/04).
   async create(requestInfo: any, data: any) {
     const user = await this.userRepository.findOne({
       uid: data['id'],
@@ -113,6 +209,7 @@ export class UserService {
       };
     }
   }
+  */
 
   async findOne(id: number) {
     const user = await this.userRepository.findOne(id, {

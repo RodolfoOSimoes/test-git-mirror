@@ -1,11 +1,19 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
-import { SpotifyService } from 'src/apis/spotify/spotify.service';
-import { formatDate } from 'src/utils/date.utils';
+import { DeezerService } from 'src/apis/deezer/deezer.service';
+import { breakArray } from 'src/utils/array.utils';
+import { formatDate, epochToDate } from 'src/utils/date.utils';
 import { createConnection } from 'typeorm';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const moment = require('moment');
 
 require('dotenv').config();
+
+const UPDATE_INTERVAL: number = 5000; // 5 segundos
+const MAX_USERS_BY_OPERATION: number = 30;
+const CALLS_BY_SECOND: number = 10;
+
+let dbConnection: any = null;
+let deezerService: DeezerService = null;
 
 async function getConnection() {
   return await createConnection({
@@ -24,159 +32,131 @@ async function getConnection() {
   });
 }
 
-async function runWorker() {
-  const rescueList = process.env.RESCUES_CAMPAIGN
-    ? process.env.RESCUES_CAMPAIGN.split(';')
-    : [];
-  let connection = null;
-  connection = await getConnection();
-  const spotifyService = new SpotifyService();
-  let iteration = 0;
-  let limit = 40;
+async function openDBConnection() {
+  dbConnection = await getConnection();
+}
+
+function instantiateDeezerService() {
+  deezerService = new DeezerService();
+}
+
+async function getUsersBatchForUpdate() {
+  let users: Array<any> = [];
 
   try {
-    const [lastRecentlyPlayed] = await connection.query(
-      'SELECT user_id FROM recently_playeds ORDER BY id DESC LIMIT 1',
+    users = await dbConnection.query(
+      `SELECT id, credentials, last_heard ` +
+        `FROM users ` +
+        `WHERE have_accepted = ? ` +
+        `AND deleted = ? ` +
+        `AND situation = ? ` +
+        `AND provider = ? ` +
+        `ORDER BY last_deezer_history_check ASC ` +
+        `LIMIT ?`,
+      [true, false, false, 'deezer', MAX_USERS_BY_OPERATION],
     );
-
-    if (lastRecentlyPlayed && lastRecentlyPlayed.user_id) {
-      iteration = lastRecentlyPlayed.user_id - limit;
-    }
-  } catch (error) {}
-
-  console.log('Starting worker');
-
-  while (true) {
-    try {
-      limit = await getLimit(connection);
-      const usersData = await connection.query(
-        `SELECT id, credentials, last_heard FROM users WHERE have_accepted = ? AND deleted = ? AND situation = ? AND last_time_verified < ? AND id > ? LIMIT ${limit}`,
-        [true, false, false, new Date().getTime(), iteration],
-      );
-      if (!usersData.length) {
-        iteration = 0;
-      } else {
-        iteration = usersData[usersData.length - 1].id;
-      }
-      const users = await getUsers(usersData, connection);
-      await prepareJob(users, connection, spotifyService, rescueList);
-    } catch (error) {
-      console.log(error);
-    }
-  }
-}
-
-async function getLimit(connection) {
-  let limit = 40;
-
-  const date = new Date();
-  const hour = date.getHours();
-
-  const preSaveQuest = await connection.query(`
-    SELECT psu.* FROM pre_save_users psu INNER JOIN quest_pre_saves qps 
-    ON psu.quest_pre_save_id = qps.id 
-    WHERE qps.launch_in >= '2021-10-01' AND psu.saved = 0
-  `);
-
-  // if exists any pre_save_users and is the same hour that preSaveJob runs
-  // return 20 as limit for spotify API not to throw the 429 error
-  if (preSaveQuest && preSaveQuest.length && hour == 2) {
-    limit = 20;
-  }
-
-  return limit;
-}
-
-async function testWorker(connection, spotifyService, rescueList, userId) {
-  console.log('start worker');
-  setInterval(async () => {
-    const usersData = await connection.query(
-      `SELECT id, credentials, last_heard FROM users WHERE have_accepted = ? AND deleted = ? AND situation = ? AND last_time_verified < ? AND id = ?`,
-      [true, false, false, new Date().getTime(), userId],
-    );
-    const users = await getUsers(usersData, connection);
-    await prepareJob(users, connection, spotifyService, rescueList);
-  }, 20000);
-}
-
-async function prepareJob(users, connection, spotifyService, rescueList) {
-  await Promise.all([
-    runJob(users.splice(0, 20), connection, spotifyService, rescueList),
-    runJob(users.splice(0, 20), connection, spotifyService, rescueList),
-  ]);
-}
-
-async function runJob(users, connection, spotifyService, rescueList) {
-  try {
-    for (const user of users) {
-      // console.log(`Processing user: ${user.id}`);
-      const credentials = user.credentials;
-
-      let recentlyPlayeds = null;
-
-      try {
-        recentlyPlayeds = await spotifyService.getRecentlyPlayed(
-          credentials['refresh_token'],
-          user.lastTimeVerify,
-        );
-      } catch (error) {
-        recentlyPlayeds = null;
-      }
-
-      if (recentlyPlayeds) {
-        const recently = prepareRecentlyPlayed(recentlyPlayeds);
-
-        if (recently) {
-          // console.log(`Updating data for user: ${user.id}`);
-          const [questPlaylistSpotify, campaign, rescues] = await Promise.all([
-            loadSpotifyPlaylistQuests(connection),
-            loadCampaign(connection),
-            loadRescues(connection),
-          ]);
-
-          await prepareCashbacks(
-            user,
-            rescues,
-            recentlyPlayeds,
-            campaign,
-            questPlaylistSpotify,
-            connection,
-            rescueList,
-          );
-          await updateUser(user, recently, connection);
-        }
-      }
-      // console.log(`Finish processing user: ${user.id}`);
-    }
-  } catch (error) {
-    console.log(error);
-  }
-}
-
-async function getUsers(queueUsers, connection) {
-  const users = [];
-  for (const userData of queueUsers) {
-    const [recently] = await connection.query(
-      `SELECT content FROM recently_playeds WHERE user_id = ? ORDER BY created_at DESC`,
-      [userData.id],
-    );
-    try {
-      userData.lastTimeVerify = recently.content['cursors']['after'];
-    } catch (error) {
-      userData.lastTimeVerify = 0;
-    }
-    users.push(userData);
+  } catch (e) {
+    return [];
   }
 
   return users;
 }
 
+async function workerInfiniteLoop() {
+  const users: Array<any> = await getUsersBatchForUpdate();
+  const usersGroupedBySecond: Array<Array<any>> = breakArray(
+    users,
+    CALLS_BY_SECOND,
+  );
+
+  usersGroupedBySecond.forEach((group, i) => {
+    setTimeout(() => {
+      group.forEach((user) => {
+        processUserRecentlyPlayed(user);
+      });
+    }, i * 1000);
+  });
+}
+
+async function runWorker() {
+  await openDBConnection();
+  instantiateDeezerService();
+
+  setInterval(workerInfiniteLoop, UPDATE_INTERVAL);
+
+  console.log('Worker running...');
+}
+
+async function processUserRecentlyPlayed(user): Promise<void> {
+  let history: any = null;
+  try {
+    const response: any = await deezerService.history(
+      user.credentials['token'],
+    );
+    history = response.data;
+  } catch (error) {
+    return;
+  }
+
+  const recently: any = filterRecentlyPlayedOnly(user, history);
+
+  if (recently.total > 0) {
+    const [questPlaylistSpotify, campaign, rescues] = await Promise.all([
+      loadSpotifyPlaylistQuests(dbConnection),
+      loadCampaign(dbConnection),
+      loadRescues(dbConnection),
+    ]);
+
+    console.log(`Updating data for user: ${user.id}`);
+
+    await prepareCashbacks(
+      user,
+      rescues,
+      recently,
+      campaign,
+      questPlaylistSpotify,
+      dbConnection,
+    );
+    await updateUser(user, recently, dbConnection);
+    await saveRecentlyPlaylist(user, recently, dbConnection);
+  } else {
+    await setUserAsChecked(user);
+  }
+}
+
+function filterRecentlyPlayedOnly(user: any, history: any): any {
+  if (user.last_heard === null) {
+    return history;
+  }
+
+  const lastHeardDate: Date = new Date(user.last_heard);
+  const lastHeardTimestamp: number = Math.trunc(lastHeardDate.getTime() / 1000);
+
+  const filteredData: Array<any> = [];
+  history.data.find((item) => {
+    if (item.timestamp <= lastHeardTimestamp) {
+      return true;
+    }
+
+    filteredData.push(item);
+  });
+
+  return {
+    data: filteredData,
+    total: filteredData.length,
+  };
+}
+
+function parseTracks(tracks: string | null): string[] {
+  return tracks ? tracks.split(';') : [];
+}
+
 async function loadSpotifyPlaylistQuests(connection) {
   const quests = await connection.query(
-    `SELECT q.*, qsp.* FROM quests q 
-    INNER JOIN quest_spotify_playlists qsp 
-    ON qsp.quest_id = q.id 
-    WHERE q.status = ? AND q.date_start < ? 
+    `SELECT q.*, qsp.* FROM quests q
+    INNER JOIN quest_spotify_playlists qsp
+    ON qsp.quest_id = q.id
+    WHERE q.status = ? AND q.date_start < ?
     AND q.deleted = ? AND q.kind = ? ORDER BY date_start DESC`,
     [true, new Date(), false, 12],
   );
@@ -190,7 +170,7 @@ async function loadSpotifyPlaylistQuests(connection) {
         uri: quest.uri,
         tracks_count: quest.tracks_count,
         points_for_track: quest.points_for_track,
-        isrcs: quest.isrcs,
+        tracks: parseTracks(quest.tracks),
         quest_id: quest.quest_id,
       });
     }
@@ -272,8 +252,8 @@ async function getBonusForCashback(connection, cashbackLimits, user) {
       const today = moment(new Date()).utcOffset('-0300').format('YYYY-MM-DD');
 
       const statement = await connection.query(
-        `SELECT * FROM statements WHERE user_id = ? AND 
-         DATE(CONVERT_TZ(created_at, 'UTC', 'America/Sao_Paulo')) = ? AND 
+        `SELECT * FROM statements WHERE user_id = ? AND
+         DATE(CONVERT_TZ(created_at, 'UTC', 'America/Sao_Paulo')) = ? AND
          statementable_type = 'UserGratification' LIMIT 1`,
         [user.id, today],
       );
@@ -281,18 +261,18 @@ async function getBonusForCashback(connection, cashbackLimits, user) {
       if (statement?.length == 0) {
         await connection.query(
           `INSERT INTO statements (
-        user_id, 
-        campaign_id, 
-        amount, 
-        kind, 
-        balance, 
-        statementable_type, 
-        statementable_id, 
-        deleted, 
-        created_at, 
-        updated_at, 
-        code_doc, 
-        statementable_type_action, 
+        user_id,
+        campaign_id,
+        amount,
+        kind,
+        balance,
+        statementable_type,
+        statementable_id,
+        deleted,
+        created_at,
+        updated_at,
+        code_doc,
+        statementable_type_action,
         expiration_date) VALUES (
           ?,?,?,?,?,?,?,?,?,?,?,?,?
         )`,
@@ -331,7 +311,7 @@ async function loadUserQuestSpotifyPlaylists(
 
     const questIds = questSpotifyPlaylist.map((qsp) => qsp.id);
     const userQuest = await connection.query(
-      `SELECT uqsp.id AS id, uqsp.isrcs AS isrcs, qsp.id AS qsp_id
+      `SELECT uqsp.id AS id, uqsp.tracks AS tracks, qsp.id AS qsp_id
     FROM user_quest_spotify_playlists uqsp
     INNER JOIN quest_spotify_playlists qsp ON uqsp.quest_spotify_playlist_id = qsp.id
     WHERE qsp.id IN (?) AND uqsp.user_id = ?`,
@@ -350,7 +330,6 @@ async function prepareCashbacks(
   campaign,
   questPlaylistSpotify,
   connection,
-  rescueList,
 ) {
   const todayCashBacks = await connection.query(
     `SELECT * FROM cash_backs WHERE user_id = ? AND played_at >= ? ORDER BY track_id DESC`,
@@ -373,24 +352,22 @@ async function prepareCashbacks(
 
   const rescuesCampaign = [];
 
-  recently.items.forEach((item) => {
-    const isrc = item['track']['external_ids']['isrc'];
-    const rescue = rescues.find((rescue) => rescue.isrc == isrc);
-    const todayCashback = cashbacksLimit.find(
-      (cb) => cb.track_id == item['track']['id'],
-    );
+  recently.data.forEach((item) => {
+    if (item.type !== 'track') {
+      return;
+    }
+
+    const itemTrackId: string = String(item.id);
 
     questPlaylistSpotify.forEach((qsp) => {
-      if (qsp.isrcs.includes(isrc)) {
+      if (qsp.tracks.includes(itemTrackId)) {
         const userQuest = userQuestSpotify.find((uqs) => uqs.qsp_id == qsp.id);
-
         const filteredUserQuest = userQuestPlaylist.find(
           (uqp) => uqp.playlist_id == qsp.id,
         );
-
         if (!userQuest && !filteredUserQuest) {
           userQuestPlaylist.push({
-            isrcs: `---\r\n- ${isrc}`,
+            tracks: [itemTrackId],
             playlist_id: qsp.id,
             playlist: qsp,
             id: null,
@@ -398,14 +375,14 @@ async function prepareCashbacks(
           });
         } else if (
           filteredUserQuest &&
-          !filteredUserQuest.isrcs.includes(isrc)
+          !filteredUserQuest.tracks.includes(itemTrackId)
         ) {
-          filteredUserQuest.isrcs = `${filteredUserQuest.isrcs}\r\n- ${isrc}`;
+          filteredUserQuest.tracks = [...filteredUserQuest.tracks, itemTrackId];
         } else if (!filteredUserQuest && userQuest) {
           userQuestPlaylist.push({
-            isrcs: !userQuest.isrcs.includes(isrc)
-              ? `${userQuest.isrcs}\r\n- ${isrc}`
-              : userQuest.isrcs,
+            tracks: !userQuest.tracks.includes(itemTrackId)
+              ? [...userQuest.tracks, itemTrackId]
+              : [...userQuest.tracks],
             playlist_id: qsp.id,
             playlist: qsp,
             id: userQuest.id,
@@ -415,26 +392,33 @@ async function prepareCashbacks(
       }
     });
 
-    if (rescueList.includes(item['track']['id'])) {
+    const rescueList = process.env.RESCUES_CAMPAIGN
+      ? process.env.RESCUES_CAMPAIGN.split(';')
+      : [];
+    if (rescueList.includes(itemTrackId)) {
       rescuesCampaign.push({
-        uri: item['track']['id'],
+        uri: itemTrackId,
         date: getToday(),
-        name: item['track']['name'],
+        name: item.title,
         user_id: user.id,
         created_at: new Date(),
         updated_at: new Date(),
-        played_at: item['played_at'],
+        played_at: epochToDate(item.timestamp),
       });
     }
 
+    const rescue = rescues.find((rescue) => rescue.uid == itemTrackId);
+    const todayCashback = cashbacksLimit.find(
+      (cb) => cb.track_id == itemTrackId,
+    );
     if (rescue && todayCashback && todayCashback.limit > 0) {
       todayCashback.limit--;
       statementCashbacks.push({
         user_id: user.id,
         rescue_id: rescue,
-        track_id: item['track']['id'],
-        played_at: item['played_at'],
-        name: item['track']['name'],
+        track_id: itemTrackId,
+        played_at: epochToDate(item.timestamp),
+        name: item.title,
         score: rescue.score,
       });
     }
@@ -447,15 +431,17 @@ async function prepareCashbacks(
     if (uqp.id) {
       userQuestSpotifyUpdate.push({
         updated_at: new Date(),
-        isrcs: uqp.isrcs,
+        tracks: uqp.tracks.join(';'),
         id: uqp.id,
       });
     } else {
       userQuestSpotifySave.push({
         updated_at: new Date(),
-        isrcs: uqp.isrcs,
+        tracks: uqp.tracks.join(';'),
         user: user,
-        quest_spotify_playlists: uqp.playlist,
+        quest_spotify_playlists: {
+          id: uqp.playlist.id,
+        },
         created_at: new Date(),
         complete: false,
         question_answered: false,
@@ -482,19 +468,18 @@ async function prepareCashbacks(
   } catch (error) {
     console.log(error.message);
   }
-  // console.log('finishing worker');
 }
 
 async function saveRescueCampaign(rescuesCampaign, connection) {
   for (const rescue of rescuesCampaign) {
     await connection.query(
       `INSERT INTO rescue_records (
-        user_id, 
+        user_id,
         uri,
         name,
-        date, 
+        date,
         played_at,
-        created_at, 
+        created_at,
         updated_at) VALUES (
           ?,?,?,?,?,?,?
         )`,
@@ -515,18 +500,18 @@ async function saveStatements(statements, connection) {
   for (const statement of statements) {
     await connection.query(
       `INSERT INTO statements (
-        user_id, 
-        campaign_id, 
-        amount, 
-        kind, 
-        balance, 
-        statementable_type, 
-        statementable_id, 
-        deleted, 
-        created_at, 
-        updated_at, 
-        code_doc, 
-        statementable_type_action, 
+        user_id,
+        campaign_id,
+        amount,
+        kind,
+        balance,
+        statementable_type,
+        statementable_id,
+        deleted,
+        created_at,
+        updated_at,
+        code_doc,
+        statementable_type_action,
         expiration_date) VALUES (
           ?,?,?,?,?,?,?,?,?,?,?,?,?
         )`,
@@ -586,18 +571,20 @@ async function saveUserQuestSpotify(userQuestSpotifies, connection) {
         quest_spotify_playlist_id,
         complete,
         question_answered,
+        tracks,
         isrcs,
         created_at,
         updated_at
       ) VALUES (
-        ?,?,?,?,?,?,?
+        ?,?,?,?,?,?,?,?
       )`,
       [
         uqs.user?.id,
         uqs.quest_spotify_playlists?.id,
         uqs.complete,
         uqs.question_answered,
-        uqs.isrcs,
+        uqs.tracks,
+        null,
         uqs.created_at,
         uqs.updated_at,
       ],
@@ -608,8 +595,8 @@ async function saveUserQuestSpotify(userQuestSpotifies, connection) {
 async function updateUserQuestSpotify(userQuestSpotifies, connection) {
   for (const uqs of userQuestSpotifies) {
     await connection.query(
-      `UPDATE user_quest_spotify_playlists SET isrcs = ?, updated_at = ? WHERE id = ?`,
-      [uqs.isrcs, uqs.updated_at, uqs.id],
+      `UPDATE user_quest_spotify_playlists SET tracks = ?, updated_at = ? WHERE id = ?`,
+      [uqs.tracks, uqs.updated_at, uqs.id],
     );
   }
 }
@@ -646,17 +633,33 @@ function buildStatement(cb: any, user, campaign) {
 }
 
 async function updateUser(user, recently, connection) {
+  const now: Date = new Date();
   await connection.query(
-    `UPDATE users SET last_time_verified = ?, last_heard = ?, updated_at = ? WHERE id = ?`,
-    [new Date().getTime(), getLastHeardTime(recently), new Date(), user.id],
+    `UPDATE users ` +
+      `SET last_time_verified = ?, ` +
+      `last_heard = ?, ` +
+      `updated_at = ?, ` +
+      `last_deezer_history_check = ? ` +
+      `WHERE id = ?`,
+    [new Date().getTime(), getLastHeardTime(recently), now, now, user.id],
   );
+}
 
-  await saveRecentlyPlaylist(user, recently, connection);
+async function setUserAsChecked(user: any): Promise<void> {
+  const now: Date = new Date();
+  await dbConnection.query(
+    `UPDATE users ` +
+      `SET last_time_verified = ?, ` +
+      `updated_at = ?, ` +
+      `last_deezer_history_check = ? ` +
+      `WHERE id = ?`,
+    [now.getTime(), now, now, user.id],
+  );
 }
 
 async function saveRecentlyPlaylist(user, recently, connection) {
   const now = new Date();
-  const listen_times = recently?.items?.length || 0;
+  const listen_times = recently.total;
   await connection.query(
     `INSERT INTO recently_playeds (
     user_id, content, listen_times, checked_in, created_at, updated_at) VALUES
@@ -665,8 +668,15 @@ async function saveRecentlyPlaylist(user, recently, connection) {
   );
 }
 
-function getLastHeardTime(recently) {
-  return new Date(recently?.items[recently?.items?.length - 1]?.played_at);
+function getLastHeardTime(recently): Date {
+  if (recently.total <= 0) {
+    throw Error('One or more recent activity is expected.');
+  }
+
+  const last: any = recently.data[0];
+  const lastHeardTime: Date = epochToDate(last.timestamp);
+
+  return lastHeardTime;
 }
 
 function prepareRecentlyPlayed(recently: any) {

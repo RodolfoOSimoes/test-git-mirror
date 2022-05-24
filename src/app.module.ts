@@ -28,6 +28,7 @@ import { PaginationService } from './utils/pagination/pagination.service';
 import { SpotifyService } from './apis/spotify/spotify.service';
 import { UserModule as UserClientModule } from './client/user/user.module';
 import { CashBackModule } from './client/cash-back/cash-back.module';
+import { CampaignModule as CampaignClientModule } from './client/campaign/campaign.module';
 import { BadgeModule } from './client/badge/badge.module';
 import { AddressModule as AddressClientModule } from './client/address/address.module';
 import { LocationModule } from './client/location/location.module';
@@ -117,6 +118,7 @@ import { cashBackBalanceProviders } from './providers/cash-backs-balance.provide
     AddressClientModule,
     OrderUserModule,
     UserClientModule,
+    CampaignClientModule,
     CashBackModule,
     BadgeModule,
     AddressModule,

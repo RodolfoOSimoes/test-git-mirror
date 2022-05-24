@@ -20,6 +20,7 @@ import { cityProviders } from 'src/providers/city.providers';
 import { invitationProviders } from 'src/providers/invitation.providers';
 import { campaignProviders } from 'src/providers/campaign.providers';
 import { withdrawalProviders } from 'src/providers/withdrawal.providers';
+import { DeezerService } from 'src/apis/deezer/deezer.service';
 
 @Module({
   imports: [DatabaseModule, StorageModule],
@@ -39,6 +40,7 @@ import { withdrawalProviders } from 'src/providers/withdrawal.providers';
     ...invitationProviders,
     ...campaignProviders,
     ...withdrawalProviders,
+    DeezerService,
     UserService,
     PaginationService,
     AuthenticationService,

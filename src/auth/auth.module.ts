@@ -9,7 +9,8 @@ import { AuthController } from './auth.controller';
 import { SpotifyStrategy } from './strategies/spotify.strategy';
 import { UserModule } from 'src/client/user/user.module';
 import { DatabaseModule } from 'src/database/database.module';
-import { SpotifyService } from 'src/apis/spotify/spotify.service';
+/* Spotify removed from Filtrgame (2022/04).
+import { SpotifyService } from 'src/apis/spotify/spotify.service'; */
 import { ConfigModule } from '@nestjs/config';
 
 @Module({
@@ -29,7 +30,8 @@ import { ConfigModule } from '@nestjs/config';
     LocalStrategy,
     JwtStrategy,
     SpotifyStrategy,
-    SpotifyService,
+    /* Spotify removed from Filtrgame (2022/04).
+    SpotifyService, */
   ],
   exports: [AuthService, JwtModule, PassportModule],
   controllers: [AuthController],
