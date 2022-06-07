@@ -39,7 +39,15 @@ export class AuthController {
       expires: body.expires,
     };
 
-    return this.authService.signInWithDeezer(accessData);
+    let response: any = null;
+    try {
+      response = this.authService.signInWithDeezer(accessData);
+    } catch (e) {
+      console.error(e);
+      throw new Error(e);
+    }
+
+    return response;
   }
 
   /* Spotify removed from Filtrgame (2022/04).
