@@ -18,7 +18,6 @@ export class SettingService {
 
   async findOne() {
     const setting = await this.settingsRepository.findOne();
-    setting.uri_playlist = setting.uri_playlist.split(':')[2];
 
     const campaign = await this.campaignRepository.findOne({
       status: true,
