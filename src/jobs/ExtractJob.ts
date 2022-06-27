@@ -63,10 +63,14 @@ export class ExtractJob {
     return moment(new Date()).subtract(1, 'day').format('YYYY-MM-DD');
   }
 
-  hasYesterdayExtract(date: Date, yesterday): boolean {
-    if (!date) return false;
-    const date1 = moment(date).format('YYYY-MM-DD');
-    return date1 == yesterday;
+  async isExtractPending(user: any): Promise<boolean> {
+    const extract = await this.extractRepository.findOne({
+      where: {
+        user: user,
+        date_day: this.getYesterday(),
+      },
+    });
+    return extract ? false : true;
   }
 
   async loadUsers(id: number) {
@@ -75,6 +79,7 @@ export class ExtractJob {
         deleted: false,
         situation: false,
         have_accepted: true,
+        provider: 'deezer',
         id: MoreThan(id),
       },
       take: 50,
@@ -85,13 +90,7 @@ export class ExtractJob {
   async processExtracts(users, yesterday) {
     for (const user of users) {
       try {
-        const extract = await this.extractRepository.findOne({
-          where: { user: user },
-          order: { date_day: 'DESC' },
-          select: ['date_day'],
-        });
-
-        if (!this.hasYesterdayExtract(extract.date_day, yesterday)) {
+        if (await this.isExtractPending(user)) {
           const [deposit] = await this.statementRepository.query(
             `
           SELECT SUM(amount) AS amount FROM statements WHERE DATE(CONVERT_TZ(created_at, 'UTC', 'America/Sao_Paulo')) = ? AND user_id = ? AND kind = ?
