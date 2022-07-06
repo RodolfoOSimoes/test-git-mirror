@@ -38,7 +38,7 @@ export class DeezerService {
   }
 
   public favoriteArtist(accessToken: string, id: string): Promise<boolean> {
-    return axios.post(`https://api.deezer.com/user/me/artists`, {
+    return axios.post(`https://api.deezer.com/user/me/artists`, null, {
       params: {
         access_token: accessToken,
         artist_id: id,
@@ -47,7 +47,7 @@ export class DeezerService {
   }
 
   public favoriteTrack(accessToken: string, id: string): Promise<boolean> {
-    return axios.post(`https://api.deezer.com/user/me/tracks`, {
+    return axios.post(`https://api.deezer.com/user/me/tracks`, null, {
       params: {
         access_token: accessToken,
         track_id: id,
@@ -56,7 +56,7 @@ export class DeezerService {
   }
 
   public favoriteAlbum(accessToken: string, id: string): Promise<boolean> {
-    return axios.post(`https://api.deezer.com/user/me/albums`, {
+    return axios.post(`https://api.deezer.com/user/me/albums`, null, {
       params: {
         access_token: accessToken,
         album_id: id,
@@ -65,7 +65,7 @@ export class DeezerService {
   }
 
   public favoritePlaylist(accessToken: string, id: string): Promise<boolean> {
-    return axios.post(`https://api.deezer.com/user/me/playlists`, {
+    return axios.post(`https://api.deezer.com/user/me/playlists`, null, {
       params: {
         access_token: accessToken,
         playlist_id: id,
