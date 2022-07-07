@@ -1,4 +1,4 @@
-import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { SpotifyService } from 'src/apis/spotify/spotify.service';
 import { AccomplishedQuests } from 'src/entities/accomplished-quest.entity';
 import { Campaign } from 'src/entities/campaign.entity';
@@ -16,7 +16,6 @@ import { formatDate } from 'src/utils/date.utils';
 import { PaginationService } from 'src/utils/pagination/pagination.service';
 import { LessThanOrEqual, MoreThanOrEqual } from 'typeorm';
 import { LessThan, Repository } from 'typeorm';
-import TrackNotListenedError from 'src/utils/errors/TrackNotListenedError';
 
 @Injectable()
 export class QuestService {
@@ -528,102 +527,11 @@ export class QuestService {
       }
     }
     if (kind == 'spotify_listen_track') {
-      const time = this.resolveTimeParam(query);
-
-      try {
-        await this.executeSpotifyListenTrackQuest(user, quest, campaign, time);
-      } catch (e) {
-        if (e instanceof TrackNotListenedError) {
-          return {
-            hasError: true,
-            message: 'Faixa não ouvida',
-          };
-        }
-
-        return {
-          hasError: true,
-          message: 'Erro ao executar missão',
-        };
-      }
+      // The quest type spotify_listen_track is processed by the worker.
+      return { hasError: false, message: 'ok' };
     }
 
     return { hasError: false, message: 'ok' };
-  }
-
-  private async saveQuestAsExecuted(user: any, quest: any, campaign: any) {
-    const accomplishedPromise = this.accomplishedQuestsRepository.save({
-      quest: quest,
-      user: user,
-      created_at: new Date(),
-      updated_at: new Date(),
-    });
-    const statementPromise = this.statementRepository.save({
-      user: user,
-      campaign: campaign,
-      amount: quest.score,
-      kind: 1,
-      statementable_type: 'Quest',
-      balance: 0,
-      statementable_id: quest.id,
-      expiration_date: new Date(new Date().setDate(new Date().getDate() + 90)),
-      created_at: new Date(),
-      updated_at: new Date(),
-    });
-    await Promise.all([accomplishedPromise, statementPromise]);
-  }
-
-  private async executeSpotifyListenTrackQuest(
-    user: any,
-    quest: any,
-    campaign: any,
-    time: any,
-  ) {
-    const questSpotify = await this.getQuestSpotify(quest);
-    const recentlyPlayed = await this.getSpotifyRecentlyPlayed(user, time);
-
-    if (!this.wasTrackListened(recentlyPlayed, questSpotify)) {
-      throw new TrackNotListenedError("Track not listened.");
-    }
-
-    this.saveQuestAsExecuted(user, quest, campaign);
-  }
-
-  private async getQuestSpotify(quest: any): Promise<any> {
-    return await this.questSpotifyRepository.findOne({
-      where: { quest: quest },
-    });
-  }
-
-  private async getSpotifyRecentlyPlayed(user: any, time: any): Promise<any[]> {
-    const spotifyService = new SpotifyService();
-    const response = await spotifyService.getRecentlyPlayed(
-      user.credentials['refresh_token'],
-      time,
-    );
-    return response && Array.isArray(response['items'])
-      ? response['items']
-      : [];
-  }
-
-  private wasTrackListened(recentlyPlayed: any[], questSpotify: any) {
-    const foundTrack = recentlyPlayed.find((track: any) => {
-      return track['track']['external_ids']['isrc'] == questSpotify.isrc;
-    });
-    return foundTrack ? true : false;
-  }
-
-  private resolveTimeParam(query: any) {
-    if (!query || !("time" in query)) {
-      return 0;
-    }
-
-    const time = query["time"];
-
-    if (isNaN(time)) {
-      return 0;
-    }
-
-    return time;
   }
 
   validateEmail(email) {

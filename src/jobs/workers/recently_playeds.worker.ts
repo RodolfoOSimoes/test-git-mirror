@@ -2,7 +2,9 @@
 import { DeezerService } from 'src/apis/deezer/deezer.service';
 import { breakArray } from 'src/utils/array.utils';
 import { formatDate, epochToDate } from 'src/utils/date.utils';
-import { createConnection } from 'typeorm';
+import { openConnection, getConnection } from 'src/jobs/workers/utils/database';
+import { computeSpotifyTrackListeningQuests } from 'src/jobs/workers/utils/quest';
+
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const moment = require('moment');
 
@@ -15,25 +17,9 @@ const CALLS_BY_SECOND: number = 10;
 let dbConnection: any = null;
 let deezerService: DeezerService = null;
 
-async function getConnection() {
-  return await createConnection({
-    type: 'mysql',
-    host: process.env.DB_HOST,
-    port: 3306,
-    username: process.env.DB_USER,
-    password: process.env.DB_PASS,
-    database: process.env.DB_NAME,
-    entities: [__dirname + '/../**/*.entity{.js}'],
-    synchronize: false,
-    logging: ['error'],
-    extra: {
-      connectionLimit: 20,
-    },
-  });
-}
-
 async function openDBConnection() {
-  dbConnection = await getConnection();
+  await openConnection();
+  dbConnection = getConnection();
 }
 
 function instantiateDeezerService() {
@@ -107,8 +93,7 @@ async function processUserRecentlyPlayed(user): Promise<void> {
       loadRescues(dbConnection),
     ]);
 
-    console.log(`Updating data for user: ${user.id}`);
-
+    await computeSpotifyTrackListeningQuests(user, recently, campaign);
     await prepareCashbacks(
       user,
       rescues,
@@ -677,30 +662,6 @@ function getLastHeardTime(recently): Date {
   const lastHeardTime: Date = epochToDate(last.timestamp);
 
   return lastHeardTime;
-}
-
-function prepareRecentlyPlayed(recently: any) {
-  if (!recently?.items?.length) return undefined;
-
-  return {
-    cursors: recently.cursors,
-    next: recently.next,
-    items: recently.items.map((item) => {
-      return {
-        context: item.context,
-        played_at: item.played_at,
-        track: {
-          href: item.track.href,
-          url: item.track.url,
-          uri: item.track.uri,
-          id: item.track.id,
-          duration_ms: item.track.duration_ms,
-          name: item.track.name,
-          artists: item.track.artists,
-        },
-      };
-    }),
-  };
 }
 
 (async () => {
