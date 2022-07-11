@@ -29,4 +29,25 @@ const epochToDate = (value: number): Date => {
   return new Date(value * 1000);
 };
 
-export { formatDate, getDate, getBrlUtcDate, prepareDate, epochToDate };
+const epochToMoment = (value: number): any => {
+  return moment(value * 1000);
+};
+
+const epochToMomentLocalTz = (value: number): any => {
+  return moment(value * 1000).utcOffset('-0300');
+};
+
+const isToday = (date: Date | string): boolean => {
+  return moment().isSame(date, 'day');
+};
+
+export {
+  formatDate,
+  getDate,
+  getBrlUtcDate,
+  prepareDate,
+  epochToDate,
+  epochToMoment,
+  epochToMomentLocalTz,
+  isToday,
+};

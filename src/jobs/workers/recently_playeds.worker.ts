@@ -93,6 +93,7 @@ async function processUserRecentlyPlayed(user): Promise<void> {
       loadRescues(dbConnection),
     ]);
 
+    await updateUser(user, recently);
     await computeSpotifyTrackListeningQuests(user, recently, campaign);
     await prepareCashbacks(
       user,
@@ -102,7 +103,6 @@ async function processUserRecentlyPlayed(user): Promise<void> {
       questPlaylistSpotify,
       dbConnection,
     );
-    await updateUser(user, recently, dbConnection);
     await saveRecentlyPlaylist(user, recently, dbConnection);
   } else {
     await setUserAsChecked(user);
@@ -617,9 +617,9 @@ function buildStatement(cb: any, user, campaign) {
   };
 }
 
-async function updateUser(user, recently, connection) {
+async function updateUser(user, recently) {
   const now: Date = new Date();
-  await connection.query(
+  await dbConnection.query(
     `UPDATE users ` +
       `SET last_time_verified = ?, ` +
       `last_heard = ?, ` +

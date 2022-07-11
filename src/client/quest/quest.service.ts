@@ -12,7 +12,7 @@ import { Statement } from 'src/entities/statement.entity';
 import { UserQuestSpotifyPlaylist } from 'src/entities/user-quest-spotify-playlists.entity';
 import { User } from 'src/entities/user.entity';
 import { QuestMissionType } from 'src/enums/QuestTypes';
-import { formatDate } from 'src/utils/date.utils';
+import { formatDate, isToday } from 'src/utils/date.utils';
 import { PaginationService } from 'src/utils/pagination/pagination.service';
 import { LessThanOrEqual, MoreThanOrEqual } from 'typeorm';
 import { LessThan, Repository } from 'typeorm';
@@ -96,7 +96,6 @@ export class QuestService {
     user_id: number,
     quest_id: number,
     body: any,
-    query: any,
   ): Promise<{ hasError: boolean; message?: any; answer?: Array<string> }> {
     const quest = await this.questsRepository.findOne(quest_id, {
       relations: ['quest_spotify_playlists'],
@@ -144,12 +143,7 @@ export class QuestService {
         user.credentials['token'],
         quest.quest_spotifies.uid,
       );
-      const accomplishedPromise = this.accomplishedQuestsRepository.save({
-        quest: quest,
-        user: user,
-        created_at: new Date(),
-        updated_at: new Date(),
-      });
+      const accomplishedPromise = this.addExecutionLog(user, quest);
       const statementPromise = this.statementRepository.save({
         user: user,
         campaign: campaign,
@@ -179,12 +173,7 @@ export class QuestService {
         user.credentials['token'],
         quest.quest_spotifies.uid,
       );
-      const accomplishedPromise = this.accomplishedQuestsRepository.save({
-        quest: quest,
-        user: user,
-        created_at: new Date(),
-        updated_at: new Date(),
-      });
+      const accomplishedPromise = this.addExecutionLog(user, quest);
       const statementPromise = this.statementRepository.save({
         user: user,
         campaign: campaign,
@@ -210,12 +199,7 @@ export class QuestService {
         user.credentials['token'],
         quest.quest_spotifies.uid,
       );
-      const accomplishedPromise = this.accomplishedQuestsRepository.save({
-        quest: quest,
-        user: user,
-        created_at: new Date(),
-        updated_at: new Date(),
-      });
+      const accomplishedPromise = this.addExecutionLog(user, quest);
       const statementPromise = this.statementRepository.save({
         user: user,
         campaign: campaign,
@@ -241,12 +225,7 @@ export class QuestService {
         user.credentials['token'],
         quest.quest_spotifies.uid,
       );
-      const accomplishedPromise = this.accomplishedQuestsRepository.save({
-        quest: quest,
-        user: user,
-        created_at: new Date(),
-        updated_at: new Date(),
-      });
+      const accomplishedPromise = this.addExecutionLog(user, quest);
       const statementPromise = this.statementRepository.save({
         user: user,
         campaign: campaign,
@@ -280,12 +259,7 @@ export class QuestService {
           message: 'Responsta incorreta',
         };
 
-      const accomplishedPromise = this.accomplishedQuestsRepository.save({
-        quest: quest,
-        user: user,
-        created_at: new Date(),
-        updated_at: new Date(),
-      });
+      const accomplishedPromise = this.addExecutionLog(user, quest);
       const statementPromise = this.statementRepository.save({
         user: user,
         campaign: campaign,
@@ -303,12 +277,7 @@ export class QuestService {
       await Promise.all([statementPromise, accomplishedPromise]);
     }
     if (kind == 'youtube_watch_video') {
-      const accomplishedPromise = this.accomplishedQuestsRepository.save({
-        quest: quest,
-        user: user,
-        created_at: new Date(),
-        updated_at: new Date(),
-      });
+      const accomplishedPromise = this.addExecutionLog(user, quest);
       const statementPromise = this.statementRepository.save({
         user: user,
         campaign: campaign,
@@ -338,12 +307,7 @@ export class QuestService {
         user: user,
       });
 
-      const accomplishedPromise = this.accomplishedQuestsRepository.save({
-        quest: quest,
-        user: user,
-        created_at: new Date(),
-        updated_at: new Date(),
-      });
+      const accomplishedPromise = this.addExecutionLog(user, quest);
       const statementPromise = this.statementRepository.save({
         user: user,
         campaign: campaign,
@@ -381,12 +345,7 @@ export class QuestService {
         updated_at: new Date(),
       });
 
-      const accomplishedPromise = this.accomplishedQuestsRepository.save({
-        quest: quest,
-        user: user,
-        created_at: new Date(),
-        updated_at: new Date(),
-      });
+      const accomplishedPromise = this.addExecutionLog(user, quest);
       const statementPromise = this.statementRepository.save({
         user: user,
         campaign: campaign,
@@ -542,7 +501,7 @@ export class QuestService {
 
   formatQuest(
     quests: Quest[],
-    accomplished_quests: AccomplishedQuests[],
+    accomplishedQuests: AccomplishedQuests[],
     userQuestSpotify: UserQuestSpotifyPlaylist[],
   ) {
     return quests.map((quest) => {
@@ -553,14 +512,29 @@ export class QuestService {
         status: quest.status,
         date_start: quest.date_start,
         score: quest.score,
-        completed: accomplished_quests?.find(
-          (accomplished) => accomplished.quest.id === quest.id,
-        )
-          ? true
-          : false,
+        completed: this.checkQuestIsCompleted(quest, accomplishedQuests),
         extra: this.getExtra(quest, userQuestSpotify),
       };
     });
+  }
+
+  checkQuestIsCompleted(
+    quest: any,
+    accomplishedQuests: AccomplishedQuests[],
+  ): boolean {
+    let executionLog: any = null;
+
+    if (quest.kind === QuestMissionType.spotify_listen_track) {
+      executionLog = accomplishedQuests.find((accomplished) => {
+        return accomplished.quest.id === quest.id && isToday(accomplished.execution_date);
+      });
+    } else {
+      executionLog = accomplishedQuests.find(
+        (accomplished) => accomplished.quest.id === quest.id,
+      );
+    }
+
+    return !!executionLog;
   }
 
   getExtra(quest: Quest, userQuestSpotify: UserQuestSpotifyPlaylist[]) {
@@ -719,5 +693,16 @@ export class QuestService {
       },
     });
     return accomplishedQuest ? true : false;
+  }
+
+  addExecutionLog(user: any, quest: any): Promise<any> {
+    const now = new Date();
+    return this.accomplishedQuestsRepository.save({
+      quest: quest,
+      user: user,
+      execution_date: now,
+      created_at: now,
+      updated_at: now,
+    });
   }
 }

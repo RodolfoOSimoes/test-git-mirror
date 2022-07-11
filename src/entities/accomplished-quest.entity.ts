@@ -27,6 +27,9 @@ export class AccomplishedQuests {
   user: User;
 
   @CreateDateColumn({ type: 'datetime', nullable: true })
+  execution_date: Date;
+
+  @CreateDateColumn({ type: 'datetime', nullable: true })
   created_at: Date;
 
   @UpdateDateColumn({ type: 'datetime', nullable: true })
