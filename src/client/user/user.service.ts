@@ -9,6 +9,7 @@ import { StorageService } from 'src/utils/storage/storage.service';
 import {
   LessThan,
   LessThanOrEqual,
+  Like,
   MoreThanOrEqual,
   Repository,
 } from 'typeorm';
@@ -61,7 +62,9 @@ export class UserService {
     const userData = await this.deezerService.getUser(accessData.accessToken);
 
     let user = await this.userRepository.findOne({
-      uid: userData.id,
+      where: {
+        uid: Like(userData.id),
+      },
     });
 
     if (user && user.deleted) {
