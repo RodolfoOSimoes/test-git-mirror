@@ -54,6 +54,15 @@ export class Setting {
   @Column({ type: 'boolean', default: true, nullable: true })
   enabled_splash_screen: boolean;
 
+  @Column({ type: 'boolean', default: false, nullable: false })
+  show_cookie_consent: boolean;
+
+  @Column({ type: 'varchar', length: 255, default: '', nullable: false })
+  cookie_consent_title: string;
+
+  @Column({ type: 'text', default: '', nullable: false })
+  cookie_consent_text: string;
+
   @CreateDateColumn({ type: 'datetime', nullable: true })
   created_at: string;
 
