@@ -1,12 +1,12 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { AdminService } from 'src/backoffice/admin/admin.service';
 import { Admin } from '../entities/admin.entity';
 import { AdminRole } from 'src/enums/AdminRoles';
-/* Spotify removed from Filtrgame (2022/04).
-import { SpotifyService } from 'src/apis/spotify/spotify.service'; */
 import { UserService } from 'src/client/user/user.service';
+import { User } from 'src/entities/user.entity';
+import { UserPlatform } from 'src/entities/user-platform.entity';
 
 @Injectable()
 export class AuthService {
@@ -14,9 +14,7 @@ export class AuthService {
     private adminService: AdminService,
     private jwtService: JwtService,
     private userService: UserService,
-  ) /* Spotify removed from Filtrgame (2022/04).
-    private spotifyService: SpotifyService, */
-  {}
+  ) {}
 
   async validateAdmin(email: string, password: string): Promise<any> {
     const admin = await this.adminService.findByEmail(email);
@@ -38,87 +36,25 @@ export class AuthService {
     return this.jwtService.sign(payload);
   }
 
-  /* Spotify removed from Filtrgame (2022/04).
-  async saveUser(requestInfo: any) {
-    if (!requestInfo.body) {
-      return { message: 'Necessário enviar código do spotify' };
-    }
-
-    const credentials = await this.spotifyService.authenticateUser(
-      requestInfo.body,
-    );
-
-    const userInfo = await this.spotifyService.getUserInfo(
-      credentials['access_token'],
-    );
-
-    userInfo.credentials = {
-      token: credentials['access_token'],
-      refresh_token: credentials['refresh_token'],
-      expires: true,
-      expires_in: new Date(new Date().getTime() + 3600000),
-    };
-
-    try {
-      const user = await this.userService.create(requestInfo, userInfo);
-
-      return {
-        access_token: this.jwtService.sign({
-          id: user.id,
-          email: user.email,
-          roles: 'spotify',
-        }),
-      };
-    } catch (error) {
-      throw new UnauthorizedException('Usuário deletado.');
-    }
-  }
-  */
-
-  async signInWithDeezer(accessData: any) {
-    const user = await this.userService.signInWithDeezer(accessData);
-    const accessToken = this.generateAccessToken(user);
+  async signInWithDeezer(signInData: any): Promise<any> {
+    const user: User = await this.userService.signInWithDeezer(signInData);
+    const accessToken: string = this.generateAccessToken(user);
     return { accessToken };
   }
 
-  private generateAccessToken(user: any): string {
+  async signUpWithDeezer(signUpData: any): Promise<any> {
+    const user: User = await this.userService.signUpWithDeezer(signUpData);
+    const accessToken: string = this.generateAccessToken(user);
+    return { accessToken };
+  }
+
+  private generateAccessToken(user: User): string {
     return this.jwtService.sign({
       id: user.id,
       email: user.email,
-      // Roles as 'spotify' up to full Spotify replacement.
-      roles: 'spotify',
+      roles: user.user_platforms.map(
+        (userPlatform: UserPlatform) => userPlatform.platform.code,
+      ),
     });
   }
-
-  /* Spotify removed from Filtrgame (2022/04).
-  async saveSignedInSpotifyUser(requestInfo: any) {
-    const spotifyAccessToken = requestInfo.body["access_token"];
-    const spotifyRefreshToken = requestInfo.body["refresh_token"];
-
-    const userInfo = await this.spotifyService.getUserInfo(
-      spotifyAccessToken,
-    );
-
-    userInfo.credentials = {
-      token: spotifyAccessToken,
-      refresh_token: spotifyRefreshToken,
-      expires: true,
-      expires_in: new Date(new Date().getTime() + 3600000),
-    };
-
-    try {
-      const user = await this.userService.create(requestInfo, userInfo);
-
-      return {
-        access_token: this.jwtService.sign({
-          id: user.id,
-          email: user.email,
-          roles: 'spotify',
-        }),
-      };
-    } catch (error) {
-      throw new UnauthorizedException('Usuário deletado.');
-    }
-  }
-  */
 }

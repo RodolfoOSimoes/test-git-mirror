@@ -1,6 +1,9 @@
 import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import moment from 'moment';
 import { Quest } from 'src/entities/quest.entity';
+import { Platform } from 'src/entities/platform.entity';
 import { User } from 'src/entities/user.entity';
+import { UserPlatform } from 'src/entities/user-platform.entity';
 import { Setting } from 'src/entities/setting.entity';
 import { Extract } from 'src/entities/extract.entity';
 import { DeezerService } from 'src/apis/deezer/deezer.service';
@@ -18,6 +21,14 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { Statement } from 'src/entities/statement.entity';
 import { Order } from 'src/entities/order.entity';
 import { AccomplishedQuests } from 'src/entities/accomplished-quest.entity';
+import {
+  SignInDataInterface,
+  SignUpDataInterface,
+  DeezerCredentialsInterface,
+} from 'src/etc/auth';
+import { PlatformEnum } from 'src/etc/platform';
+import { InvalidRequestException } from 'src/etc/request';
+import { UserNotFoundException } from 'src/etc/user';
 import { generateCode } from 'src/utils/code.utils';
 import { City } from 'src/entities/city.entity';
 import { Invitation } from 'src/entities/invitations.entity';
@@ -25,14 +36,16 @@ import { Campaign } from 'src/entities/campaign.entity';
 import { formatDate, prepareDate } from 'src/utils/date.utils';
 import { Withdrawal } from 'src/entities/withdrawals.entity';
 import { generateBalance } from 'src/utils/balance.utils';
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const moment = require('moment');
 
 @Injectable()
 export class UserService {
   constructor(
+    @Inject('PLATFORM_REPOSITORY')
+    private platformRepository: Repository<Platform>,
     @Inject('USER_REPOSITORY')
     private userRepository: Repository<User>,
+    @Inject('USER_PLATFORM_REPOSITORY')
+    private userPlatformRepository: Repository<UserPlatform>,
     @Inject('QUEST_REPOSITORY')
     private questRepository: Repository<Quest>,
     @Inject('SETTINGS_REPOSITORY')
@@ -58,157 +71,153 @@ export class UserService {
     private storageService: StorageService,
   ) {}
 
-  async signInWithDeezer(accessData: any): Promise<any> {
-    const userData = await this.deezerService.getUser(accessData.accessToken);
-
-    let user = await this.userRepository.findOne({
-      where: {
-        uid: Like(userData.id),
-      },
-    });
-
-    if (user && user.deleted) {
-      throw Error('User deleted');
+  async signInWithDeezer(data: SignInDataInterface): Promise<User> {
+    const deezerUser = await this.getUserFromDeezerPlatform(data.accessToken);
+    if (!deezerUser || deezerUser.error) {
+      throw new InvalidRequestException('Invalid access token');
     }
 
-    const credentials: any = {
-      token: accessData.accessToken,
-      refresh_token: '',
+    const userPlatform = await this.userPlatformRepository.findOne({
+      where: {
+        uid: Like(deezerUser.id),
+        platform: {
+          id: PlatformEnum.DEEZER,
+        },
+        user: {
+          deleted: false,
+        },
+      },
+      relations: [
+        'user',
+        'user.user_platforms',
+        'user.user_platforms.platform',
+      ],
+    });
+    if (!userPlatform) {
+      throw new UserNotFoundException('Account not found');
+    }
+
+    const user: User = userPlatform.user;
+    const credentials: DeezerCredentialsInterface = {
+      token: data.accessToken,
       expires: false,
-      expires_in: null,
     };
 
-    if (user) {
-      await this.updateCredentials(user, {
-        credentials: credentials,
-        product: null,
-      });
-    } else {
-      user = await this.createOne({
-        uid: userData.id,
-        name: userData.name,
-        email: userData.email,
-        provider: 'deezer',
-        credentials: credentials,
-        product: null,
-      });
-      await this.storeProfileImage(user, userData.picture);
-    }
-
-    this.saveAuthenticationLog(accessData, user);
+    await Promise.all([
+      this.updateUserPlatform(userPlatform, credentials),
+      this.addAuthenticationLog(user, userPlatform, data),
+    ]);
 
     return user;
   }
 
-  private async createOne(data: any) {
-    const user = new User();
-    user.name = data.name;
-    user.email = data.email;
-    user.uid = data.uid;
-    user.provider = data.provider;
-    user.credentials = data.credentials;
+  async signUpWithDeezer(data: SignUpDataInterface): Promise<any> {
+    const deezerUser = await this.getUserFromDeezerPlatform(data.accessToken);
+    if (!deezerUser || deezerUser.error) {
+      throw new InvalidRequestException('Invalid access token');
+    }
+
+    if (!(await this.isAvailableAccount(PlatformEnum.DEEZER, deezerUser.id))) {
+      throw new InvalidRequestException('Account not available');
+    }
+
+    let user: User = null;
+
+    if (data.join) {
+      // TODO: This logic is wrong.
+      // user = await this.getUserFromPlatform(
+      //   data.join.platform,
+      //   data.join.accessToken,
+      // );
+
+      // if (!user) {
+      //   throw new InvalidRequestException('Invalid association account');
+      // }
+    } else {
+      user = await this.createNewUserByDeezer(deezerUser);
+    }
+
+    const platform: Platform = await this.getPlatform(PlatformEnum.DEEZER);
+    const credentials: DeezerCredentialsInterface = {
+      token: data.accessToken,
+      expires: false,
+    };
+    const userPlatform: UserPlatform = await this.createUserPlatform(
+      user,
+      platform,
+      deezerUser.id,
+      credentials,
+    );
+
+    await this.addAuthenticationLog(user, userPlatform, data);
+
+    const fullUser: User = await this.getUserWithPlatforms(user.id);
+
+    return fullUser;
+  }
+
+  private async isAvailableAccount(platform: PlatformEnum, uid: string) {
+    const userPlatform = await this.userPlatformRepository.findOne({
+      where: {
+        uid: Like(uid),
+        platform: {
+          id: platform,
+        },
+        user: {
+          deleted: false,
+        },
+      },
+      relations: ['user', 'platform'],
+    });
+    return userPlatform ? false : true;
+  }
+
+  private async createNewUserByDeezer(deezerUser: any): Promise<User> {
+    const now: Date = new Date();
+    let user = new User();
+    user.name = deezerUser.name;
+    user.email = deezerUser.email;
+    user.uid = deezerUser.id;
+    user.provider = '';
+    user.credentials = '{}';
     user.login_count = 1;
-    user.last_time_verified = new Date().getTime();
-    user.created_at = new Date();
-    user.updated_at = new Date();
+    user.last_time_verified = 0;
     user.have_accepted = false;
     user.opt_in_mailing = false;
     user.profile_completed = false;
     user.situation = false;
-    user.situation = false;
     user.invitation_code = generateCode();
     user.balance = 0;
-    user.product = data.product;
-    return await this.userRepository.save(user);
-  }
-
-  private async updateCredentials(user: any, data: any) {
-    await this.userRepository.update(user.id, {
-      credentials: data.credentials,
-      product: data.product,
-      updated_at: new Date(),
-      last_time_checked_product: new Date(),
-    });
+    user.product = null;
+    user.created_at = now;
+    user.updated_at = now;
+    user = await this.userRepository.save(user);
+    await this.storeProfileImage(user, deezerUser.picture);
+    return user;
   }
 
   private async storeProfileImage(user, url) {
     await this.storageService.saveProfilePic(url, user.id);
   }
 
-  private async saveAuthenticationLog(accessData: any, user: any) {
+  private async addAuthenticationLog(
+    user: User,
+    userPlatform: UserPlatform,
+    data: SignInDataInterface,
+  ) {
     await this.authenticationTokenService.create(
       {
         body: {
-          access_token: accessData.accessToken,
-          expires: accessData.expires,
+          access_token: data.accessToken,
+          expires: data.expires,
         },
-        ip_address: accessData.ipAddress,
-        user_agent: accessData.userAgent,
+        ip_address: data.ipAddress,
+        user_agent: data.userAgent,
       },
       user,
+      userPlatform,
     );
   }
-
-  /* Spotify removed from Filtrgame (2022/04).
-  async create(requestInfo: any, data: any) {
-    const user = await this.userRepository.findOne({
-      uid: data['id'],
-    });
-
-    if (user && user.deleted) {
-      throw Error('Usuário deletado.');
-    }
-
-    if (user) {
-      await this.authenticationTokenService.create(requestInfo, user);
-      await this.userRepository.update(user.id, {
-        credentials: data['credentials'],
-        product: data['product'],
-        updated_at: new Date(),
-        last_time_checked_product: new Date(),
-      });
-
-      return {
-        id: user.id,
-        email: user.email,
-      };
-    }
-
-    if (!user) {
-      const newUser = new User();
-      newUser.name = data['display_name'];
-      newUser.email = data['email'];
-      newUser.uid = data['id'];
-      newUser.provider = 'spotify';
-      newUser.credentials = data['credentials'];
-      newUser.login_count = 1;
-      newUser.last_time_verified = new Date().getTime();
-      newUser.created_at = new Date();
-      newUser.updated_at = new Date();
-      newUser.have_accepted = false;
-      newUser.opt_in_mailing = false;
-      newUser.profile_completed = false;
-      newUser.situation = false;
-      newUser.situation = false;
-      newUser.invitation_code = generateCode();
-      newUser.balance = 0;
-      newUser.product = data['product'];
-
-      const savedUser = await this.userRepository.save(newUser);
-
-      await this.authenticationTokenService.create(requestInfo, savedUser);
-      await this.storageService.saveProfilePic(
-        data['images'][0]['url'],
-        savedUser.id,
-      );
-
-      return {
-        id: savedUser.id,
-        email: newUser.email,
-      };
-    }
-  }
-  */
 
   async findOne(id: number) {
     const user = await this.userRepository.findOne(id, {
@@ -426,5 +435,71 @@ export class UserService {
   getBirthDate(birthDate: string) {
     const [day, month, year] = birthDate.split('/');
     return new Date(Number(year), Number(month) - 1, Number(day));
+  }
+
+  private async getUserFromPlatform(
+    platformCode: string,
+    accessToken: string,
+  ): Promise<any> {
+    switch (platformCode) {
+      case 'deezer':
+        return await this.getUserFromDeezerPlatform(accessToken);
+      default:
+        return null;
+    }
+  }
+
+  private getUserFromDeezerPlatform(accessToken: string): Promise<any> {
+    return this.deezerService.getUser(accessToken);
+  }
+
+  private async getPlatform(platformId): Promise<Platform> {
+    return await this.platformRepository.findOne({
+      where: {
+        id: platformId,
+      },
+    });
+  }
+
+  private async createUserPlatform(
+    user: User,
+    platform: Platform,
+    uid: string,
+    credentials: DeezerCredentialsInterface,
+  ): Promise<UserPlatform> {
+    const now: Date = new Date();
+    let userPlatform: UserPlatform = new UserPlatform();
+    userPlatform.user = user;
+    userPlatform.platform = platform;
+    userPlatform.uid = uid;
+    userPlatform.credentials = credentials;
+    userPlatform.product = null;
+    userPlatform.last_product_check = now;
+    userPlatform.last_activity = null;
+    userPlatform.last_activity_processing = null;
+    userPlatform.last_access = now;
+    userPlatform.created_at = now;
+    userPlatform.updated_at = now;
+    userPlatform = await this.userPlatformRepository.save(userPlatform);
+    return userPlatform;
+  }
+
+  private async updateUserPlatform(
+    userPlatform: UserPlatform,
+    credentials: DeezerCredentialsInterface,
+  ) {
+    await this.userPlatformRepository.update(userPlatform.id, {
+      credentials: credentials,
+      last_access: new Date(),
+    });
+  }
+
+  private getUserWithPlatforms(id: number): Promise<User> {
+    return this.userRepository.findOne({
+      where: {
+        id: id,
+      },
+      relations: ['user_platforms', 'user_platforms.platform'],
+    });
   }
 }

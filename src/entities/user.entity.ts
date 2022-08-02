@@ -7,11 +7,11 @@ import {
   JoinColumn,
   ManyToOne,
   OneToMany,
-  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
   VersionColumn,
 } from 'typeorm';
+import { AccountProvider } from './account-provider.entity';
 import { Address } from './address.entity';
 import { Order } from './order.entity';
 import { Statement } from './statement.entity';
@@ -19,7 +19,6 @@ import { UserGratification } from './user-gratification.entity';
 import { CashBack } from './cash-backs.entity';
 import { Badge } from './badge.entity';
 import { AccomplishedQuests } from './accomplished-quest.entity';
-import { AccountProvider } from './account-provider.entity';
 import { Invitation } from './invitations.entity';
 import { UserChallenge } from './user-challenges.entity';
 import { PreSaveUser } from './pre-save-users.entity';
@@ -31,11 +30,12 @@ import { Withdrawal } from './withdrawals.entity';
 import { AuthenticationToken } from './authentication-token.entity';
 import { UserQuestSpotifyPlaylist } from './user-quest-spotify-playlists.entity';
 import { RescueCount } from './rescue-counts.entity';
+import { UserPlatform } from './user-platform.entity';
 
 @Entity('users')
+// @deprecated Index no longer used.
 @Index(['provider', 'email', 'uid'], { unique: true })
-@Index(['provider', 'uid'], { unique: true })
-@Index(['product'])
+@Index(['email'], { unique: true })
 export class User {
   @PrimaryGeneratedColumn()
   id: number;
@@ -46,20 +46,11 @@ export class User {
   @Column({ length: 255, nullable: true })
   email: string;
 
-  @Column({ length: 255, nullable: true })
-  provider: string;
-
   @Column({ type: 'date', nullable: true })
   birthdate: Date;
 
   @Column({ length: 20, nullable: true })
   phone: string;
-
-  @Column({ length: 255, nullable: true })
-  uid: string;
-
-  @Column({ type: 'json', nullable: true })
-  credentials: string;
 
   @Column({ type: 'int', nullable: true, default: 1 })
   login_count: number;
@@ -107,17 +98,28 @@ export class User {
   @Column({ type: 'boolean', default: false, nullable: true })
   situation: boolean;
 
+  @Column({ type: 'datetime', nullable: true })
+  last_update_extract: Date;
+
+  // @deprecated Attribute no longer used.
+  @Column({ length: 255, nullable: true })
+  uid: string;
+
+  // @deprecated Attribute no longer used.
+  @Column({ type: 'json', nullable: true })
+  credentials: string;
+
+  // @deprecated Attribute no longer used.
   @Column({ length: 255, nullable: true })
   product: string;
 
-  @Column({ type: 'datetime', nullable: true })
-  last_time_checked_product: Date;
+  // @deprecated Attribute no longer used.
+  @Column({ length: 255, nullable: true })
+  provider: string;
 
-  @Column({ type: 'datetime', nullable: true })
-  last_heard: Date;
-
-  @Column({ type: 'datetime', nullable: true })
-  last_update_extract: Date;
+    // @deprecated Account provider was depreciated.
+  @OneToMany((type) => AccountProvider, (entity) => entity.user)
+  account_providers: AccountProvider[];
 
   @OneToMany((type) => Address, (entity) => entity.user)
   addresses: Address[];
@@ -139,9 +141,6 @@ export class User {
 
   @OneToMany((type) => AccomplishedQuests, (entity) => entity.user)
   accomplished_quests: AccomplishedQuests[];
-
-  @OneToMany((type) => AccountProvider, (entity) => entity.user)
-  account_providers: AccountProvider[];
 
   @OneToMany((type) => Invitation, (entity) => entity.user)
   invitations: Invitation[];
@@ -175,4 +174,7 @@ export class User {
 
   @OneToMany((type) => RescueCount, (entity) => entity.user)
   rescue_counts: RescueCount[];
+
+  @OneToMany((type) => UserPlatform, (entity) => entity.user)
+  user_platforms: UserPlatform[];
 }

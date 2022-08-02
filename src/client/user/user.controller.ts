@@ -12,18 +12,21 @@ import {
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { UpdateTermsDto } from './dto/update-terms.dto';
+import { Roles } from 'src/auth/decorators/client.decorator';
+import { ClientGuard } from 'src/auth/guards/client.guard';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { ClientRole } from 'src/enums/ClientRoles';
 
 @Controller('v1/app/users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
-  @UseGuards(JwtAuthGuard)
+
+  @UseGuards(JwtAuthGuard, ClientGuard)
+  @Roles(ClientRole.DEEZER, ClientRole.YOUTUBE)
   @Get('me')
   findOne(@Request() req) {
-    if (req.user.roles == 'spotify')
-      return this.userService.findOne(req.user.id);
-    throw new UnauthorizedException();
+    return this.userService.findOne(req.user.id);
   }
 
   @UseGuards(JwtAuthGuard)

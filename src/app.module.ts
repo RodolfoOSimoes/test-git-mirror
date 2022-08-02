@@ -71,6 +71,8 @@ import { questPreSavesProviders } from './providers/quest-pre-saves.providers ';
 import { preSaveUsersProviders } from './providers/pre-save-user.providers';
 import { CashBackBalanceJob } from './jobs/CashBackBalanceJob';
 import { cashBackBalanceProviders } from './providers/cash-backs-balance.providers';
+import { platformProviders } from './providers/platform.providers';
+import { userPlatformProviders } from './providers/user-platform.providers';
 
 @Module({
   imports: [
@@ -168,6 +170,8 @@ import { cashBackBalanceProviders } from './providers/cash-backs-balance.provide
     ...questPreSavesProviders,
     ...preSaveUsersProviders,
     ...cashBackBalanceProviders,
+    ...platformProviders,
+    ...userPlatformProviders,
   ],
 })
 export class AppModule {}
