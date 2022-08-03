@@ -7,6 +7,7 @@ import { AdminRole } from 'src/enums/AdminRoles';
 import { UserService } from 'src/client/user/user.service';
 import { User } from 'src/entities/user.entity';
 import { UserPlatform } from 'src/entities/user-platform.entity';
+import { SignUpDataInterface } from 'src/etc/auth';
 
 @Injectable()
 export class AuthService {
@@ -42,7 +43,7 @@ export class AuthService {
     return { accessToken };
   }
 
-  async signUpWithDeezer(signUpData: any): Promise<any> {
+  async signUpWithDeezer(signUpData: SignUpDataInterface): Promise<any> {
     const user: User = await this.userService.signUpWithDeezer(signUpData);
     const accessToken: string = this.generateAccessToken(user);
     return { accessToken };

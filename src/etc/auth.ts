@@ -5,12 +5,18 @@ export interface SignInDataInterface {
   expires: boolean;
 }
 
+export interface SignUpJoinInterface {
+  platform: number;
+  accessToken: string;
+}
+
 export interface SignUpDataInterface {
   ipAddress: string;
   userAgent: string;
+  platform: number;
   accessToken: string;
   expires: boolean;
-  join?: any;
+  join?: SignUpJoinInterface;
 }
 
 export interface DeezerCredentialsInterface {

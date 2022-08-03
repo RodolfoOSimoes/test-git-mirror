@@ -37,6 +37,13 @@ import { formatDate, prepareDate } from 'src/utils/date.utils';
 import { Withdrawal } from 'src/entities/withdrawals.entity';
 import { generateBalance } from 'src/utils/balance.utils';
 
+class ExternalUser {
+  uid: string;
+  name: string;
+  email: string;
+  avatar: string;
+}
+
 @Injectable()
 export class UserService {
   constructor(
@@ -72,7 +79,7 @@ export class UserService {
   ) {}
 
   async signInWithDeezer(data: SignInDataInterface): Promise<User> {
-    const deezerUser = await this.getUserFromDeezerPlatform(data.accessToken);
+    const deezerUser = await this.getDeezerUser(data.accessToken);
     if (!deezerUser || deezerUser.error) {
       throw new InvalidRequestException('Invalid access token');
     }
@@ -111,33 +118,40 @@ export class UserService {
     return user;
   }
 
-  async signUpWithDeezer(data: SignUpDataInterface): Promise<any> {
-    const deezerUser = await this.getUserFromDeezerPlatform(data.accessToken);
-    if (!deezerUser || deezerUser.error) {
+  signUpWithDeezer(data: SignUpDataInterface): Promise<any> {
+    if (data.join) {
+      return this.joinToExistingUser(data);
+    } else {
+      return this.createNewUser(data);
+    }
+  }
+
+  private async joinToExistingUser(data: SignUpDataInterface) {
+    const newConnectionInfo: ExternalUser = await this.getExternalUser(
+      data.platform,
+      data.accessToken,
+    );
+    if (!newConnectionInfo) {
       throw new InvalidRequestException('Invalid access token');
     }
 
-    if (!(await this.isAvailableAccount(PlatformEnum.DEEZER, deezerUser.id))) {
-      throw new InvalidRequestException('Account not available');
+    const existingConnectionInfo: ExternalUser = await this.getExternalUser(
+      data.join.platform,
+      data.join.accessToken,
+    );
+    if (!existingConnectionInfo) {
+      throw new InvalidRequestException('Invalid access token to join');
+    }
+    const existingUserPlatform: UserPlatform = await this.authenticateUser(
+      data.join.platform,
+      existingConnectionInfo.uid,
+    );
+    if (!existingUserPlatform) {
+      throw new InvalidRequestException('Invalid account to join');
     }
 
-    let user: User = null;
-
-    if (data.join) {
-      // TODO: This logic is wrong.
-      // user = await this.getUserFromPlatform(
-      //   data.join.platform,
-      //   data.join.accessToken,
-      // );
-
-      // if (!user) {
-      //   throw new InvalidRequestException('Invalid association account');
-      // }
-    } else {
-      user = await this.createNewUserByDeezer(deezerUser);
-    }
-
-    const platform: Platform = await this.getPlatform(PlatformEnum.DEEZER);
+    const user: User = existingUserPlatform.user;
+    const platform: Platform = await this.getPlatform(data.platform);
     const credentials: DeezerCredentialsInterface = {
       token: data.accessToken,
       expires: false,
@@ -145,7 +159,40 @@ export class UserService {
     const userPlatform: UserPlatform = await this.createUserPlatform(
       user,
       platform,
-      deezerUser.id,
+      newConnectionInfo.uid,
+      credentials,
+    );
+
+    await this.addAuthenticationLog(user, userPlatform, data);
+
+    const fullUser: User = await this.getUserWithPlatforms(user.id);
+
+    return fullUser;
+  }
+
+  private async createNewUser(data: SignUpDataInterface): Promise<User> {
+    const externalUser = await this.getExternalUser(
+      data.platform,
+      data.accessToken,
+    );
+    if (!externalUser) {
+      throw new InvalidRequestException('Invalid access token');
+    }
+
+    if (!(await this.isAvailableAccount(data.platform, externalUser.uid))) {
+      throw new InvalidRequestException('Account not available');
+    }
+
+    const user: User = await this.createUser(externalUser);
+    const platform: Platform = await this.getPlatform(data.platform);
+    const credentials: DeezerCredentialsInterface = {
+      token: data.accessToken,
+      expires: false,
+    };
+    const userPlatform: UserPlatform = await this.createUserPlatform(
+      user,
+      platform,
+      externalUser.uid,
       credentials,
     );
 
@@ -172,12 +219,12 @@ export class UserService {
     return userPlatform ? false : true;
   }
 
-  private async createNewUserByDeezer(deezerUser: any): Promise<User> {
+  private async createUser(externalExternal: ExternalUser): Promise<User> {
     const now: Date = new Date();
     let user = new User();
-    user.name = deezerUser.name;
-    user.email = deezerUser.email;
-    user.uid = deezerUser.id;
+    user.name = externalExternal.name;
+    user.email = externalExternal.email;
+    user.uid = externalExternal.uid;
     user.provider = '';
     user.credentials = '{}';
     user.login_count = 1;
@@ -192,7 +239,7 @@ export class UserService {
     user.created_at = now;
     user.updated_at = now;
     user = await this.userRepository.save(user);
-    await this.storeProfileImage(user, deezerUser.picture);
+    await this.storeProfileImage(user, externalExternal.avatar);
     return user;
   }
 
@@ -437,22 +484,6 @@ export class UserService {
     return new Date(Number(year), Number(month) - 1, Number(day));
   }
 
-  private async getUserFromPlatform(
-    platformCode: string,
-    accessToken: string,
-  ): Promise<any> {
-    switch (platformCode) {
-      case 'deezer':
-        return await this.getUserFromDeezerPlatform(accessToken);
-      default:
-        return null;
-    }
-  }
-
-  private getUserFromDeezerPlatform(accessToken: string): Promise<any> {
-    return this.deezerService.getUser(accessToken);
-  }
-
   private async getPlatform(platformId): Promise<Platform> {
     return await this.platformRepository.findOne({
       where: {
@@ -501,5 +532,66 @@ export class UserService {
       },
       relations: ['user_platforms', 'user_platforms.platform'],
     });
+  }
+
+  private authenticateUser(
+    platformId: number,
+    uid: string,
+  ): Promise<UserPlatform> {
+    return this.userPlatformRepository.findOne({
+      where: {
+        uid: Like(uid),
+        platform: {
+          id: platformId,
+        },
+        user: {
+          deleted: false,
+        },
+      },
+      relations: [
+        'user',
+        'user.user_platforms',
+        'user.user_platforms.platform',
+      ],
+    });
+  }
+
+  private async getExternalUser(
+    platform: string | number,
+    accessToken: string,
+  ): Promise<ExternalUser> {
+    switch (platform) {
+      case 'deezer':
+      case PlatformEnum.DEEZER:
+        return await this.getDeezerUserInfo(accessToken);
+      default:
+        return await null;
+    }
+  }
+
+  private async getDeezerUserInfo(accessToken: string): Promise<ExternalUser> {
+    let deezerUser: any = null;
+    try {
+      deezerUser = await this.getDeezerUser(accessToken);
+    } catch (e) {}
+
+    let externalUser: ExternalUser = null;
+    if (deezerUser && !deezerUser.error) {
+      externalUser = new ExternalUser();
+      externalUser.uid = deezerUser.id;
+      externalUser.name = deezerUser.name;
+      externalUser.email = deezerUser.email;
+      externalUser.avatar = deezerUser.picture;
+    }
+
+    return externalUser;
+  }
+
+  private getDeezerUser(accessToken: string): Promise<any> {
+    return this.deezerService.getUser(accessToken);
+  }
+
+  private getYoutubeUser(accessToken: string): Promise<any> {
+    return null;
   }
 }
