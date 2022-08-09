@@ -7,7 +7,7 @@ import { AdminRole } from 'src/enums/AdminRoles';
 import { UserService } from 'src/client/user/user.service';
 import { User } from 'src/entities/user.entity';
 import { UserPlatform } from 'src/entities/user-platform.entity';
-import { SignUpDataInterface } from 'src/etc/auth';
+import { SignInData, SignUpData, ApiCredentials } from 'src/etc/auth';
 
 @Injectable()
 export class AuthService {
@@ -37,16 +37,20 @@ export class AuthService {
     return this.jwtService.sign(payload);
   }
 
-  async signInWithDeezer(signInData: any): Promise<any> {
-    const user: User = await this.userService.signInWithDeezer(signInData);
-    const accessToken: string = this.generateAccessToken(user);
-    return { accessToken };
+  async signIn(data: SignInData): Promise<ApiCredentials> {
+    const user: User = await this.userService.signIn(data);
+    const credentials: ApiCredentials = {
+      accessToken: this.generateAccessToken(user),
+    };
+    return credentials;
   }
 
-  async signUpWithDeezer(signUpData: SignUpDataInterface): Promise<any> {
-    const user: User = await this.userService.signUpWithDeezer(signUpData);
-    const accessToken: string = this.generateAccessToken(user);
-    return { accessToken };
+  async signUp(data: SignUpData): Promise<any> {
+    const user: User = await this.userService.signUp(data);
+    const credentials: ApiCredentials = {
+      accessToken: this.generateAccessToken(user),
+    };
+    return credentials;
   }
 
   private generateAccessToken(user: User): string {

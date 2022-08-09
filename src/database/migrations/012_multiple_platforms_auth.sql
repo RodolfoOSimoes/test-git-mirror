@@ -146,7 +146,15 @@ DROP INDEX `index_users_on_provider_and_uid` ON users;
 -- TODO: Remove table account_providers.
 
 ALTER TABLE `authentication_tokens`
-ADD COLUMN `user_platform_id` BIGINT NOT NULL;
+  CHANGE COLUMN `body` `body2` VARCHAR(255),
+  ADD COLUMN `body` VARCHAR(5000) AFTER `id`,
+  ADD COLUMN `user_platform_id` BIGINT NOT NULL;
+
+-- TODO: fill user_platform_id column and copy body2 to body.
+
+ALTER TABLE `authentication_tokens`
+  DROP COLUMN `body2`;
+
 
 -- TODO: Fix script below to add foreign key.
 -- ALTER TABLE `authentication_tokens`

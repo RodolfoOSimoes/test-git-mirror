@@ -7,6 +7,7 @@ import { UserPlatform } from 'src/entities/user-platform.entity';
 import { Setting } from 'src/entities/setting.entity';
 import { Extract } from 'src/entities/extract.entity';
 import { DeezerService } from 'src/apis/deezer/deezer.service';
+import { YoutubeService } from 'src/apis/youtube/youtube.service';
 import { AuthenticationService } from 'src/utils/authentication/authentication.service';
 import { StorageService } from 'src/utils/storage/storage.service';
 import {
@@ -22,13 +23,15 @@ import { Statement } from 'src/entities/statement.entity';
 import { Order } from 'src/entities/order.entity';
 import { AccomplishedQuests } from 'src/entities/accomplished-quest.entity';
 import {
-  SignInDataInterface,
-  SignUpDataInterface,
-  DeezerCredentialsInterface,
+  resolvePlatform,
+  SignInData,
+  SignUpData,
+  DeezerProviderCredentials,
+  GoogleProviderCredentials,
 } from 'src/etc/auth';
 import { PlatformEnum } from 'src/etc/platform';
 import { InvalidRequestException } from 'src/etc/request';
-import { UserNotFoundException } from 'src/etc/user';
+import { ExternalUser, UserNotFoundException } from 'src/etc/user';
 import { generateCode } from 'src/utils/code.utils';
 import { City } from 'src/entities/city.entity';
 import { Invitation } from 'src/entities/invitations.entity';
@@ -36,13 +39,6 @@ import { Campaign } from 'src/entities/campaign.entity';
 import { formatDate, prepareDate } from 'src/utils/date.utils';
 import { Withdrawal } from 'src/entities/withdrawals.entity';
 import { generateBalance } from 'src/utils/balance.utils';
-
-class ExternalUser {
-  uid: string;
-  name: string;
-  email: string;
-  avatar: string;
-}
 
 @Injectable()
 export class UserService {
@@ -75,50 +71,15 @@ export class UserService {
     private withdrawRepository: Repository<Withdrawal>,
     private authenticationTokenService: AuthenticationService,
     private deezerService: DeezerService,
+    private youtubeService: YoutubeService,
     private storageService: StorageService,
   ) {}
 
-  async signInWithDeezer(data: SignInDataInterface): Promise<User> {
-    const deezerUser = await this.getDeezerUser(data.accessToken);
-    if (!deezerUser || deezerUser.error) {
-      throw new InvalidRequestException('Invalid access token');
-    }
-
-    const userPlatform = await this.userPlatformRepository.findOne({
-      where: {
-        uid: Like(deezerUser.id),
-        platform: {
-          id: PlatformEnum.DEEZER,
-        },
-        user: {
-          deleted: false,
-        },
-      },
-      relations: [
-        'user',
-        'user.user_platforms',
-        'user.user_platforms.platform',
-      ],
-    });
-    if (!userPlatform) {
-      throw new UserNotFoundException('Account not found');
-    }
-
-    const user: User = userPlatform.user;
-    const credentials: DeezerCredentialsInterface = {
-      token: data.accessToken,
-      expires: false,
-    };
-
-    await Promise.all([
-      this.updateUserPlatform(userPlatform, credentials),
-      this.addAuthenticationLog(user, userPlatform, data),
-    ]);
-
-    return user;
+  signIn(data: SignInData): Promise<User> {
+    return this.authenticateUser(data);
   }
 
-  signUpWithDeezer(data: SignUpDataInterface): Promise<any> {
+  signUp(data: SignUpData): Promise<User> {
     if (data.join) {
       return this.joinToExistingUser(data);
     } else {
@@ -126,24 +87,52 @@ export class UserService {
     }
   }
 
-  private async joinToExistingUser(data: SignUpDataInterface) {
+  private async authenticateUser(data: SignInData): Promise<User> {
+    const externalUser: ExternalUser = await this.getExternalUser(
+      data.credentials,
+    );
+    if (!externalUser) {
+      throw new InvalidRequestException('Invalid credentials');
+    }
+
+    const platformId: number = resolvePlatform(data.credentials);
+
+    const userPlatform: UserPlatform = await this.findUserByUid(
+      platformId,
+      externalUser.uid,
+    );
+    if (!userPlatform) {
+      throw new UserNotFoundException('Account not found');
+    }
+
+    const user: User = userPlatform.user;
+
+    await Promise.all([
+      this.updateUserPlatform(userPlatform, data.credentials),
+      this.addAuthenticationLog(user, userPlatform, data),
+    ]);
+
+    return user;
+  }
+
+  private async joinToExistingUser(data: SignUpData): Promise<User> {
     const newConnectionInfo: ExternalUser = await this.getExternalUser(
-      data.platform,
-      data.accessToken,
+      data.credentials,
     );
     if (!newConnectionInfo) {
-      throw new InvalidRequestException('Invalid access token');
+      throw new InvalidRequestException('Invalid credentials');
     }
 
     const existingConnectionInfo: ExternalUser = await this.getExternalUser(
-      data.join.platform,
-      data.join.accessToken,
+      data.join,
     );
     if (!existingConnectionInfo) {
-      throw new InvalidRequestException('Invalid access token to join');
+      throw new InvalidRequestException('Invalid account to join');
     }
-    const existingUserPlatform: UserPlatform = await this.authenticateUser(
-      data.join.platform,
+
+    const existingPlatformId: number = resolvePlatform(data.join);
+    const existingUserPlatform: UserPlatform = await this.findUserByUid(
+      existingPlatformId,
       existingConnectionInfo.uid,
     );
     if (!existingUserPlatform) {
@@ -151,49 +140,40 @@ export class UserService {
     }
 
     const user: User = existingUserPlatform.user;
-    const platform: Platform = await this.getPlatform(data.platform);
-    const credentials: DeezerCredentialsInterface = {
-      token: data.accessToken,
-      expires: false,
-    };
+    const platformId: number = resolvePlatform(data.credentials);
+    const platform: Platform = await this.getPlatform(platformId);
     const userPlatform: UserPlatform = await this.createUserPlatform(
       user,
       platform,
       newConnectionInfo.uid,
-      credentials,
+      data.credentials,
     );
 
     await this.addAuthenticationLog(user, userPlatform, data);
-
     const fullUser: User = await this.getUserWithPlatforms(user.id);
 
     return fullUser;
   }
 
-  private async createNewUser(data: SignUpDataInterface): Promise<User> {
-    const externalUser = await this.getExternalUser(
-      data.platform,
-      data.accessToken,
-    );
+  private async createNewUser(data: SignUpData): Promise<User> {
+    const externalUser = await this.getExternalUser(data.credentials);
     if (!externalUser) {
-      throw new InvalidRequestException('Invalid access token');
+      throw new InvalidRequestException('Invalid credentials');
     }
 
-    if (!(await this.isAvailableAccount(data.platform, externalUser.uid))) {
+    const platformId: number = resolvePlatform(data.credentials);
+
+    if (!(await this.isAvailableAccount(platformId, externalUser.uid))) {
       throw new InvalidRequestException('Account not available');
     }
 
     const user: User = await this.createUser(externalUser);
-    const platform: Platform = await this.getPlatform(data.platform);
-    const credentials: DeezerCredentialsInterface = {
-      token: data.accessToken,
-      expires: false,
-    };
+    const platform: Platform = await this.getPlatform(platformId);
     const userPlatform: UserPlatform = await this.createUserPlatform(
       user,
       platform,
       externalUser.uid,
-      credentials,
+      data.credentials,
     );
 
     await this.addAuthenticationLog(user, userPlatform, data);
@@ -250,14 +230,11 @@ export class UserService {
   private async addAuthenticationLog(
     user: User,
     userPlatform: UserPlatform,
-    data: SignInDataInterface,
+    data: SignInData,
   ) {
     await this.authenticationTokenService.create(
       {
-        body: {
-          access_token: data.accessToken,
-          expires: data.expires,
-        },
+        body: JSON.stringify(data),
         ip_address: data.ipAddress,
         user_agent: data.userAgent,
       },
@@ -496,7 +473,7 @@ export class UserService {
     user: User,
     platform: Platform,
     uid: string,
-    credentials: DeezerCredentialsInterface,
+    credentials: DeezerProviderCredentials | GoogleProviderCredentials,
   ): Promise<UserPlatform> {
     const now: Date = new Date();
     let userPlatform: UserPlatform = new UserPlatform();
@@ -517,7 +494,7 @@ export class UserService {
 
   private async updateUserPlatform(
     userPlatform: UserPlatform,
-    credentials: DeezerCredentialsInterface,
+    credentials: DeezerProviderCredentials | GoogleProviderCredentials,
   ) {
     await this.userPlatformRepository.update(userPlatform.id, {
       credentials: credentials,
@@ -534,7 +511,7 @@ export class UserService {
     });
   }
 
-  private authenticateUser(
+  private findUserByUid(
     platformId: number,
     uid: string,
   ): Promise<UserPlatform> {
@@ -557,13 +534,17 @@ export class UserService {
   }
 
   private async getExternalUser(
-    platform: string | number,
-    accessToken: string,
+    credentials: DeezerProviderCredentials | GoogleProviderCredentials,
   ): Promise<ExternalUser> {
-    switch (platform) {
+    switch (credentials.provider) {
       case 'deezer':
-      case PlatformEnum.DEEZER:
-        return await this.getDeezerUserInfo(accessToken);
+        return await this.getDeezerUserInfo(
+          (credentials as DeezerProviderCredentials).accessToken,
+        );
+      case 'google':
+        return await this.getYoutubeUserInfo(
+          credentials as GoogleProviderCredentials,
+        );
       default:
         return await null;
     }
@@ -587,11 +568,31 @@ export class UserService {
     return externalUser;
   }
 
+  private async getYoutubeUserInfo(
+    credentials: GoogleProviderCredentials,
+  ): Promise<ExternalUser> {
+    let youtubeUser: any = null;
+    try {
+      youtubeUser = await this.getYoutubeUser(credentials);
+    } catch (e) {}
+
+    let externalUser: ExternalUser = null;
+    if (youtubeUser) {
+      externalUser = new ExternalUser();
+      externalUser.uid = youtubeUser.id;
+      externalUser.name = youtubeUser.name;
+      externalUser.email = youtubeUser.email;
+      externalUser.avatar = youtubeUser.picture;
+    }
+
+    return externalUser;
+  }
+
   private getDeezerUser(accessToken: string): Promise<any> {
     return this.deezerService.getUser(accessToken);
   }
 
-  private getYoutubeUser(accessToken: string): Promise<any> {
-    return null;
+  private getYoutubeUser(credentials: GoogleProviderCredentials): Promise<any> {
+    return this.youtubeService.getUser(credentials);
   }
 }

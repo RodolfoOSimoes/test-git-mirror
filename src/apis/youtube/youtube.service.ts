@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import axios from 'axios';
 import { google } from 'googleapis';
 
 @Injectable()
@@ -32,5 +33,20 @@ export class YoutubeService {
       const result = url.split('watch?v=')[1];
       return result.split('&')[0];
     } else throw new Error('Invalid URL: ' + url);
+  }
+
+  getUser(credentials: any): Promise<any> {
+    return axios.get('https://www.googleapis.com/userinfo/v2/me', {
+      headers: {
+        Authorization: `Bearer ${credentials['access_token']}`,
+      },
+    })
+    .then((response: any) => response.data);
+  }
+
+  revokeAccessToken(credentials: any) {
+    return axios.post('https://oauth2.googleapis.com/revoke', {
+      token: credentials['refresh_token'],
+    });
   }
 }

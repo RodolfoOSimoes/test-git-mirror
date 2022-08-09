@@ -12,3 +12,10 @@ export class UserNotFoundException extends HttpException {
     );
   }
 }
+
+export class ExternalUser {
+  uid: string;
+  name: string;
+  email: string;
+  avatar: string;
+}
