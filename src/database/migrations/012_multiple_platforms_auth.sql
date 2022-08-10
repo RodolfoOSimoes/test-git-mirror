@@ -150,7 +150,41 @@ ALTER TABLE `authentication_tokens`
   ADD COLUMN `body` VARCHAR(5000) AFTER `id`,
   ADD COLUMN `user_platform_id` BIGINT NOT NULL;
 
--- TODO: fill user_platform_id column and copy body2 to body.
+-- Fills user_platform_id column and copy body2 to body.
+
+DROP PROCEDURE IF EXISTS adjust_authentication_tokens_data;
+
+DELIMITER $$
+CREATE PROCEDURE adjust_authentication_tokens_data()
+BEGIN
+  DECLARE current_user_id BIGINT;
+    DECLARE current_uthentication_tokens_id BIGINT;
+    DECLARE done INT DEFAULT 0;
+  DECLARE authentication_tokens_cursor CURSOR FOR SELECT `id`, `user_id` FROM `authentication_tokens`;
+  DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
+
+    OPEN authentication_tokens_cursor;
+
+  main_loop: LOOP
+    FETCH authentication_tokens_cursor INTO current_uthentication_tokens_id, current_user_id;
+        IF done = 1 THEN
+      LEAVE main_loop;
+        END IF;
+    SELECT `id` INTO @user_platform_id FROM `users_platforms` WHERE `user_id` = current_user_id LIMIT 1;
+        UPDATE `authentication_tokens` SET `user_platform_id` = @user_platform_id where `user_id` = current_user_id;
+    END LOOP main_loop;
+
+    CLOSE authentication_tokens_cursor;
+  
+  UPDATE `authentication_tokens` SET `body` = `body2` WHERE id > 0;
+END $$
+DELIMITER ;
+
+CALL adjust_authentication_tokens_data();
+
+DROP PROCEDURE IF EXISTS adjust_authentication_tokens_data;
+
+-- Delete temporary column body2.
 
 ALTER TABLE `authentication_tokens`
   DROP COLUMN `body2`;
